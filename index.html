@@ -3732,8 +3732,8 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
       <div id="sb-type-tabs">
         <button class="sb-type-tab active" data-libtype="all"   onclick="setLibType('all',this)">ALL</button>
         <button class="sb-type-tab"        data-libtype="music" onclick="setLibType('music',this)">♪ MUSIC</button>
-        <button class="sb-type-tab"        data-libtype="game"  onclick="setLibType('game',this)">⚙ GAMES</button>
-        <button class="sb-type-tab"        data-libtype="movie" onclick="setLibType('movie',this)">▶ FILMS/TV</button>
+        <button class="sb-type-tab"        data-libtype="game"  onclick="setLibType('game',this)">⚙ GAMES <span style="font-size:5px;color:#f90;border:1px solid #f90;padding:0 2px;vertical-align:middle;letter-spacing:1px;">WIP</span></button>
+        <button class="sb-type-tab"        data-libtype="movie" onclick="setLibType('movie',this)">▶ FILMS/TV <span style="font-size:5px;color:#f90;border:1px solid #f90;padding:0 2px;vertical-align:middle;letter-spacing:1px;">WIP</span></button>
       </div>
 
       <!-- ── Collapsible advanced filters ── -->
@@ -3979,8 +3979,8 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
         <span class="lv-lbl">TYPE</span>
         <button class="lv-chip lv-active" data-lvtype="all"   onclick="lvSetType('all',this)">ALL</button>
         <button class="lv-chip"           data-lvtype="music" onclick="lvSetType('music',this)">♪ MUSIC</button>
-        <button class="lv-chip"           data-lvtype="game"  onclick="lvSetType('game',this)">⚙ GAMES</button>
-        <button class="lv-chip"           data-lvtype="movie" onclick="lvSetType('movie',this)">▶ FILM / TV</button>
+        <button class="lv-chip"           data-lvtype="game"  onclick="lvSetType('game',this)">⚙ GAMES <span style="font-size:5px;color:#f90;border:1px solid #f90;padding:0 2px;vertical-align:middle;letter-spacing:1px;">WIP</span></button>
+        <button class="lv-chip"           data-lvtype="movie" onclick="lvSetType('movie',this)">▶ FILM / TV <span style="font-size:5px;color:#f90;border:1px solid #f90;padding:0 2px;vertical-align:middle;letter-spacing:1px;">WIP</span></button>
 
         <div class="lv-sep"></div>
 
@@ -4307,8 +4307,8 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     <!-- Source tabs -->
     <div id="ms-tabs" style="display:flex;gap:4px;margin-bottom:8px;">
       <button class="mb-type-btn active" id="ms-tab-music"  onclick="msSetTab('music',this)">♪ MUSIC</button>
-      <button class="mb-type-btn"        id="ms-tab-games"  onclick="msSetTab('games',this)">⚙ GAMES</button>
-      <button class="mb-type-btn"        id="ms-tab-movies" onclick="msSetTab('movies',this)">▶ MOVIES / TV</button>
+      <button class="mb-type-btn"        id="ms-tab-games"  onclick="msSetTab('games',this)">⚙ GAMES <span style="font-size:6px;letter-spacing:1px;color:#f90;border:1px solid #f90;padding:0 3px;margin-left:2px;vertical-align:middle;">WIP</span></button>
+      <button class="mb-type-btn"        id="ms-tab-movies" onclick="msSetTab('movies',this)">▶ MOVIES / TV <span style="font-size:6px;letter-spacing:1px;color:#f90;border:1px solid #f90;padding:0 3px;margin-left:2px;vertical-align:middle;">WIP</span></button>
     </div>
 
     <!-- No setup needed for games — OpenCritic is keyless and CORS-friendly -->
@@ -4332,6 +4332,14 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
       <button class="mb-type-btn active" data-type="ep"          onclick="mbToggleType('ep',this)">EP</button>
       <button class="mb-type-btn active" data-type="compilation" onclick="mbToggleType('compilation',this)">COMPILATION</button>
       <button class="mb-type-btn active" data-type="live"        onclick="mbToggleType('live',this)">LIVE</button>
+    </div>
+
+    <!-- WIP notices — shown when games or movies tab is active -->
+    <div id="ms-wip-games" style="display:none;margin-bottom:8px;padding:7px 10px;background:repeating-linear-gradient(45deg,#1a1500,#1a1500 6px,#1d1800 6px,#1d1800 12px);border:1px solid #f90;font-family:var(--mono);font-size:7px;letter-spacing:1px;line-height:1.8;color:var(--text-dim);">
+      <span style="color:#f90;font-weight:700;">🚧 WORK IN PROGRESS</span> — Games search is functional but cover art loading is unreliable and metadata may be incomplete. Results depend on OpenCritic availability.
+    </div>
+    <div id="ms-wip-movies" style="display:none;margin-bottom:8px;padding:7px 10px;background:repeating-linear-gradient(45deg,#1a1500,#1a1500 6px,#1d1800 6px,#1d1800 12px);border:1px solid #f90;font-family:var(--mono);font-size:7px;letter-spacing:1px;line-height:1.8;color:var(--text-dim);">
+      <span style="color:#f90;font-weight:700;">🚧 WORK IN PROGRESS</span> — Movies &amp; TV search requires a TMDB API key. Poster loading and metadata may be inconsistent. Feature needs further polish.
     </div>
 
     <div id="mb-search-row">
@@ -7393,6 +7401,9 @@ function msSetTab(tab, btn) {
   // Show setup banners when key is missing for that tab
   const _tmdbOk  = !!localStorage.getItem('mt_tmdb_key');
   document.getElementById('ms-key-tmdb').style.display  = (tab === 'movies' && !_tmdbOk)  ? '' : 'none';
+  // WIP banners
+  document.getElementById('ms-wip-games').style.display  = tab === 'games'  ? '' : 'none';
+  document.getElementById('ms-wip-movies').style.display = tab === 'movies' ? '' : 'none';
   // Update placeholder
   const ph = { music: 'artist — album…', games: 'game title…', movies: 'movie or show title…' };
   document.getElementById('mb-search-input').placeholder = ph[tab] || 'Search…';
