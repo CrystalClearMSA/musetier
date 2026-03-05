@@ -12,7 +12,7 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
-html { zoom: 1.5; }
+html { zoom: 1.25; }
 #topbar, #app-body, #sidebar, #content-area { position: relative; z-index: 2; }
 
 :root {
@@ -256,9 +256,9 @@ body {
 #topbar {
   display: flex;
   align-items: center;
-  height: 40px;
-  padding: 0 10px;
-  gap: 4px;
+  height: 44px;
+  padding: 0 12px;
+  gap: 5px;
   flex-shrink: 0;
   background: #050505;
   border-bottom: 1px solid var(--border);
@@ -278,18 +278,18 @@ body {
 
 #logo {
   font-family: var(--head);
-  font-size: 15px; font-weight: 900;
-  letter-spacing: 3px; text-transform: uppercase;
+  font-size: 17px; font-weight: 900;
+  letter-spacing: 4px; text-transform: uppercase;
   color: var(--accent); white-space: nowrap;
-  margin-right: 2px; flex-shrink: 0;
+  margin-right: 4px; flex-shrink: 0;
 }
 #logo span { animation: blink 1s step-end infinite; }
 
 #logo-credit {
   font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 1px;
-  color: var(--accent);
+  font-size: 7px;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
   white-space: nowrap;
   flex-shrink: 0;
   margin-right: 2px;
@@ -300,12 +300,12 @@ body {
 
 .settings-credit {
   text-align: center;
-  margin-top: 12px;
+  margin-top: 10px;
   font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 2px;
+  font-size: 7px;
+  letter-spacing: 1.5px;
   color: var(--text-dim);
-  opacity: 0.8;
+  opacity: 0.55;
 }
 .settings-credit a {
   color: var(--accent);
@@ -327,8 +327,8 @@ body {
   border: 1px solid var(--border);
   color: var(--text-dim);
   font-family: var(--mono);
-  font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase;
-  padding: 3px 10px; cursor: pointer; white-space: nowrap;
+  font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+  padding: 4px 12px; cursor: pointer; white-space: nowrap;
   transition: all 0.12s;
   position: relative;
 }
@@ -346,14 +346,14 @@ body {
 .app-tab.tab-gen.active { color: var(--accent-gen); border-color: var(--accent-gen); }
 .app-tab.tab-gen.active::after { background: var(--accent-gen); }
 
-.tb-right { margin-left: auto; display: flex; gap: 4px; flex-shrink: 0; align-items: center; }
+.tb-right { margin-left: auto; display: flex; gap: 5px; flex-shrink: 0; align-items: center; }
 
 .btn {
   background: transparent;
   border: 1px solid var(--border-hi);
   color: var(--text);
-  font-family: var(--mono); font-size: 8px; letter-spacing: 1px;
-  text-transform: uppercase; padding: 3px 8px;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 4px 9px;
   cursor: pointer; white-space: nowrap; flex-shrink: 0;
   transition: all 0.1s;
   text-decoration: none; display: inline-flex; align-items: center;
@@ -367,7 +367,7 @@ body {
 .btn-gen:hover { background: var(--accent-gen); color: var(--bg); }
 .btn-danger { border-color: var(--accent2); color: var(--accent2); }
 .btn-danger:hover { background: var(--accent2); color: #fff; }
-.btn-icon { padding: 3px 6px; font-size: 10px; border-color: var(--border); color: var(--text-dim); }
+.btn-icon { padding: 4px 7px; font-size: 11px; border-color: var(--border); color: var(--text-dim); }
 .btn-icon:hover { color: var(--accent); border-color: var(--accent); background: var(--panel2); }
 .btn-donate {
   border-color: #ff6b8a;
