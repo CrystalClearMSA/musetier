@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="original" data-light="0">
+<html lang="en" data-theme="bare" data-light="0">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -4597,7 +4597,7 @@ document.addEventListener('pointerdown', e => {
 });
 
 
-let currentTheme = 'original', currentLight = 0;
+let currentTheme = 'bare', currentLight = 0;
 let globalLabelText = 'auto';
 let _tileSizePx  = '80';   // cached tile slider value — avoids DOM read on every save
 let _labelSizePx = '96';   // cached label slider value
@@ -4629,8 +4629,7 @@ window.addEventListener('beforeunload', () => urlRegistry.forEach(u => URL.revok
 
 
 const THEMES = [
-  {id:'original', label:'ORIGINAL',    bg:'#0c0c0c', accent:'#d4ff00'},
-  {id:'bare',     label:'BARE',        bg:'#ffffff', accent:'#000000'},
+  {id:'bare',     label:'DEFAULT',     bg:'#1a1a1a', accent:'#ffffff'},
   {id:'poetic',   label:'POETIC',      bg:'#fdf6ee', accent:'#8b4513'},
   {id:'win98',    label:'WIN 98',      bg:'#008080', accent:'#000080'},
   {id:'winxp',    label:'WIN XP',      bg:'#3a6ea5', accent:'#003c74'},
@@ -4640,12 +4639,13 @@ const THEMES = [
   {id:'military', label:'MILITARY',    bg:'#1a1e12', accent:'#a8c040'},
   {id:'medieval', label:'MEDIEVAL',    bg:'#1a1208', accent:'#c8943c'},
   {id:'matrix',   label:'MATRIX',      bg:'#000000', accent:'#00ff41'},
-  {id:'blueprint',label:'CORE',   bg:'#0a2848', accent:'#80c0ff'},
+  {id:'blueprint',label:'CORE',        bg:'#0a2848', accent:'#80c0ff'},
   {id:'solarized',label:'SOLARIZED',   bg:'#002b36', accent:'#268bd2'},
   {id:'grunge',   label:'GRUNGE',      bg:'#1a1208', accent:'#d4583a'},
   {id:'cyberpunk',label:'CYBERPUNK',   bg:'#0a0a14', accent:'#f0e000'},
   {id:'midnight', label:'MIDNIGHT',    bg:'#050712', accent:'#7f5cff'},
   {id:'pastel',   label:'PASTEL',      bg:'#30283a', accent:'#f8c2ff'},
+  {id:'original', label:'ARCHIVE',     bg:'#0c0c0c', accent:'#d4ff00'},
 ];
 
 // also add cinema if present - keep it for backward compat
