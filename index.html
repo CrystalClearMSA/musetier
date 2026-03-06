@@ -9718,7 +9718,14 @@ function renderBracket() {
         const nm = document.createElement('div');
         nm.className = 'bm-slot-name';
         nm.style.cssText = 'text-align:center;font-size:14px;white-space:normal;letter-spacing:1px;font-weight:bold;';
-        nm.textContent = slot.name || 'CHAMPION';
+        // In aux battle, show the contestant's name rather than the song name
+        let champDisplay = slot.name || 'CHAMPION';
+        if (auxActive && slot.name) {
+          const aNames = bracketRounds[0].map(m => m.slots[0].name).filter(Boolean);
+          const champSide = aNames.includes(slot.name) ? 'a' : 'b';
+          champDisplay = auxNames[champSide] || slot.name;
+        }
+        nm.textContent = champDisplay;
         s.append(crown, nm);
         s.addEventListener('click', () => openSlotEditor(r, m, 0));
         node.appendChild(s);
@@ -10680,20 +10687,23 @@ function matchupPick(si) {
         // Pan to champion (880ms travel + 620ms pause + ~2200ms entrance) then toast
         _panAndRevealChampion();
         setTimeout(() => {
-          toast(`🏆 CHAMPION: ${champName}`, 'success', 4000);
           if (auxActive) {
+            const aNames = bracketRounds[0].map(m => m.slots[0].name).filter(Boolean);
+            const champSide = aNames.includes(champName) ? 'a' : 'b';
+            const champContestant = auxNames[champSide];
+            toast(`👑 ${champContestant} WINS! (${champName})`, 'success', 4000);
             if (auxWinMode === 'bracket' || auxWinMode === 'fusion') {
-              const aNames = bracketRounds[0].map(m => m.slots[0].name).filter(Boolean);
-              const champSide = aNames.includes(champName) ? 'a' : 'b';
               if (auxWinMode === 'fusion') {
                 setTimeout(() => toast(`⚡ FUSION FINAL — ${auxNames.a}: ${auxScores.a}pts · ${auxNames.b}: ${auxScores.b}pts`, 'success', 5500), 900);
               } else {
-                setTimeout(() => toast(`🏆 BRACKET WINNER: ${auxNames[champSide]} (${champName})`, 'success', 5000), 900);
+                setTimeout(() => toast(`🏆 BRACKET WINNER: ${champContestant} (${champName})`, 'success', 5000), 900);
               }
             } else {
               const scoreWinner = auxScores.a >= auxScores.b ? auxNames.a : auxNames.b;
               setTimeout(() => toast(`🥇 SCORE WINNER: ${scoreWinner}  (${auxNames.a} ${auxScores.a}pts · ${auxNames.b} ${auxScores.b}pts)`, 'success', 5500), 900);
             }
+          } else {
+            toast(`🏆 CHAMPION: ${champName}`, 'success', 4000);
           }
         }, 1800); // after pan+suspense settle
       } else {
