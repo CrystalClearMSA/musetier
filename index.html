@@ -12,6 +12,10 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
+/* FIX: use dynamic viewport height on mobile to prevent content collapse */
+@supports (height: 100dvh) {
+  html, body { height: 100dvh; max-height: 100dvh; }
+}
 
 #topbar, #app-body, #sidebar, #content-area { position: relative; z-index: 2; }
 
@@ -474,6 +478,7 @@ label.btn { cursor: pointer; }
   padding: 6px 10px; cursor: pointer;
   transition: background 0.1s;
   user-select: none;
+  touch-action: manipulation; /* FIX: faster tap on mobile */
 }
 .tree-artist-row:hover { background: var(--panel2); }
 .tree-chevron { font-size: 11px; color: var(--text-dim); transition: transform 0.15s; flex-shrink: 0; }
@@ -487,6 +492,7 @@ label.btn { cursor: pointer; }
   padding: 5px 10px 5px 22px; cursor: pointer;
   border-left: 2px solid transparent;
   transition: all 0.1s;
+  touch-action: manipulation; /* FIX: faster tap on mobile */
 }
 .tree-album-row:hover { background: var(--panel2); border-left-color: var(--border-hi); }
 .tree-album-row.selected { background: var(--panel2); border-left-color: var(--accent-lib); color: var(--accent-lib); }
@@ -915,6 +921,7 @@ label.btn { cursor: pointer; }
   font-size: 12px; color: var(--text-dim);
   transition: background .1s, color .1s;
   user-select: none;
+  touch-action: manipulation; /* FIX: prevents 300ms tap delay on mobile */
 }
 .tree-track-item:active { cursor: grabbing; }
 .tree-track-item:hover { background: var(--panel3); color: var(--text); }
@@ -3797,7 +3804,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   #aux-role-pill { order: 5; flex-shrink: 0; }
 
   /* ── App body ── */
-  #app-body { flex-direction: row; }
+  #app-body { flex-direction: row; flex: 1; min-height: 0; }
 
   /* ── Sidebar → left slide-in drawer ── */
   #sidebar {
@@ -3983,10 +3990,38 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   #gen-config-col { max-height: 40vh; }
 }
 
+/* ── Build version badge ── */
+#build-badge {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px;
+  color: var(--text-dim); opacity: 0.45; padding: 2px 5px;
+  border: 1px solid var(--border); border-radius: 2px;
+  white-space: nowrap; flex-shrink: 0; cursor: default;
+  transition: opacity 0.15s;
+}
+#build-badge:hover { opacity: 0.9; }
+@media (max-width: 768px) { #build-badge { display: none; } }
+
 </style>
 </head>
 <body>
 <canvas id="fx-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity 0.9s ease"></canvas>
+
+<!--
+  ╔══════════════════════════════════════════════════════════╗
+  ║  MUSETIER BUILD LOG — for continuity across AI sessions  ║
+  ║  Current build: 1.1                                      ║
+  ║  Released: 2026-03-07                                    ║
+  ║                                                          ║
+  ║  CHANGELOG (increment build # for each session change):  ║
+  ║  1.0.9 — baseline build as received                      ║
+  ║  1.1   — mobile fix: content visibility (dvh height),    ║
+  ║           pool touch drag (non-passive touchstart),       ║
+  ║           sidebar tap-to-add tracks, touch-action on     ║
+  ║           tree rows; bracket drag-drop fix (window.drag- ║
+  ║           ged not set for desktop drags, text-only items  ║
+  ║           and blob URL handling improved)                 ║
+  ╚══════════════════════════════════════════════════════════╝
+-->
 
 <!-- ═══════════════════════════════════════════
      TOPBAR
@@ -3994,6 +4029,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 <div id="topbar">
   <div id="logo">MUSE<span>_</span>TIER</div>
   <div id="logo-credit"></div>
+  <span id="build-badge" title="MuseTier build version">v1.1</span>
   <button class="btn btn-lib" id="mobile-lib-btn" onclick="mobileLibToggle()" title="Library">☰ LIB</button>
   <div class="tb-sep"></div>
   <div id="app-tabs">
@@ -5614,6 +5650,7 @@ function endDrag() {
   if (dragged) dragged.classList.remove('dragging');
   if (placeholder) { placeholder.remove(); placeholder = null; }
   dragged    = null;
+  window.dragged = null;                       // FIX: clear window.dragged alongside local var
   dragOrigin = null;
   invalidateRectCache();
   document.querySelectorAll('.dz-over').forEach(z => z.classList.remove('dz-over'));
@@ -5631,6 +5668,7 @@ function setupDraggable(item) {
   item.addEventListener('dragstart', e => {
     e.stopPropagation();                       // prevent bubbling to tier-row dragstart
     dragged    = item;
+    window.dragged = item;                     // FIX: also expose on window for bracket drop handler
     dragOrigin = item.parentElement;
     item.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
@@ -6536,6 +6574,22 @@ function renderLibTree() {
             if (album.coverDataUrl) {
               const img = new Image(); img.onload = function() { _drawGhost(img); }; img.onerror = function() { _drawGhost(null); }; img.src = album.coverDataUrl;
             } else { _drawGhost(null); }
+          });
+
+          // FIX: tap-to-add track to pool on mobile (drag is broken on iOS/Android)
+          ti.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const src = album.coverDataUrl || '';
+            const item = createItem(src, t.title, t.title);
+            if (album.coverDataUrl) item.dataset.dataUrl = album.coverDataUrl;
+            item.dataset.genKey = ak + ':' + alKey + ':' + i;
+            if (!catStore.has(ak)) catStore.set(ak, []);
+            catStore.get(ak).push({ item, bitmap: null });
+            setupDraggable(item);
+            pool.appendChild(item);
+            updatePoolCount(); renderCatBar(); save();
+            toast('Added to pool', 'info', 900);
+            if (window.matchMedia('(max-width:768px)').matches) mobileLibClose();
           });
 
           trackList.appendChild(ti);
@@ -10032,8 +10086,13 @@ function renderBracket() {
             if (window.dragged) {
               const el  = window.dragged;
               const img = el.querySelector('img');
-              if (!img) return;
-              bracketRounds[r][m].slots[si] = { name: img.alt || img.title || 'Entrant', src: img.src, seed: bracketRounds[r][m].slots[si].seed };
+              const lbl = el.querySelector('.item-lbl');
+              // FIX: support text-only items and prefer stored data URL over ephemeral blob
+              const name = (lbl && lbl.textContent.trim()) || (img && (img.alt || img.title)) || 'Entrant';
+              const src  = el.dataset.dataUrl ||
+                           (img && img.src && !img.src.startsWith('blob:') ? img.src : null) ||
+                           (img && img.src) || null;
+              bracketRounds[r][m].slots[si] = { name, src: src || null, seed: bracketRounds[r][m].slots[si].seed };
               auxBroadcastSlot(r, m, si, bracketRounds[r][m].slots[si]);
               saveBracketData(); renderBracket();
             }
@@ -13645,10 +13704,11 @@ function mobileLibClose() {
     if (!_isMobile()) return;
     const item = e.target.closest('.item');
     if (!item || e.target.closest('.item-rm')) return;
+    e.preventDefault(); // FIX: prevent scroll initiation so drag can start reliably
     const touch = e.touches[0];
     _tdStartX = touch.clientX; _tdStartY = touch.clientY;
     _tdTimer = setTimeout(function() { _tdTimer = null; _begin(item, touch); }, LONG_PRESS);
-  }, { passive: true });
+  }, { passive: false }); // FIX: non-passive so preventDefault works
 
   document.addEventListener('touchmove', function(e) {
     const touch = e.touches[0];
