@@ -3678,15 +3678,51 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 #mobile-sidebar-backdrop {
   display: none;
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.65);
+  background: rgba(0,0,0,0.55);
   z-index: 250;
-  backdrop-filter: blur(2px);
   -webkit-tap-highlight-color: transparent;
 }
 #mobile-sidebar-backdrop.visible { display: block; }
 
 /* Mobile library button (only shown on mobile) */
 #mobile-lib-btn { display: none; }
+
+/* Mobile sidebar close button — only shown in mobile drawer */
+#sb-mobile-close {
+  display: none;
+}
+@media (max-width: 768px) {
+  #sb-mobile-close {
+    display: flex;
+    align-items: center; justify-content: center;
+    position: absolute; top: 8px; right: 8px;
+    width: 32px; height: 32px;
+    background: var(--panel2); border: 1px solid var(--border);
+    color: var(--text); font-size: 16px; cursor: pointer;
+    z-index: 10; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #sb-mobile-close:active { background: var(--panel3); }
+  /* Make sidebar header relative for absolute close btn */
+  #sb-header { position: relative; padding-right: 44px; }
+  /* Bigger search bar on mobile */
+  #sb-search { font-size: 16px !important; padding: 8px 10px !important; min-height: 40px; }
+  /* Bigger icon buttons in sidebar header */
+  #sb-top-row button { min-width: 36px; min-height: 36px; font-size: 15px; }
+  /* Library tree rows: bigger tap targets */
+  .tree-album-row { min-height: 48px; padding: 7px 8px; }
+  .tree-track-item { min-height: 38px; padding: 6px 8px; font-size: 13px; }
+  .tree-artist-row { min-height: 38px; padding: 7px 10px; font-size: 14px; }
+  /* Sidebar stats: readable */
+  #sb-stats { font-size: 12px; padding: 4px 0 2px; }
+  /* Type/filter dropdowns in sidebar: full width, bigger */
+  #sb-type-tabs .tb-dropdown-btn { min-height: 38px; font-size: 13px; }
+  .sb-filter-dd-btn { min-height: 34px; }
+  /* Sidebar tree scrollable area — fill remaining height properly */
+  #sidebar { overflow: hidden; }
+  #sidebar-inner { height: 100%; overflow: hidden; }
+  #sb-tree { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; min-height: 0; }
+}
 
 /* ── Touch-friendly base: bigger tap targets on coarse-pointer devices ── */
 @media (pointer: coarse) {
@@ -3748,20 +3784,23 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   #sidebar {
     position: fixed !important;
     top: 0; left: 0; bottom: 0;
-    width: min(85vw, 320px) !important;
-    max-width: min(85vw, 320px) !important;
+    width: min(88vw, 340px) !important;
+    max-width: min(88vw, 340px) !important;
     min-width: 0 !important;
     height: 100dvh !important;
     z-index: 260;
     transform: translateX(-110%);
-    transition: transform 0.28s cubic-bezier(.4,0,.2,1);
-    box-shadow: 6px 0 32px rgba(0,0,0,0.75);
+    transition: transform 0.26s cubic-bezier(.4,0,.2,1);
+    box-shadow: 8px 0 40px rgba(0,0,0,0.85);
     border-right: 1px solid var(--border-hi);
-    overflow-y: auto;
+    overflow: hidden;
+    background: var(--panel) !important; /* solid — no see-through */
+    display: flex !important;
+    flex-direction: column !important;
   }
   /* Override collapsed state for mobile — drawer handles visibility */
   #sidebar.collapsed {
-    width: min(85vw, 320px) !important;
+    width: min(88vw, 340px) !important;
     min-width: 0 !important;
     transform: translateX(-110%) !important;
   }
@@ -3904,6 +3943,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     <div id="sidebar-inner">
       <!-- ── Sidebar top bar ── -->
       <div id="sb-header">
+        <button id="sb-mobile-close" onclick="mobileLibClose()" title="Close library">✕</button>
         <div id="sb-top-row">
           <input type="text" id="sb-search" placeholder="search…" oninput="filterLib(this.value)">
           <button id="sb-grid-toggle" onclick="sbToggleView(this)" title="Toggle grid / list view">⊞</button>
