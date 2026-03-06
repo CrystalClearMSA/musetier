@@ -4757,7 +4757,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 
 <!-- Trystero: serverless WebRTC via BitTorrent DHT — no signaling server needed -->
 <script type="module">
-  import { joinRoom } from 'https://esm.sh/trystero/nostr';
+  import { joinRoom } from 'https://esm.sh/trystero/mqtt';
   window.__trysteroJoinRoom = joinRoom;
 </script>
 <div id="toast-container"></div>
@@ -8861,7 +8861,7 @@ function collabCreate() {
   document.getElementById('collab-host-btn').disabled = true;
 
   _collabTeardown();
-  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', relays: ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.nostr.band', 'wss://nostr.wine'], rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }, { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }] } }, code);
+  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }, { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }] } }, code);
   var actions = _collabRoom.makeAction('msg');
   _collabSendMsg = actions[0];
   var receiveMsg = actions[1];
@@ -8916,7 +8916,7 @@ function collabJoin() {
   collabSetStatus('waiting', 'JOINING…');
 
   _collabTeardown();
-  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', relays: ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.nostr.band', 'wss://nostr.wine'], rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }, { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }] } }, code);
+  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }, { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }] } }, code);
   var actions = _collabRoom.makeAction('msg');
   _collabSendMsg = actions[0];
   var receiveMsg = actions[1];
@@ -11152,7 +11152,7 @@ function auxJudgeCreate() {
   _auxRoomCode = code;
 
   if (_auxRoom) { try { _auxRoom.leave(); } catch(_) {} }
-  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', relays: ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.nostr.band', 'wss://nostr.wine'], rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }, { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }] } }, code);
+  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }, { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }] } }, code);
   var auxActions = _auxRoom.makeAction('aux');
   _auxSendFn = auxActions[0];
   var receiveAux = auxActions[1];
@@ -11251,7 +11251,7 @@ function auxContestantJoin() {
   _auxRoomCode  = code;
 
   if (_auxRoom) { try { _auxRoom.leave(); } catch(_) {} }
-  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', relays: ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.nostr.band', 'wss://nostr.wine'], rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }, { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }] } }, code);
+  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }, { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }] } }, code);
   var auxActions = _auxRoom.makeAction('aux');
   _auxSendFn = auxActions[0];
   var receiveAux = auxActions[1];
