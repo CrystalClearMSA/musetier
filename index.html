@@ -8861,7 +8861,7 @@ function collabCreate() {
   document.getElementById('collab-host-btn').disabled = true;
 
   _collabTeardown();
-  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun2.l.google.com:19302' }, { urls: 'stun:stun3.l.google.com:19302' }] } }, code);
+  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:hk-turn1.xirsys.com' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:80?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:80?transport=tcp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp', 'turns:hk-turn1.xirsys.com:443?transport=tcp', 'turns:hk-turn1.xirsys.com:5349?transport=tcp'] }] } }, code);
   var actions = _collabRoom.makeAction('msg');
   _collabSendMsg = actions[0];
   var receiveMsg = actions[1];
@@ -8916,7 +8916,7 @@ function collabJoin() {
   collabSetStatus('waiting', 'JOINING…');
 
   _collabTeardown();
-  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun2.l.google.com:19302' }, { urls: 'stun:stun3.l.google.com:19302' }] } }, code);
+  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:hk-turn1.xirsys.com' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:80?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:80?transport=tcp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp', 'turns:hk-turn1.xirsys.com:443?transport=tcp', 'turns:hk-turn1.xirsys.com:5349?transport=tcp'] }] } }, code);
   var actions = _collabRoom.makeAction('msg');
   _collabSendMsg = actions[0];
   var receiveMsg = actions[1];
@@ -11152,7 +11152,7 @@ function auxJudgeCreate() {
   _auxRoomCode = code;
 
   if (_auxRoom) { try { _auxRoom.leave(); } catch(_) {} }
-  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun2.l.google.com:19302' }, { urls: 'stun:stun3.l.google.com:19302' }] } }, code);
+  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', rtcConfig: { iceServers: [{ urls: 'stun:hk-turn1.xirsys.com' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:80?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:80?transport=tcp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp', 'turns:hk-turn1.xirsys.com:443?transport=tcp', 'turns:hk-turn1.xirsys.com:5349?transport=tcp'] }] } }, code);
   var auxActions = _auxRoom.makeAction('aux');
   _auxSendFn = auxActions[0];
   var receiveAux = auxActions[1];
@@ -11251,7 +11251,7 @@ function auxContestantJoin() {
   _auxRoomCode  = code;
 
   if (_auxRoom) { try { _auxRoom.leave(); } catch(_) {} }
-  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun2.l.google.com:19302' }, { urls: 'stun:stun3.l.google.com:19302' }] } }, code);
+  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', rtcConfig: { iceServers: [{ urls: 'stun:hk-turn1.xirsys.com' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:80?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:80?transport=tcp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp', 'turns:hk-turn1.xirsys.com:443?transport=tcp', 'turns:hk-turn1.xirsys.com:5349?transport=tcp'] }] } }, code);
   var auxActions = _auxRoom.makeAction('aux');
   _auxSendFn = auxActions[0];
   var receiveAux = auxActions[1];
