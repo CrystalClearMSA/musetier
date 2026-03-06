@@ -1,3 +1,3 @@
-to acess, click the link bellow:
+to access, click the link bellow:
 
 https://crystalclearmsa.github.io/musetier/
