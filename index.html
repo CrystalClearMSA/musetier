@@ -12,10 +12,6 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
-/* FIX: use dynamic viewport height on mobile to prevent content collapse */
-@supports (height: 100dvh) {
-  html, body { height: 100dvh; max-height: 100dvh; }
-}
 
 #topbar, #app-body, #sidebar, #content-area { position: relative; z-index: 2; }
 
@@ -243,6 +239,16 @@ html, body { height: 100%; overflow: hidden; }
   --bg:#fff9ff;--panel:#fff0ff;--panel2:#ffe3ff;--panel3:#ffd6ff;
   --border:#f4c7ff;--border-hi:#e29bff;--text:#4b3658;--text-dim:#a282b7;--text-hi:#1a0030;
   --accent:#f48fb1;--accent2:#ffb38e;--accent-lib:#cc44ff;--accent-gen:#00aa77;
+}
+
+/* ── Performance mode: disable all animations ── */
+body.no-animations *,
+body.no-animations *::before,
+body.no-animations *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0ms !important;
 }
 
 body {
@@ -478,7 +484,7 @@ label.btn { cursor: pointer; }
   padding: 6px 10px; cursor: pointer;
   transition: background 0.1s;
   user-select: none;
-  touch-action: manipulation; /* FIX: faster tap on mobile */
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
 .tree-artist-row:hover { background: var(--panel2); }
 .tree-chevron { font-size: 11px; color: var(--text-dim); transition: transform 0.15s; flex-shrink: 0; }
@@ -492,7 +498,7 @@ label.btn { cursor: pointer; }
   padding: 5px 10px 5px 22px; cursor: pointer;
   border-left: 2px solid transparent;
   transition: all 0.1s;
-  touch-action: manipulation; /* FIX: faster tap on mobile */
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
 .tree-album-row:hover { background: var(--panel2); border-left-color: var(--border-hi); }
 .tree-album-row.selected { background: var(--panel2); border-left-color: var(--accent-lib); color: var(--accent-lib); }
@@ -921,7 +927,7 @@ label.btn { cursor: pointer; }
   font-size: 12px; color: var(--text-dim);
   transition: background .1s, color .1s;
   user-select: none;
-  touch-action: manipulation; /* FIX: prevents 300ms tap delay on mobile */
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
 .tree-track-item:active { cursor: grabbing; }
 .tree-track-item:hover { background: var(--panel3); color: var(--text); }
@@ -1494,8 +1500,28 @@ label.btn { cursor: pointer; }
 
 
 #tab-gen {
-  flex-direction: row;
+  flex-direction: column;
   background: var(--bg);
+}
+/* Empty state — shown before album is selected */
+#gen-empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: 1; padding: 40px 24px; gap: 16px; text-align: center;
+}
+#gen-empty-state.hidden { display: none; }
+#gen-content-row.hidden { display: none; }
+#gen-empty-icon { font-size: 48px; opacity: 0.25; line-height: 1; }
+#gen-empty-title {
+  font-family: var(--head); font-size: 18px; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase; opacity: 0.7;
+}
+#gen-empty-desc {
+  font-size: 13px; line-height: 1.8; opacity: 0.45; max-width: 360px;
+  font-family: var(--mono); letter-spacing: 0.5px;
+}
+/* Content row: preview + config side by side */
+#gen-content-row {
+  display: flex; flex-direction: row; flex: 1; min-height: 0; overflow: hidden;
 }
 
 
@@ -3696,6 +3722,18 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 
 /* Mobile library button (only shown on mobile) */
 #mobile-lib-btn { display: none; }
+/* Mobile-only elements hidden on desktop */
+#dd-mobile-tabs  { display: none; }
+#mobile-action-row { display: none; }
+/* Small icon buttons for mobile action row */
+.btn-icon-sm {
+  background: none; border: 1px solid var(--border); color: var(--text);
+  font-family: var(--mono); font-size: 15px; cursor: pointer;
+  padding: 5px 9px; min-height: 32px; min-width: 32px;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.btn-icon-sm:hover { background: var(--panel2); border-color: var(--border-hi); }
 
 /* Mobile sidebar close button — only shown in mobile drawer */
 #sb-mobile-close {
@@ -3772,39 +3810,120 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   /* ── Variables ── */
   :root { --tile: 76px; --label-w: 82px; }
 
-  /* ── Topbar: two-row layout on mobile ── */
+  /* ── Topbar: single-row layout on mobile ── */
   #topbar {
     height: auto !important;
-    min-height: 48px;
-    padding: 5px 8px;
-    gap: 4px;
-    flex-wrap: wrap;
-    align-items: center;
+    min-height: 0;
+    padding: 0;
+    gap: 0;
+    flex-wrap: nowrap;
+    flex-direction: column;
+    align-items: stretch;
   }
-  #logo          { font-size: 15px; letter-spacing: 3px; order: 0; }
+
+  /* Row 1: logo + tab dropdown + media + settings */
+  #logo          { font-size: 14px; letter-spacing: 2px; padding: 6px 8px; flex-shrink: 0; }
   #logo-credit   { display: none; }
   .tb-sep        { display: none; }
-  #mobile-lib-btn { display: flex !important; align-items: center; order: 1; }
   #sb-tab-btn    { display: none; }
-  /* Tabs row fills the second line */
-  #app-tabs {
-    order: 10; flex-basis: 100%; width: 100%;
-    overflow-x: auto; scrollbar-width: none;
-    gap: 2px; border-top: 1px solid var(--border);
-    padding: 3px 0;
+
+  /* Hide desktop tabs and desktop action buttons */
+  #app-tabs      { display: none !important; }
+  #edit-mode-btn { display: none !important; }
+  #collab-btn    { display: none !important; }
+  #dd-export     { display: none !important; }
+  .btn-donate    { display: none !important; }
+  .tb-right      { display: none !important; }
+
+  /* Row 1 built as a flex row inside topbar */
+  #topbar { display: flex; flex-direction: column; }
+
+  /* Inner row 1: logo + tab picker + media + settings */
+  #topbar > #logo,
+  #topbar > #logo-credit,
+  #topbar > #dd-mobile-tabs,
+  #topbar > #dd-import,
+  #topbar > #dd-export,
+  #topbar > .tb-right,
+  #topbar > #collab-btn,
+  #topbar > #edit-mode-btn { order: 0; }
+
+  /* Arrange top row items */
+  #topbar::before {
+    content: none;
   }
-  #app-tabs::-webkit-scrollbar { display: none; }
-  .app-tab { white-space: nowrap; padding: 7px 14px; font-size: 12px; flex-shrink: 0; }
-  /* Action buttons: compact row on first line */
-  #dd-import, #edit-mode-btn, #collab-btn, #dd-export { order: 2; }
-  .btn-donate { display: none; }
-  .tb-right { order: 3; gap: 4px; margin-left: auto; }
+
+  /* Top control row */
+  #dd-mobile-tabs {
+    display: flex !important;
+    flex: 1;
+  }
+  #dd-mobile-tabs .tb-dropdown-btn {
+    width: 100%; font-size: 13px; min-height: 36px;
+    justify-content: space-between; padding: 6px 10px;
+  }
+
+  /* Lib button — full-width row */
+  #mobile-lib-btn {
+    display: flex !important;
+    width: 100%;
+    justify-content: center;
+    min-height: 40px;
+    font-size: 13px;
+    letter-spacing: 2px;
+    border-radius: 0;
+    border-left: none; border-right: none; border-top: none;
+    background: var(--panel2);
+    order: 10;
+    flex-basis: 100%;
+  }
+
+  /* Compact top row: logo + tab dropdown + media icon + settings icon */
+  #topbar {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Build the top row using a wrapper approach via flex-wrap */
+  #topbar > * { flex-shrink: 0; }
+
+  /* Topbar first row (logo, tab-dd, dd-import, settings) as a flex row */
+  #topbar > #logo             { order: 1; }
+  #topbar > #dd-mobile-tabs   { order: 2; flex: 1; min-width: 0; }
+  #topbar > #dd-import        { order: 3; display: flex !important; }
+  #topbar > .tb-right         { display: none !important; }
+
+  /* Media button compact on mobile */
+  #dd-import .tb-dropdown-btn { font-size: 12px; padding: 6px 8px; min-height: 36px; }
+
+  /* Settings icon inline after media */
+  #topbar::after { display: none; }
+
+  /* Second row: lib button (full width) */
+  #mobile-lib-btn { order: 10; width: 100%; flex-basis: 100%; flex-grow: 1; }
+
+  /* Action icon row: edit, export, collab, settings — right-aligned after lib */
+  /* Use a pseudo-row via flex-wrap + full-width lib btn pushing others to next row */
+  /* Actually we use a real DOM row: */
+  #mobile-action-row {
+    display: flex !important;
+    order: 11;
+    flex-basis: 100%;
+    width: 100%;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: var(--panel2);
+    border-bottom: 1px solid var(--border);
+  }
+
   /* Aux bar: wrap into topbar naturally */
-  #aux-bar { order: 4; flex-shrink: 0; }
-  #aux-role-pill { order: 5; flex-shrink: 0; }
+  #aux-bar { order: 12; flex-shrink: 0; flex-basis: 100%; }
+  #aux-role-pill { order: 13; flex-shrink: 0; }
 
   /* ── App body ── */
-  #app-body { flex-direction: row; flex: 1; min-height: 0; }
+  #app-body { flex-direction: row; }
 
   /* ── Sidebar → left slide-in drawer ── */
   #sidebar {
@@ -3954,6 +4073,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 
   /* ── GEN tab: stack vertically ── */
   #tab-gen { flex-direction: column !important; }
+  #gen-content-row { flex-direction: column !important; }
   #gen-config-col {
     width: 100% !important; min-width: 0 !important; max-width: 100% !important;
     border-left: none !important; border-top: 1px solid var(--border);
@@ -3990,38 +4110,31 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   #gen-config-col { max-height: 40vh; }
 }
 
-/* ── Build version badge ── */
-#build-badge {
-  font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px;
-  color: var(--text-dim); opacity: 0.45; padding: 2px 5px;
-  border: 1px solid var(--border); border-radius: 2px;
-  white-space: nowrap; flex-shrink: 0; cursor: default;
-  transition: opacity 0.15s;
-}
-#build-badge:hover { opacity: 0.9; }
-@media (max-width: 768px) { #build-badge { display: none; } }
-
 </style>
 </head>
 <body>
-<canvas id="fx-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity 0.9s ease"></canvas>
-
 <!--
-  ╔══════════════════════════════════════════════════════════╗
-  ║  MUSETIER BUILD LOG — for continuity across AI sessions  ║
-  ║  Current build: 1.1                                      ║
-  ║  Released: 2026-03-07                                    ║
-  ║                                                          ║
-  ║  CHANGELOG (increment build # for each session change):  ║
-  ║  1.0.9 — baseline build as received                      ║
-  ║  1.1   — mobile fix: content visibility (dvh height),    ║
-  ║           pool touch drag (non-passive touchstart),       ║
-  ║           sidebar tap-to-add tracks, touch-action on     ║
-  ║           tree rows; bracket drag-drop fix (window.drag- ║
-  ║           ged not set for desktop drags, text-only items  ║
-  ║           and blob URL handling improved)                 ║
-  ╚══════════════════════════════════════════════════════════╝
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  MUSETIER BUILD LOG — continuity across AI sessions          ║
+  ║  Current build: 1.3  |  Updated: 2026-03-07                  ║
+  ║  CHANGELOG (increment build # each session that makes edits) ║
+  ║  1.0.9 → baseline build as received                          ║
+  ║  1.1   → mobile dvh fix, touch drag, sidebar tap-to-add,     ║
+  ║           bracket drop fix (window.dragged)                   ║
+  ║  1.2   → mobile sidebar ghost-click guard; touch pan+pinch   ║
+  ║           bracket & grid; mobile topbar redesign; gen tab     ║
+  ║           layout fix (gen-content-row); disable animations    ║
+  ║           setting; bracket AUTO size button                   ║
+  ║  1.3   → FIXED: sidebar touchend stopPropagation was eating  ║
+  ║           synthesized click events on iOS/Android (all taps   ║
+  ║           in sidebar broken). FIXED: gen tab empty state now  ║
+  ║           shows a visible CTA instead of invisible text;      ║
+  ║           gen-content-row starts hidden, shown by loadGenAlbum║
+  ║           Added touch-action:manipulation to all tree rows.   ║
+  ║           Track tap-to-add-to-pool on mobile restored.        ║
+  ╚══════════════════════════════════════════════════════════════╝
 -->
+<canvas id="fx-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity 0.9s ease"></canvas>
 
 <!-- ═══════════════════════════════════════════
      TOPBAR
@@ -4029,9 +4142,23 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 <div id="topbar">
   <div id="logo">MUSE<span>_</span>TIER</div>
   <div id="logo-credit"></div>
-  <span id="build-badge" title="MuseTier build version">v1.1</span>
-  <button class="btn btn-lib" id="mobile-lib-btn" onclick="mobileLibToggle()" title="Library">☰ LIB</button>
+  <!-- Mobile-only: full-width lib button in its own row -->
+  <button class="btn btn-lib" id="mobile-lib-btn" onclick="mobileLibToggle()" title="Library">☰ LIBRARY</button>
+  <!-- Mobile-only: tab picker dropdown -->
+  <div class="tb-dropdown" id="dd-mobile-tabs">
+    <button class="tb-dropdown-btn" id="mobile-tab-btn" onclick="tbToggle('dd-mobile-tabs')">
+      <span id="mobile-tab-lbl">TIER</span><span class="dd-arrow">▾</span>
+    </button>
+    <div class="tb-drop-menu" id="dd-mobile-tabs-menu">
+      <button class="tb-drop-item" onclick="switchTab('tier');tbClose('dd-mobile-tabs');document.getElementById('mobile-tab-lbl').textContent='TIER'">TIER</button>
+      <button class="tb-drop-item" onclick="switchTab('gen');tbClose('dd-mobile-tabs');document.getElementById('mobile-tab-lbl').textContent='✦ GEN'">✦ GEN</button>
+      <button class="tb-drop-item" onclick="switchTab('bracket');tbClose('dd-mobile-tabs');document.getElementById('mobile-tab-lbl').textContent='BRACKET'">BRACKET</button>
+      <button class="tb-drop-item" onclick="switchTab('grid');tbClose('dd-mobile-tabs');document.getElementById('mobile-tab-lbl').textContent='GRID'">GRID</button>
+      <button class="tb-drop-item" onclick="switchTab('libview');tbClose('dd-mobile-tabs');document.getElementById('mobile-tab-lbl').textContent='♫ LIBRARY'">♫ LIBRARY</button>
+    </div>
+  </div>
   <div class="tb-sep"></div>
+  <!-- Desktop tabs (hidden on mobile) -->
   <div id="app-tabs">
     <button class="app-tab active" id="tab-btn-tier"    onclick="switchTab('tier')">TIER</button>
     <button class="app-tab tab-gen" id="tab-btn-gen"    onclick="switchTab('gen')">✦ GEN</button>
@@ -4051,8 +4178,8 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
       <label class="tb-drop-item"><span class="tb-drop-item-icon">↑</span>Upload Folder<input type="file" id="folderInput" webkitdirectory multiple style="display:none"></label>
     </div>
   </div>
-  <button class="btn" id="edit-mode-btn" onclick="toggleEditMode()" title="Edit Mode — rearrange tiers, add new rows (Ctrl+E)">✎ EDIT</button>
   <button class="btn" id="collab-btn" onclick="openCollab()" title="Real-time collaboration"><span class="collab-btn-icon">⇄</span><span class="collab-btn-txt"> COLLAB</span></button>
+  <button class="btn" id="edit-mode-btn" onclick="toggleEditMode()" title="Edit Mode — rearrange tiers, add new rows (Ctrl+E)">✎ EDIT</button>
   <!-- Export dropdown — export image + clear -->
   <div class="tb-dropdown" id="dd-export">
     <button class="tb-dropdown-btn" onclick="tbToggle('dd-export')">↓ EXPORT <span class="dd-arrow">▾</span></button>
@@ -4072,7 +4199,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 <!-- ═══════════════════════════════════════════
      BODY
 ═══════════════════════════════════════════ -->
-<div id="mobile-sidebar-backdrop" onclick="mobileLibClose()"></div>
+<div id="mobile-sidebar-backdrop" onclick="if(!_mobileLibJustOpened) mobileLibClose()"></div>
 
 <div id="app-body">
 
@@ -4219,6 +4346,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
                 <button class="bracket-size-btn" data-size="128" onclick="setBracketSize(128,this)">128</button>
                 <button class="bracket-size-btn" data-size="256" onclick="setBracketSize(256,this)">256</button>
                 <button class="bracket-size-btn" data-size="512" onclick="setBracketSize(512,this)">512</button>
+                <button class="bracket-size-btn" id="bracket-auto-btn" onclick="setBracketAutoSize(this)" title="Auto-size to fit pool items exactly (uses byes for non-power-of-2 counts)">AUTO</button>
               </div>
             </div>
             <div class="bcp-divider"></div>
@@ -4486,7 +4614,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 
     <!-- GEN TAB -->
     <div class="tab-pane" id="tab-gen">
-      <!-- album banner -->
+      <!-- album banner — spans full width -->
       <div id="gen-album-banner" class="empty">
         <div id="gen-banner-cover-ph">♪</div>
         <img id="gen-banner-cover" src="" alt="" style="display:none;">
@@ -4496,6 +4624,15 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
         </div>
       </div>
 
+      <!-- gen empty state — shown when no album loaded -->
+      <div id="gen-empty-state">
+        <div id="gen-empty-icon">✦</div>
+        <div id="gen-empty-title">GEN — Track Image Generator</div>
+        <div id="gen-empty-desc">Select an album from the library panel to generate custom track artwork. Open the library (☰), expand an artist, then click any album to load it here.</div>
+      </div>
+
+      <!-- gen-content-row: preview + config side by side -->
+      <div id="gen-content-row" class="hidden">
       <!-- preview -->
       <div id="gen-preview-col">
         <div id="gen-preview-box">
@@ -4655,6 +4792,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
           </div>
         </div>
       </div>
+      </div><!-- /gen-content-row -->
     </div>
 
   </div>
@@ -4842,6 +4980,19 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
         <label class="gc-toggle">
           <input type="checkbox" id="sb-on-tier" checked onchange="setSidebarOnTier(this.checked)">
         </label>
+      </div>
+    </div>
+
+    <div class="gc-section">
+      <div class="gc-title">PERFORMANCE</div>
+      <div class="sett-row">
+        <span class="sett-key">DISABLE ANIMATIONS</span>
+        <label class="gc-toggle">
+          <input type="checkbox" id="sett-no-anim" onchange="setNoAnimations(this.checked)">
+        </label>
+      </div>
+      <div class="sett-row" style="border-top:none;padding-top:0;">
+        <span class="sett-key" style="font-size:11px;opacity:0.55;">Disables transitions & effects. Recommended for low-end/mobile devices.</span>
       </div>
     </div>
 
@@ -5117,6 +5268,21 @@ function hideSidebar() {
 }
 function toggleSidebar() { sidebarOpen ? hideSidebar() : showSidebar(); if (activeTab === 'tier') sidebarOnTier = sidebarOpen; }
 function setSidebarOnTier(v) { sidebarOnTier = v; if (activeTab === 'tier') { v ? showSidebar() : hideSidebar(); } }
+
+function setNoAnimations(v) {
+  document.body.classList.toggle('no-animations', v);
+  try { localStorage.setItem('musetier_no_anim', v ? '1' : '0'); } catch(_) {}
+}
+// Restore no-animations preference on load
+(function() {
+  try { if (localStorage.getItem('musetier_no_anim') === '1') {
+    document.body.classList.add('no-animations');
+    document.addEventListener('DOMContentLoaded', () => {
+      const cb = document.getElementById('sett-no-anim');
+      if (cb) cb.checked = true;
+    });
+  } } catch(_) {}
+})();
 
 
 function openOverlay(id) { document.getElementById(id).classList.add('open'); }
@@ -5650,7 +5816,6 @@ function endDrag() {
   if (dragged) dragged.classList.remove('dragging');
   if (placeholder) { placeholder.remove(); placeholder = null; }
   dragged    = null;
-  window.dragged = null;                       // FIX: clear window.dragged alongside local var
   dragOrigin = null;
   invalidateRectCache();
   document.querySelectorAll('.dz-over').forEach(z => z.classList.remove('dz-over'));
@@ -5668,7 +5833,6 @@ function setupDraggable(item) {
   item.addEventListener('dragstart', e => {
     e.stopPropagation();                       // prevent bubbling to tier-row dragstart
     dragged    = item;
-    window.dragged = item;                     // FIX: also expose on window for bracket drop handler
     dragOrigin = item.parentElement;
     item.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
@@ -6576,23 +6740,31 @@ function renderLibTree() {
             } else { _drawGhost(null); }
           });
 
-          // FIX: tap-to-add track to pool on mobile (drag is broken on iOS/Android)
-          ti.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const src = album.coverDataUrl || '';
-            const item = createItem(src, t.title, t.title);
-            if (album.coverDataUrl) item.dataset.dataUrl = album.coverDataUrl;
-            item.dataset.genKey = ak + ':' + alKey + ':' + i;
-            if (!catStore.has(ak)) catStore.set(ak, []);
-            catStore.get(ak).push({ item, bitmap: null });
-            setupDraggable(item);
-            pool.appendChild(item);
-            updatePoolCount(); renderCatBar(); save();
-            toast('Added to pool', 'info', 900);
-            if (window.matchMedia('(max-width:768px)').matches) mobileLibClose();
-          });
-
           trackList.appendChild(ti);
+        });
+        // On mobile: tap a track to add it to pool directly
+        trackList.addEventListener('click', function(e) {
+          const ti = e.target.closest('.tree-track-item');
+          if (!ti) return;
+          const tIdx = parseInt(ti.dataset.trackIdx);
+          const tAlKey = ti.dataset.albumKey;
+          const tAk = ti.dataset.artistKey;
+          const tAo = library.get(tAk);
+          if (!tAo) return;
+          const tAl = tAo.albums.get(tAlKey);
+          if (!tAl || !tAl.tracks[tIdx]) return;
+          const t = tAl.tracks[tIdx];
+          const src = tAl.coverDataUrl || '';
+          const item = createItem(src, t.title, t.title);
+          if (tAl.coverDataUrl) item.dataset.dataUrl = tAl.coverDataUrl;
+          item.dataset.genKey = tAk + ':' + tAlKey + ':' + tIdx;
+          if (!catStore.has(tAk)) catStore.set(tAk, []);
+          catStore.get(tAk).push({ item, bitmap: null });
+          setupDraggable(item);
+          pool.appendChild(item);
+          updatePoolCount(); renderCatBar(); save();
+          toast('Added to pool ✓', 'info', 900);
+          if (window.matchMedia('(max-width:768px)').matches) mobileLibClose();
         });
       }
 
@@ -7151,6 +7323,12 @@ function importSelected() {
 function loadGenAlbum() {
   if(!genAlbum) return;
   const {album,artistName}=genAlbum;
+
+  // Hide empty state, show content
+  const emptyState = document.getElementById('gen-empty-state');
+  const contentRow = document.getElementById('gen-content-row');
+  if (emptyState) emptyState.classList.add('hidden');
+  if (contentRow) contentRow.classList.remove('hidden');
 
   // banner
   const banner=document.getElementById('gen-album-banner');
@@ -9838,6 +10016,97 @@ function setBracketSize(size, btn) {
   initBracket(size);
 }
 
+// AUTO size: picks the nearest power-of-2 that fits ALL pool items,
+// then seeds them and marks unused trailing slots as byes so they don't
+// clutter the bracket. Non-power-of-2 pools get auto-balanced with byes
+// that advance automatically (first-round byes propagate to round 2).
+function setBracketAutoSize(btn) {
+  // Collect pool items
+  const seen = new Set(), items = [];
+  const orderedCats = catOrder.length
+    ? catOrder
+    : [...catStore.keys()].sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+  orderedCats.forEach(cat => {
+    (catStore.get(cat) || []).forEach(({ item }) => {
+      if (!seen.has(item) && !item.closest('.tier-zone')) { seen.add(item); items.push(item); }
+    });
+  });
+  document.getElementById('pool').querySelectorAll('.item').forEach(item => {
+    if (!seen.has(item) && !item.closest('.tier-zone')) { seen.add(item); items.push(item); }
+  });
+
+  const count = items.length;
+  if (count < 2) { toast('Need at least 2 items in pool', 'error'); return; }
+
+  // Find smallest power-of-2 >= count (max 512)
+  let sz = 2;
+  while (sz < count && sz < 512) sz *= 2;
+  sz = Math.min(sz, 512);
+
+  const byeCount = sz - count;
+  const confirmMsg = byeCount > 0
+    ? `Auto-size: ${count} pool items → bracket of ${sz} with ${byeCount} bye slot${byeCount !== 1 ? 's' : ''}.\nBye slots advance automatically. Reset bracket?`
+    : `Auto-size: ${count} pool items → bracket of ${sz} (exact fit). Reset bracket?`;
+  if (!confirm(confirmMsg)) return;
+
+  document.querySelectorAll('.bracket-size-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  initBracket(sz);
+
+  // Seed items into round 0
+  let idx = 0;
+  bracketRounds[0].forEach((match, mi) => {
+    match.slots.forEach((slot, si) => {
+      if (idx < count) {
+        const el = items[idx++];
+        const img = el.querySelector('img');
+        const lbl = el.querySelector('.item-lbl');
+        const name = (lbl && lbl.textContent.trim()) || (img && img.alt) || `Entrant ${idx}`;
+        const src  = el.dataset.dataUrl || (img && img.src && !img.src.startsWith('blob:') ? img.src : (img && img.src)) || '';
+        bracketRounds[0][mi].slots[si] = { name, src: src || null, seed: slot.seed };
+      }
+      // else: slot stays empty — renderBracket shows it as BYE via isBye logic
+    });
+  });
+
+  // Auto-advance byes in round 0: if a match has exactly one named slot, advance them to round 1
+  _autoAdvanceByes();
+
+  saveBracketData(); renderBracket();
+  toast(`${count} entrants seeded (${byeCount} byes auto-advanced) ✓`, 'success', 2800);
+}
+
+// Walk round 0, auto-advance single-filled matches (byes) up the bracket
+function _autoAdvanceByes() {
+  if (!bracketRounds || bracketRounds.length < 2) return;
+  bracketRounds[0].forEach((match, mi) => {
+    if (match.removed || match.isChampion) return;
+    const [a, b] = match.slots;
+    const aFull = !!(a && a.name);
+    const bFull = !!(b && b.name);
+    if (aFull && !bFull) {
+      // slot 0 gets a bye win — advance to round 1
+      match.winner = 0;
+      _propagateWinner(0, mi, 0);
+    } else if (!aFull && bFull) {
+      match.winner = 1;
+      _propagateWinner(0, mi, 1);
+    }
+    // both empty or both filled: normal matchup
+  });
+}
+
+function _propagateWinner(r, m, si) {
+  if (r + 1 >= bracketRounds.length - 1) return; // don't touch champion round here
+  const match = bracketRounds[r][m];
+  const winner = match.slots[si];
+  const nextM  = Math.floor(m / 2);
+  const nextSi = m % 2 === 0 ? 0 : 1;
+  if (bracketRounds[r + 1] && bracketRounds[r + 1][nextM]) {
+    bracketRounds[r + 1][nextM].slots[nextSi] = { ...winner, seed: bracketRounds[r + 1][nextM].slots[nextSi].seed };
+  }
+}
+
 function saveBracket() {
   try { localStorage.setItem(BRACKET_SK, JSON.stringify({ size: bracketSize, rounds: bracketRounds, pan: bracketPan, scale: bracketScale, seed: _bracketSeed })); } catch(_) {}
   // Don't broadcast — pan/scale are local view state; use saveBracketData() for real changes
@@ -10086,13 +10355,8 @@ function renderBracket() {
             if (window.dragged) {
               const el  = window.dragged;
               const img = el.querySelector('img');
-              const lbl = el.querySelector('.item-lbl');
-              // FIX: support text-only items and prefer stored data URL over ephemeral blob
-              const name = (lbl && lbl.textContent.trim()) || (img && (img.alt || img.title)) || 'Entrant';
-              const src  = el.dataset.dataUrl ||
-                           (img && img.src && !img.src.startsWith('blob:') ? img.src : null) ||
-                           (img && img.src) || null;
-              bracketRounds[r][m].slots[si] = { name, src: src || null, seed: bracketRounds[r][m].slots[si].seed };
+              if (!img) return;
+              bracketRounds[r][m].slots[si] = { name: img.alt || img.title || 'Entrant', src: img.src, seed: bracketRounds[r][m].slots[si].seed };
               auxBroadcastSlot(r, m, si, bracketRounds[r][m].slots[si]);
               saveBracketData(); renderBracket();
             }
@@ -10811,6 +11075,62 @@ document.addEventListener('DOMContentLoaded', () => {
     vp.classList.add('panning');
     e.preventDefault();
   });
+
+  // ── Touch pan for bracket viewport (mobile) ──────────────────────────────
+  let _bTouchId = null;
+  vp.addEventListener('touchstart', e => {
+    // Only start pan if not tapping a slot; allow single-finger only
+    if (e.touches.length !== 1) return;
+    if (e.target.closest('.bm-slot, .bm-node button')) return;
+    _bTouchId   = e.touches[0].identifier;
+    _bPanning   = true;
+    _bPanStart  = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    _bPanOrigin = { ...bracketPan };
+    vp.classList.add('panning');
+  }, { passive: true });
+  vp.addEventListener('touchmove', e => {
+    if (!_bPanning) return;
+    const t = [...e.touches].find(t => t.identifier === _bTouchId);
+    if (!t) return;
+    e.preventDefault();
+    if (!bracketRafId) {
+      const tx = _bPanOrigin.x + (t.clientX - _bPanStart.x);
+      const ty = _bPanOrigin.y + (t.clientY - _bPanStart.y);
+      bracketRafId = requestAnimationFrame(() => {
+        bracketPan.x = tx; bracketPan.y = ty;
+        applyBracketTransform();
+        bracketRafId = null;
+      });
+    }
+  }, { passive: false });
+  vp.addEventListener('touchend',    () => { if (_bPanning) { _bPanning = false; _bTouchId = null; vp.classList.remove('panning'); saveBracket(); } }, { passive: true });
+  vp.addEventListener('touchcancel', () => { if (_bPanning) { _bPanning = false; _bTouchId = null; vp.classList.remove('panning'); } }, { passive: true });
+
+  // ── Pinch-to-zoom for bracket viewport (mobile) ───────────────────────────
+  let _bPinchDist = null;
+  vp.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      _bPanning = false; // stop panning while pinching
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      _bPinchDist = Math.hypot(dx, dy);
+    }
+  }, { passive: true });
+  vp.addEventListener('touchmove', e => {
+    if (e.touches.length === 2 && _bPinchDist !== null) {
+      e.preventDefault();
+      const dx   = e.touches[0].clientX - e.touches[1].clientX;
+      const dy   = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const cx   = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const cy   = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      bracketZoom((dist - _bPinchDist) * 0.004, cx, cy);
+      _bPinchDist = dist;
+    }
+  }, { passive: false });
+  vp.addEventListener('touchend', e => {
+    if (e.touches.length < 2) _bPinchDist = null;
+  }, { passive: true });
 
   // Throttled via RAF for smoother performance
   let bracketRafId = null;
@@ -12105,6 +12425,55 @@ function gridInit() {
       document.getElementById('grid-viewport').classList.remove('panning');
     }
   });
+
+  // ── Touch pan for grid viewport (mobile) ─────────────────────────────────
+  let _gridTouchId = null, _gridPinchDist = null;
+  vp.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 1) {
+      const onCell = e.target.closest('.grid-cell, .grid-cell-wrap, .grid-cell-rm');
+      if (onCell) return; // let cell taps through
+      _gridTouchId  = e.touches[0].identifier;
+      _gridPanning  = true;
+      _gridPanStart = { x: e.touches[0].clientX - _gridPanX, y: e.touches[0].clientY - _gridPanY };
+      vp.classList.add('panning');
+    } else if (e.touches.length === 2) {
+      _gridPanning = false;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      _gridPinchDist = Math.hypot(dx, dy);
+    }
+  }, { passive: true });
+  vp.addEventListener('touchmove', function(e) {
+    if (e.touches.length === 2 && _gridPinchDist !== null) {
+      e.preventDefault();
+      const dx   = e.touches[0].clientX - e.touches[1].clientX;
+      const dy   = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const cx   = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const cy   = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      _gridSetZoom(_gridZoom + (dist - _gridPinchDist) * 0.005, cx, cy);
+      _gridPinchDist = dist;
+      return;
+    }
+    if (!_gridPanning) return;
+    e.preventDefault();
+    const t = [...e.touches].find(t => t.identifier === _gridTouchId);
+    if (!t) return;
+    _gridPanX = t.clientX - _gridPanStart.x;
+    _gridPanY = t.clientY - _gridPanStart.y;
+    _gridApplyTransform();
+  }, { passive: false });
+  vp.addEventListener('touchend', function(e) {
+    if (e.touches.length < 2) _gridPinchDist = null;
+    if (_gridPanning && e.touches.length === 0) {
+      _gridPanning = false; _gridTouchId = null;
+      document.getElementById('grid-viewport').classList.remove('panning');
+    }
+  }, { passive: true });
+  vp.addEventListener('touchcancel', function() {
+    _gridPanning = false; _gridTouchId = null; _gridPinchDist = null;
+    document.getElementById('grid-viewport').classList.remove('panning');
+  }, { passive: true });
 }
 
 function _gridApplyTransform() {
@@ -13580,6 +13949,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 // ── Mobile sidebar toggle ──────────────────────────────────────
+let _mobileLibJustOpened = false; // guard against immediate ghost-click close
+
 function mobileLibToggle() {
   const sidebar  = document.getElementById('sidebar');
   const backdrop = document.getElementById('mobile-sidebar-backdrop');
@@ -13592,10 +13963,14 @@ function mobileLibToggle() {
     sidebar.classList.add('mobile-open');
     backdrop.classList.add('visible');
     document.body.style.overflow = 'hidden';
+    // Guard: ignore backdrop clicks for 350ms after open (prevents ghost-click close on iOS)
+    _mobileLibJustOpened = true;
+    setTimeout(() => { _mobileLibJustOpened = false; }, 350);
   }
 }
 
 function mobileLibClose() {
+  if (_mobileLibJustOpened) return; // swallow the ghost-click that triggered the open tap
   const sidebar  = document.getElementById('sidebar');
   const backdrop = document.getElementById('mobile-sidebar-backdrop');
   if (!sidebar || !backdrop) return;
@@ -13603,6 +13978,18 @@ function mobileLibClose() {
   backdrop.classList.remove('visible');
   document.body.style.overflow = '';
 }
+
+// Stop all touch/click events originating inside the sidebar from reaching the backdrop
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    const sb = document.getElementById('sidebar');
+    if (!sb) return;
+    // Stop clicks inside sidebar from bubbling to the backdrop's onclick handler.
+    // NOTE: We do NOT stop touchend — stopping touchend on a parent suppresses the
+    // synthesized click event on iOS/Android, breaking all tap interactions.
+    sb.addEventListener('click', function(e) { e.stopPropagation(); });
+  });
+})();
 
 // Close mobile sidebar when a library item is dragged to the tier
 (function() {
@@ -13704,11 +14091,10 @@ function mobileLibClose() {
     if (!_isMobile()) return;
     const item = e.target.closest('.item');
     if (!item || e.target.closest('.item-rm')) return;
-    e.preventDefault(); // FIX: prevent scroll initiation so drag can start reliably
     const touch = e.touches[0];
     _tdStartX = touch.clientX; _tdStartY = touch.clientY;
     _tdTimer = setTimeout(function() { _tdTimer = null; _begin(item, touch); }, LONG_PRESS);
-  }, { passive: false }); // FIX: non-passive so preventDefault works
+  }, { passive: true });
 
   document.addEventListener('touchmove', function(e) {
     const touch = e.touches[0];
