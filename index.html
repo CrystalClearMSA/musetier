@@ -6,10 +6,8 @@
 <title>MuseTier</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Orbitron:wght@400;700;900&family=Cinzel:wght@400;600;900&family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700&family=Oswald:wght@300;400;700&family=VT323&family=Rajdhani:wght@400;600;700&family=Special+Elite&family=Lobster&family=Permanent+Marker&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IM+Fell+English:ital@0;1&family=Pinyon+Script&family=Trebuchet+MS&family=Anton&family=Russo+One&family=Black+Han+Sans&family=Ultra&family=Alfa+Slab+One&family=Abril+Fatface&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Unna:ital,wght@0,400;0,700;1,400;1,700&family=Staatliches&family=Bungee&family=Teko:wght@300;400;700&family=Saira+Condensed:wght@700;900&family=Black+Ops+One&family=Press+Start+2P&family=Audiowide&family=Big+Shoulders+Display:wght@700;900&family=Fjalla+One&family=Righteous&family=Bangers&family=Creepster&family=Nosifer&family=Metal+Mania&family=Rock+Salt&family=Dancing+Script:wght@700&family=Great+Vibes&family=Pacifico&family=Fredoka+One&display=swap">
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Orbitron:wght@400;700;900&family=Cinzel:wght@400;600;900&family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700&family=Oswald:wght@300;400;700&family=VT323&family=Rajdhani:wght@400;600;700&family=Special+Elite&family=Lobster&family=Permanent+Marker&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IM+Fell+English:ital@0;1&family=Pinyon+Script&family=Trebuchet+MS&family=Anton&family=Russo+One&family=Black+Han+Sans&family=Ultra&family=Alfa+Slab+One&family=Abril+Fatface&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Unna:ital,wght@0,400;0,700;1,400;1,700&family=Staatliches&family=Bungee&family=Teko:wght@300;400;700&family=Saira+Condensed:wght@700;900&family=Black+Ops+One&family=Press+Start+2P&family=Audiowide&family=Big+Shoulders+Display:wght@700;900&family=Fjalla+One&family=Righteous&family=Bangers&family=Creepster&family=Nosifer&family=Metal+Mania&family=Rock+Salt&family=Dancing+Script:wght@700&family=Great+Vibes&family=Pacifico&family=Fredoka+One&display=swap');
 
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -4759,14 +4757,8 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 
 <!-- Trystero: serverless WebRTC via BitTorrent DHT — no signaling server needed -->
 <script type="module">
-  import { joinRoom } from 'https://esm.sh/trystero/torrent';
-  // Only use tracker.openwebtorrent.com — the other two (webtorrent.dev, btorrent.xyz)
-  // time out constantly and flood the console with errors.
-  const _trysteroConfig = {
-    trackerUrls: ['wss://tracker.openwebtorrent.com']
-  };
-  window.__trysteroJoinRoom = (appConfig, roomId) =>
-    joinRoom(Object.assign({}, appConfig, _trysteroConfig), roomId);
+  import { joinRoom } from 'https://esm.sh/trystero/nostr';
+  window.__trysteroJoinRoom = joinRoom;
 </script>
 <div id="toast-container"></div>
 
@@ -8869,7 +8861,7 @@ function collabCreate() {
   document.getElementById('collab-host-btn').disabled = true;
 
   _collabTeardown();
-  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1' }, code);
+  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }, { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }] } }, code);
   var actions = _collabRoom.makeAction('msg');
   _collabSendMsg = actions[0];
   var receiveMsg = actions[1];
@@ -8924,7 +8916,7 @@ function collabJoin() {
   collabSetStatus('waiting', 'JOINING…');
 
   _collabTeardown();
-  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1' }, code);
+  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }, { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }] } }, code);
   var actions = _collabRoom.makeAction('msg');
   _collabSendMsg = actions[0];
   var receiveMsg = actions[1];
@@ -11160,7 +11152,7 @@ function auxJudgeCreate() {
   _auxRoomCode = code;
 
   if (_auxRoom) { try { _auxRoom.leave(); } catch(_) {} }
-  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1' }, code);
+  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }, { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }] } }, code);
   var auxActions = _auxRoom.makeAction('aux');
   _auxSendFn = auxActions[0];
   var receiveAux = auxActions[1];
@@ -11259,7 +11251,7 @@ function auxContestantJoin() {
   _auxRoomCode  = code;
 
   if (_auxRoom) { try { _auxRoom.leave(); } catch(_) {} }
-  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1' }, code);
+  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }, { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }] } }, code);
   var auxActions = _auxRoom.makeAction('aux');
   _auxSendFn = auxActions[0];
   var receiveAux = auxActions[1];
