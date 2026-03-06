@@ -3694,6 +3694,9 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   .app-tab    { min-height: 36px; padding: 7px 14px; }
   .modal-btn  { min-height: 44px; padding: 11px 14px; }
   .item       { touch-action: none; }
+  .item-rm    { opacity: 1 !important; width: 22px; height: 22px; font-size: 13px; }
+  #pool .item { min-width: var(--tile); min-height: var(--tile); }
+  .bm-slot    { min-height: 46px; }
 }
 
 /* ═══════════════════════════════════════
@@ -3766,8 +3769,18 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     transform: translateX(0) !important;
   }
 
-  /* ── Pool strip: slightly shorter ── */
-  #pool-wrap { height: 150px; }
+  /* ── Pool strip: slightly shorter, horizontally scrollable ── */
+  #pool-wrap { height: 148px; overflow-x: auto; overflow-y: hidden; }
+  #pool { flex-wrap: nowrap; overflow-x: auto; }
+  .tier-zone { flex-wrap: wrap; min-height: 52px; }
+  .tier-label { min-width: var(--label-w); width: var(--label-w); font-size: 11px; }
+  #bracket-toolbar { overflow-x: auto; flex-wrap: nowrap; }
+  #bracket-toolbar .btn { flex-shrink: 0; }
+  #touch-drag-ghost {
+    position: fixed; pointer-events: none; z-index: 9999;
+    opacity: 0.88; box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+    transform: scale(1.06); border: 2px solid var(--accent); transition: none;
+  }
 
   /* ── Content area: full width ── */
   #content-area { min-width: 0; width: 100%; }
@@ -3866,6 +3879,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
       <button class="tb-drop-item" onclick="exportTierImage();tbClose('dd-export')"><span class="tb-drop-item-icon">↓</span>Save as Image</button>
       <div class="tb-drop-sep"></div>
       <button class="tb-drop-item tb-drop-danger" onclick="clearTier();tbClose('dd-export')"><span class="tb-drop-item-icon">✕</span>Clear Tier</button>
+      <button class="tb-drop-item tb-drop-danger" onclick="clearAllItems();tbClose('dd-export')"><span class="tb-drop-item-icon">⊘</span>Clear All Items</button>
     </div>
   </div>
   <div class="tb-right">
@@ -5396,6 +5410,20 @@ function clearTier() {
   setTimeout(()=>{ undoStack.length=0; renderCatBar(); save(); toast('Tier cleared', 'info'); }, items.length*12+50);
 }
 
+function clearAllItems() {
+  const tierItems = [...document.getElementById('tiers').querySelectorAll('.item')];
+  const poolItems = [...pool.querySelectorAll('.item')];
+  const total = tierItems.length + poolItems.length;
+  if (!total) { toast('Nothing to clear', 'info', 1500); return; }
+  if (!confirm('Permanently delete all ' + total + ' items from tiers and pool? This cannot be undone.')) return;
+  tierItems.forEach(el => el.remove());
+  poolItems.forEach(el => el.remove());
+  catStore.clear(); catOrder.length = 0; activeCategory = 'ALL';
+  undoStack.length = 0;
+  renderCatBar(); updatePoolCount(); save();
+  toast('All items cleared', 'info', 2000);
+}
+
 
 const pool       = document.getElementById('pool');
 const tiersEl    = document.getElementById('tiers');
@@ -6798,8 +6826,37 @@ document.getElementById('scanFolderInput').addEventListener('change', async e=>{
   const files=[...e.target.files].filter(f=>{const x=f.name.split('.').pop().toLowerCase();return['mp3','flac','m4a','aac','ogg','wav'].includes(x);});
   e.target.value='';
   if(!files.length){alert('No audio files found.');return;}
-  await scanFiles(files);
+  const MAX_SCAN = 100000;
+  if(files.length > MAX_SCAN) {
+    alert('Your library has ' + files.length.toLocaleString() + ' audio files — that is genuinely impressive and slightly terrifying. Only the first ' + MAX_SCAN.toLocaleString() + ' will be scanned.');
+  } else if(files.length > 20000) {
+    const ok = confirm('You have ' + files.length.toLocaleString() + ' audio files. This scan will take a while — possibly several minutes. Proceed?');
+    if(!ok) return;
+  }
+  await scanFiles(files.slice(0, MAX_SCAN));
 });
+
+const _SCAN_EASTER_EGGS = [
+  { t: 60,  msg: 'So, nice weather huh?' },
+  { t: 90,  msg: 'How long did it take to get your library this big?' },
+  { t: 120, msg: 'Watched the game last night?' },
+  { t: 150, msg: 'Any second now.' },
+  { t: 180, msg: 'Aaaaany second now.' },
+  { t: 240, msg: "You should go outside more when you're done with this." },
+  { t: 300, msg: 'Still here. Still scanning. No judgement.' },
+  { t: 420, msg: 'At this point your music library is a personality trait.' },
+];
+let _scanEggTimers = [];
+function _startScanEggs(statEl) {
+  _clearScanEggs();
+  _SCAN_EASTER_EGGS.forEach(({ t, msg }) => {
+    _scanEggTimers.push(setTimeout(() => { statEl.textContent = msg; }, t * 1000));
+  });
+}
+function _clearScanEggs() {
+  _scanEggTimers.forEach(id => clearTimeout(id));
+  _scanEggTimers = [];
+}
 
 async function scanFiles(files) {
   const prog=document.getElementById('scan-prog-wrap'); prog.classList.add('on');
@@ -6808,9 +6865,13 @@ async function scanFiles(files) {
   const bar=document.getElementById('scan-bar'), stat=document.getElementById('scan-status-txt');
   const tempLib=new Map(); const total=files.length; let done=0;
 
+  _startScanEggs(stat);
+
   for(const file of files) {
-    stat.textContent=`Scanning ${done+1}/${total}: ${file.name}`;
+    if(done % 25 === 0) stat.textContent=`Scanning ${done+1}/${total}: ${file.name}`;
     bar.style.width=Math.round(done/total*100)+'%';
+    // Yield to browser every 100 files to keep UI responsive on large libraries
+    if(done > 0 && done % 100 === 0) await new Promise(r => setTimeout(r, 0));
     try {
       const meta=await readMeta(file);
       const artist=meta.artist||'Unknown Artist', album=meta.album||'Unknown Album';
@@ -6825,6 +6886,7 @@ async function scanFiles(files) {
     } catch(e) { console.warn(e); }
     done++;
   }
+  _clearScanEggs();
   bar.style.width='100%'; stat.textContent='Processing…';
 
   const entries=[];
@@ -9718,14 +9780,7 @@ function renderBracket() {
         const nm = document.createElement('div');
         nm.className = 'bm-slot-name';
         nm.style.cssText = 'text-align:center;font-size:14px;white-space:normal;letter-spacing:1px;font-weight:bold;';
-        // In aux battle, show the contestant's name rather than the song name
-        let champDisplay = slot.name || 'CHAMPION';
-        if (auxActive && slot.name) {
-          const aNames = bracketRounds[0].map(m => m.slots[0].name).filter(Boolean);
-          const champSide = aNames.includes(slot.name) ? 'a' : 'b';
-          champDisplay = auxNames[champSide] || slot.name;
-        }
-        nm.textContent = champDisplay;
+        nm.textContent = slot.name || 'CHAMPION';
         s.append(crown, nm);
         s.addEventListener('click', () => openSlotEditor(r, m, 0));
         node.appendChild(s);
@@ -9801,6 +9856,32 @@ function renderBracket() {
             if (isBye) return;
             // Aux battle: contestants can only fill their own slots
             if (auxActive && auxRole !== 'judge' && auxSlotHidden(si)) return;
+            // Track drag from sidebar library
+            const _trak = e.dataTransfer.getData('track-artist-key');
+            const _tAlK = e.dataTransfer.getData('track-album-key');
+            const _tIdx = e.dataTransfer.getData('track-idx');
+            if (_trak && _tAlK && _tIdx !== '') {
+              const _ao = library.get(_trak); const _al = _ao && _ao.albums.get(_tAlK);
+              const _tr = _al && _al.tracks[parseInt(_tIdx)];
+              if (_tr) {
+                bracketRounds[r][m].slots[si] = { name: _tr.title, src: _al.coverDataUrl || null, seed: bracketRounds[r][m].slots[si].seed };
+                auxBroadcastSlot(r, m, si, bracketRounds[r][m].slots[si]);
+                saveBracketData(); renderBracket();
+              }
+              return;
+            }
+            // Album drag from sidebar library
+            const _akD = e.dataTransfer.getData('artist-key');
+            const _alKD = e.dataTransfer.getData('album-key');
+            if (_akD && _alKD) {
+              const _aoD = library.get(_akD); const _alD = _aoD && _aoD.albums.get(_alKD);
+              if (_alD) {
+                bracketRounds[r][m].slots[si] = { name: _alD.name, src: _alD.coverDataUrl || null, seed: bracketRounds[r][m].slots[si].seed };
+                auxBroadcastSlot(r, m, si, bracketRounds[r][m].slots[si]);
+                saveBracketData(); renderBracket();
+              }
+              return;
+            }
             if (window.dragged) {
               const el  = window.dragged;
               const img = el.querySelector('img');
@@ -10687,23 +10768,20 @@ function matchupPick(si) {
         // Pan to champion (880ms travel + 620ms pause + ~2200ms entrance) then toast
         _panAndRevealChampion();
         setTimeout(() => {
+          toast(`🏆 CHAMPION: ${champName}`, 'success', 4000);
           if (auxActive) {
-            const aNames = bracketRounds[0].map(m => m.slots[0].name).filter(Boolean);
-            const champSide = aNames.includes(champName) ? 'a' : 'b';
-            const champContestant = auxNames[champSide];
-            toast(`👑 ${champContestant} WINS! (${champName})`, 'success', 4000);
             if (auxWinMode === 'bracket' || auxWinMode === 'fusion') {
+              const aNames = bracketRounds[0].map(m => m.slots[0].name).filter(Boolean);
+              const champSide = aNames.includes(champName) ? 'a' : 'b';
               if (auxWinMode === 'fusion') {
                 setTimeout(() => toast(`⚡ FUSION FINAL — ${auxNames.a}: ${auxScores.a}pts · ${auxNames.b}: ${auxScores.b}pts`, 'success', 5500), 900);
               } else {
-                setTimeout(() => toast(`🏆 BRACKET WINNER: ${champContestant} (${champName})`, 'success', 5000), 900);
+                setTimeout(() => toast(`🏆 BRACKET WINNER: ${auxNames[champSide]} (${champName})`, 'success', 5000), 900);
               }
             } else {
               const scoreWinner = auxScores.a >= auxScores.b ? auxNames.a : auxNames.b;
               setTimeout(() => toast(`🥇 SCORE WINNER: ${scoreWinner}  (${auxNames.a} ${auxScores.a}pts · ${auxNames.b} ${auxScores.b}pts)`, 'success', 5500), 900);
             }
-          } else {
-            toast(`🏆 CHAMPION: ${champName}`, 'success', 4000);
           }
         }, 1800); // after pan+suspense settle
       } else {
@@ -13315,18 +13393,128 @@ function mobileLibClose() {
 }
 
 // Close mobile sidebar when a library item is dragged to the tier
-// (auto-close after adding an item via tap/click on mobile)
 (function() {
   document.addEventListener('touchend', function(e) {
     const sidebar = document.getElementById('sidebar');
     if (!sidebar || !sidebar.classList.contains('mobile-open')) return;
-    // If the touch ends outside the sidebar, close it
-    const r = sidebar.getBoundingClientRect();
-    const t = e.changedTouches[0];
-    if (t.clientX > r.right || t.clientY < r.top || t.clientY > r.bottom) {
-      // don't auto-close on touch-outside — let backdrop handle that
-    }
   }, { passive: true });
+})();
+
+// ── MOBILE TOUCH DRAG ─────────────────────────────────────────────────────
+// HTML5 drag API is broken on iOS/Android. This implements pointer-event based
+// drag-and-drop for .item elements so mobile users can rearrange tiers.
+(function() {
+  let _tdActive = false, _tdItem = null, _tdGhost = null;
+  let _tdOrigin = null, _tdBefore = null;
+  let _tdOffX = 0, _tdOffY = 0, _tdLastZone = null;
+  let _tdTimer = null, _tdStartX = 0, _tdStartY = 0;
+  const LONG_PRESS = 200;
+
+  function _isMobile() { return window.matchMedia('(pointer:coarse)').matches; }
+
+  function _zoneAt(x, y) {
+    if (_tdGhost) _tdGhost.style.display = 'none';
+    const el = document.elementFromPoint(x, y);
+    if (_tdGhost) _tdGhost.style.display = '';
+    if (!el) return null;
+    return el.closest('.tier-zone') || (el.closest && el.closest('#pool') ? el.closest('#pool') : (el.id === 'pool' ? el : null));
+  }
+
+  function _begin(item, touch) {
+    _tdActive = true; _tdItem = item;
+    _tdOrigin = item.parentElement; _tdBefore = item.nextSibling;
+    const rect = item.getBoundingClientRect();
+    _tdOffX = touch.clientX - rect.left; _tdOffY = touch.clientY - rect.top;
+    _tdGhost = item.cloneNode(true);
+    _tdGhost.id = 'touch-drag-ghost';
+    _tdGhost.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;opacity:0.88;'+
+      'box-shadow:0 8px 28px rgba(0,0,0,0.75);transform:scale(1.06);border:2px solid var(--accent);transition:none;'+
+      'left:'+(touch.clientX-_tdOffX)+'px;top:'+(touch.clientY-_tdOffY)+'px;'+
+      'width:'+rect.width+'px;height:'+rect.height+'px;';
+    document.body.appendChild(_tdGhost);
+    item.style.opacity = '0.25'; item.style.pointerEvents = 'none';
+    window.dragged = item; dragged = item; dragOrigin = _tdOrigin;
+    placeholder = mkPH();
+    tiersFrame.classList.add('drag-on'); pool.classList.add('drag-on');
+    if (navigator.vibrate) navigator.vibrate(18);
+  }
+
+  function _move(touch) {
+    if (!_tdActive || !_tdGhost) return;
+    _tdGhost.style.left = (touch.clientX - _tdOffX) + 'px';
+    _tdGhost.style.top  = (touch.clientY - _tdOffY) + 'px';
+    const zone = _zoneAt(touch.clientX, touch.clientY);
+    if (zone !== _tdLastZone) {
+      if (_tdLastZone) _tdLastZone.classList.remove('dz-over');
+      if (zone) zone.classList.add('dz-over');
+      _tdLastZone = zone;
+    }
+    if (zone && placeholder) {
+      const before = getInsertBefore(zone, touch.clientY, touch.clientX);
+      before ? zone.insertBefore(placeholder, before) : zone.appendChild(placeholder);
+    }
+  }
+
+  function _end(touch) {
+    if (!_tdActive) return; _tdActive = false;
+    if (_tdGhost) { _tdGhost.remove(); _tdGhost = null; }
+    if (_tdLastZone) _tdLastZone.classList.remove('dz-over');
+    _tdItem.style.opacity = ''; _tdItem.style.pointerEvents = '';
+    const zone = _zoneAt(touch.clientX, touch.clientY);
+    if (placeholder && placeholder.parentElement) {
+      undoStack.push({ type:'item_move', item:_tdItem, from:_tdOrigin, before:_tdBefore });
+      if (undoStack.length > UNDO_MAX) undoStack.shift();
+      placeholder.parentElement.insertBefore(_tdItem, placeholder);
+      placeholder.remove();
+    } else if (zone) {
+      undoStack.push({ type:'item_move', item:_tdItem, from:_tdOrigin, before:_tdBefore });
+      zone.appendChild(_tdItem);
+    }
+    landAnim(_tdItem);
+    tiersFrame.classList.remove('drag-on'); pool.classList.remove('drag-on');
+    window.dragged = null; dragged = null; dragOrigin = null; placeholder = null;
+    _tdLastZone = null; _tdItem = null;
+    updatePoolCount(); renderCatBar(); save();
+  }
+
+  function _cancel() {
+    if (_tdTimer) { clearTimeout(_tdTimer); _tdTimer = null; }
+    if (!_tdActive) return;
+    if (_tdGhost) _tdGhost.remove();
+    if (_tdItem) { _tdItem.style.opacity=''; _tdItem.style.pointerEvents=''; }
+    if (placeholder && placeholder.parentElement) placeholder.remove();
+    tiersFrame.classList.remove('drag-on'); pool.classList.remove('drag-on');
+    window.dragged=null; dragged=null; dragOrigin=null; placeholder=null;
+    _tdActive=false; _tdItem=null; _tdGhost=null; _tdLastZone=null;
+  }
+
+  document.addEventListener('touchstart', function(e) {
+    if (!_isMobile()) return;
+    const item = e.target.closest('.item');
+    if (!item || e.target.closest('.item-rm')) return;
+    const touch = e.touches[0];
+    _tdStartX = touch.clientX; _tdStartY = touch.clientY;
+    _tdTimer = setTimeout(function() { _tdTimer = null; _begin(item, touch); }, LONG_PRESS);
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function(e) {
+    const touch = e.touches[0];
+    if (_tdTimer) {
+      if (Math.abs(touch.clientX-_tdStartX)>8 || Math.abs(touch.clientY-_tdStartY)>8) {
+        clearTimeout(_tdTimer); _tdTimer = null;
+      }
+    }
+    if (!_tdActive) return;
+    e.preventDefault();
+    _move(touch);
+  }, { passive: false });
+
+  document.addEventListener('touchend', function(e) {
+    if (_tdTimer) { clearTimeout(_tdTimer); _tdTimer = null; }
+    if (_tdActive) _end(e.changedTouches[0]);
+  }, { passive: true });
+
+  document.addEventListener('touchcancel', _cancel, { passive: true });
 })();
 </script>
 
