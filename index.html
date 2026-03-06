@@ -12551,11 +12551,10 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="bpk-card-name">REGULAR</div>
           <div class="bpk-card-desc">Solo or local play. Classic matchup mode with optional mystery.</div>
         </div>
-        <div class="bpk-card bpk-card-disabled" style="position:relative;opacity:0.5;cursor:not-allowed;">
-          <div style="position:absolute;top:6px;right:6px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:#f90;border:1px solid #f90;padding:1px 5px;">WIP</div>
+        <div class="bpk-card" onclick="bpkGoMultiplayer()">
           <div class="bpk-card-icon">&#127760;</div>
           <div class="bpk-card-name">MULTIPLAYER</div>
-          <div class="bpk-card-desc">Coming in a future update. Requires dedicated server infrastructure.</div>
+          <div class="bpk-card-desc">Real-time P2P play with 2–3 players. No server needed — powered by WebRTC.</div>
         </div>
       </div>
       <button class="modal-btn cancel" onclick="closeOverlay('battlePickerOvr')" style="margin-top:16px;width:100%;">CANCEL</button>
@@ -12572,11 +12571,10 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="bpk-card-name">TRADITIONAL</div>
           <div class="bpk-card-desc">Classic matchup mode. Both entries visible, click to advance a winner through every round.</div>
         </div>
-        <div class="bpk-card bpk-card-disabled" style="position:relative;opacity:0.5;cursor:not-allowed;">
-          <div style="position:absolute;top:6px;right:6px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:#f90;border:1px solid #f90;padding:1px 5px;">WIP</div>
+        <div class="bpk-card" onclick="bpkStartCollaboration()">
           <div class="bpk-card-icon">&#128279;</div>
           <div class="bpk-card-name">COLLABORATION</div>
-          <div class="bpk-card-desc">Live bracket sync coming in a future update. Requires dedicated server infrastructure.</div>
+          <div class="bpk-card-desc">Sync a live bracket with a partner. Both players see and control the same bracket in real-time via P2P.</div>
         </div>
       </div>
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:12px;font-family:var(--mono);font-size:12px;letter-spacing:1.5px;color:var(--text-dim);user-select:none;">
@@ -12592,11 +12590,10 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="bpk-sub">Choose your multiplayer format</div>
       </div>
       <div class="bpk-card-row">
-        <div class="bpk-card bpk-card-disabled" style="position:relative;opacity:0.5;cursor:not-allowed;">
-          <div style="position:absolute;top:6px;right:6px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:#f90;border:1px solid #f90;padding:1px 5px;">WIP</div>
+        <div class="bpk-card" onclick="bpkGoRuleset()">
           <div class="bpk-card-icon">&#127925;</div>
           <div class="bpk-card-name">BATTLE</div>
-          <div class="bpk-card-desc">3-player duel coming in a future update. Requires dedicated server infrastructure.</div>
+          <div class="bpk-card-desc">3-player duel — Contestant A vs B, judged live. Picks hidden until reveal. P2P via WebRTC.</div>
         </div>
         <div class="bpk-card bpk-card-disabled">
           <div class="bpk-card-icon">&#127942;</div>
@@ -12634,7 +12631,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <div class="bpk-rule-block">
           <div class="bpk-rule-heading">&#128279; CONNECTION</div>
-          <p>🚧 <b>Work in progress.</b> Multiplayer requires a dedicated signaling server. This will be implemented in a future update once the server infrastructure is in place.</p>
+          <p>Fully peer-to-peer via WebRTC — no server required. The Judge creates a room and shares one code with both contestants. Connection may take a few seconds on first join.</p>
         </div>
       </div>
       <button class="modal-btn primary" onclick="bpkLaunchBattle()" style="width:100%;margin-top:14px;">&#127925; ENTER BATTLE SETUP &#8594;</button>
@@ -12663,13 +12660,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="overlay" id="auxOvr">
   <div class="modal">
     <div class="modal-hdr">// BATTLE_SESSION</div>
-    <div style="background:repeating-linear-gradient(45deg,#1a1500,#1a1500 8px,#221c00 8px,#221c00 16px);border:1px solid #f90;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
-      <span style="font-size:20px;">🚧</span>
-      <div>
-        <div style="font-family:var(--mono);font-size:13px;letter-spacing:2px;color:#f90;font-weight:700;">WORK IN PROGRESS</div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-top:3px;line-height:1.7;">Battle mode requires a dedicated server and is not yet functional. Coming in a future update.</div>
-      </div>
-    </div>
 
     <!-- Username -->
     <div class="aux-modal-section">
@@ -13040,7 +13030,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {
       tab: null,
       title: '♥  ONE LAST THING',
-      body: 'If you feel generous and find this site to your liking, consider donating a quick buck or so to help keep it running! I plan to make this site as feature-rich and advanced as posssible (maybe even adding in a ranked ladder multiplayer mode!), so any support you can throw my way goes a long way towards that! Otherwise, I won\'t keep you any longer — I hope you have a great time using Musetier! ♥',
+      body: 'If you feel generous and find this site to your liking, consider donating a quick buck or so to help keep it running! I plan to make this site permanently ad-free, so any support you can throw my way goes a long way towards that! Otherwise, I won\'t keep you any longer — I hope you have a great time using Musetier! ♥',
       targets: [
         { sel: '.btn-donate', lbl: '♥ DONATE — buymeacoffee', pos: 'below' },
       ]
