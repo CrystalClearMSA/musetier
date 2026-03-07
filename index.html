@@ -298,19 +298,44 @@ body {
 #ver-badge {
   font-family: var(--mono);
   font-size: 9px;
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
   background: rgba(255,200,0,.1);
   border: 1px solid rgba(255,200,0,.3);
   color: #fc0;
-  padding: 2px 6px;
+  padding: 0;
   cursor: pointer;
   flex-shrink: 0;
   align-self: center;
   margin-left: 4px;
   transition: background .15s, border-color .15s;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: stretch;
+  overflow: hidden;
+  gap: 0;
 }
-#ver-badge:hover { background: rgba(255,200,0,.2); border-color: rgba(255,200,0,.6); }
+#ver-badge:hover { background: rgba(255,200,0,.18); border-color: rgba(255,200,0,.6); }
+#ver-badge-ea {
+  background: rgba(255,200,0,.22);
+  padding: 2px 5px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  border-right: 1px solid rgba(255,200,0,.25);
+}
+#ver-badge-num {
+  padding: 2px 5px;
+  letter-spacing: 1px;
+}
+#ver-badge-icon {
+  padding: 2px 5px;
+  border-left: 1px solid rgba(255,200,0,.25);
+  background: rgba(255,200,0,.12);
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  color: rgba(255,200,0,.75);
+}
+#ver-badge:hover #ver-badge-icon { color: #fc0; background: rgba(255,200,0,.22); }
 #logo-credit {
   font-family: var(--mono);
   font-size: 11px;
@@ -4160,7 +4185,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 ═══════════════════════════════════════════ -->
 <div id="topbar">
   <div id="logo">MUSE<span>_</span>TIER</div>
-  <button id="ver-badge" onclick="openOverlay('supportOvr')" title="Early Access — click for info & support">EA&#8209;1.0.9.3</button>
+  <button id="ver-badge" onclick="openOverlay('supportOvr')" title="Early Access — click to report bugs &amp; join support server"><span id="ver-badge-ea">EA</span><span id="ver-badge-num">1.0.9.4</span><span id="ver-badge-icon">?</span></button>
   <div id="logo-credit"></div>
   <!-- Mobile-only: full-width lib button + action icons in same row -->
   <div id="mobile-lib-row">
@@ -4228,7 +4253,6 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   </div>
   <div class="tb-right">
     <a class="btn btn-donate" href="https://buymeacoffee.com/crystalclearmsa" target="_blank" rel="noopener" title="Support the creator ♥">♥ DONATE</a>
-    <button class="btn" id="support-btn" onclick="openOverlay('supportOvr')" title="Support Server & Bug Reports">✦ SUPPORT</button>
     <button class="btn btn-icon" onclick="openSettings()" title="Settings">⚙</button>
   </div>
 </div>
@@ -4236,9 +4260,9 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 <!-- ═══════════════════════════════════════════
      BODY
 ═══════════════════════════════════════════ -->
-<div id="mobile-sidebar-backdrop"></div>
-
 <div id="app-body">
+
+<div id="mobile-sidebar-backdrop"></div>
 
   <!-- ── SIDEBAR ── -->
   <button id="sb-tab-btn" onclick="toggleSidebar()" title="Toggle library">
@@ -4673,7 +4697,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   <div class="modal" style="width:min(580px,100%);max-height:90vh;display:flex;flex-direction:column;">
     <div class="modal-hdr">// SUPPORT &amp; BUG REPORTS</div>
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0 8px;flex-shrink:0;">
-      <span id="ver-badge-modal" style="font-family:var(--mono);font-size:11px;background:rgba(255,200,0,.13);border:1px solid rgba(255,200,0,.35);color:#fc0;padding:3px 8px;letter-spacing:1px;">EA&#8209;1.0.9.3 — EARLY ACCESS</span>
+      <span id="ver-badge-modal" style="font-family:var(--mono);font-size:11px;background:rgba(255,200,0,.13);border:1px solid rgba(255,200,0,.35);color:#fc0;padding:3px 8px;letter-spacing:1px;">EA&#8209;1.0.9.4 — EARLY ACCESS</span>
       <span style="font-size:11px;color:var(--text-dim);letter-spacing:1px;">This build is unfinished. Bugs are expected.</span>
     </div>
     <p style="font-size:12px;color:var(--text-dim);letter-spacing:1px;line-height:1.8;flex-shrink:0;margin:0 0 10px;">
@@ -5816,6 +5840,7 @@ function clearAllItems() {
   tierItems.forEach(el => el.remove());
   poolItems.forEach(el => el.remove());
   catStore.clear(); catOrder.length = 0; activeCategory = 'ALL';
+  genAddedKeys.clear();
   undoStack.length = 0;
   renderCatBar(); updatePoolCount(); save();
   toast('All items cleared', 'info', 2000);
@@ -6918,11 +6943,14 @@ function renderLibTree() {
           if (!al2) return;
           let added = 0;
           al2.tracks.forEach(function(t, i) {
+            const key2 = ak + ':' + alKey + ':' + i;
+            if (genAddedKeys.has(key2)) return; // already in pool
             const src2 = al2.coverDataUrl || '';
             const item2 = createItem(src2, t.title, t.title);
             item2.classList.add('track-item');
             if (al2.coverDataUrl) item2.dataset.dataUrl = al2.coverDataUrl;
-            item2.dataset.genKey = ak + ':' + alKey + ':' + i;
+            item2.dataset.genKey = key2;
+            genAddedKeys.add(key2);
             if (!catStore.has(ak)) catStore.set(ak, []);
             catStore.get(ak).push({ item: item2, bitmap: null });
             setupDraggable(item2);
@@ -12076,9 +12104,15 @@ function tbToggle(id) {
 }
 
 function tbClose(id) {
-  // Find menu — may be teleported to body
   const wrap = document.getElementById(id);
-  const menu = wrap?.querySelector('.tb-drop-menu') || document.querySelector('.tb-drop-menu.tb-teleported');
+  // First try inside the wrapper, then search teleported menus by their placeholder tag
+  let menu = wrap?.querySelector('.tb-drop-menu') || null;
+  if (!menu) {
+    menu = [...document.querySelectorAll('.tb-drop-menu.tb-teleported')].find(m => {
+      const ph = _tbMenuOwners.get(m);
+      return ph && ph.nodeValue === 'tb-menu-placeholder:' + id;
+    }) || null;
+  }
   if (menu) {
     const placeholder = _tbMenuOwners.get(menu);
     if (placeholder?.parentNode) placeholder.parentNode.replaceChild(menu, placeholder);
