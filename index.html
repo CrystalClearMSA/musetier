@@ -6965,7 +6965,11 @@ function renderLibTree() {
   });
   tree.appendChild(frag);
   // Restore scroll position so mobile taps don't jump to top
-  if (_scrollTop) tree.scrollTop = _scrollTop;
+  if (_scrollTop) {
+    _tbScrollSuppressed = true;
+    tree.scrollTop = _scrollTop;
+    setTimeout(function() { _tbScrollSuppressed = false; }, 0);
+  }
   // Keep library view in sync whenever sidebar tree is rebuilt
   if (activeTab === 'libview') lvRender();
 }
@@ -9767,10 +9771,9 @@ function collabJoin() {
   // Timeout — if no peer joins within 30s, give up
   _collabJoinTimeout = setTimeout(function() {
     if (!collabConnected) {
+      _collabHandleDrop('TIMED OUT');
       errEl.textContent = 'No host found — check the room code and try again';
       errEl.style.display = '';
-      _collabTeardown();
-      collabSetStatus('error', 'TIMED OUT');
     }
   }, 30000);
 
@@ -11973,7 +11976,7 @@ function tbToggle(id) {
   }
   if (!menu) return;
 
-  const isOpen = menu.classList.contains('open') && menu.classList.contains('tb-teleported');
+  const isOpen = btn.classList.contains('open');
 
   _tbCloseAll();
 
@@ -12031,7 +12034,10 @@ document.addEventListener('pointerdown', e => {
 }, true);
 
 // Close on scroll/resize
-window.addEventListener('scroll', _tbCloseAll, true);
+// _tbScrollSuppressed: set briefly during programmatic scrollTop restores (e.g. renderLibTree)
+// so that DOM-triggered scroll events don't accidentally close open dropdowns.
+let _tbScrollSuppressed = false;
+window.addEventListener('scroll', function() { if (!_tbScrollSuppressed) _tbCloseAll(); }, true);
 window.addEventListener('resize', _tbCloseAll);
 
 // ── Hook switchTab to init bracket on first visit ─────
