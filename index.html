@@ -353,8 +353,6 @@ body {
   position: absolute; bottom: -1px; left: 0; right: 0;
   height: 1px; background: var(--accent);
 }
-.app-tab.tab-gen.active { color: var(--accent-gen); border-color: var(--accent-gen); }
-.app-tab.tab-gen.active::after { background: var(--accent-gen); }
 
 .tb-right { margin-left: auto; display: flex; gap: 5px; flex-shrink: 0; align-items: center; }
 
@@ -673,12 +671,12 @@ label.btn { cursor: pointer; }
 
 #bracket-cog-panel {
   display: none;
-  position: absolute;
-  top: calc(100% + 4px); left: 0;
+  position: fixed;
+  top: 0; left: 0;
   background: var(--panel);
   border: 1px solid var(--border-hi);
   padding: 10px;
-  z-index: 200;
+  z-index: 9200;
   min-width: 220px;
   box-shadow: 0 4px 24px rgba(0,0,0,.4);
   animation: modal-pop .14s ease-out both;
@@ -784,7 +782,7 @@ label.btn { cursor: pointer; }
 .mrsf-btns button.primary { border-color: var(--accent); color: var(--accent); }
 .mrsf-btns button:hover { background: var(--panel2); }
 .mrsf-btns button.primary:hover { background: var(--accent); color: var(--bg); }
-#lib-ctx-menu {
+#lib-ctx-menu, #item-ctx-menu {
   position: fixed; z-index: 9000;
   background: var(--panel2); border: 1px solid var(--border-hi);
   display: none; flex-direction: column;
@@ -794,6 +792,7 @@ label.btn { cursor: pointer; }
   box-shadow: 0 8px 28px rgba(0,0,0,0.6);
 }
 #lib-ctx-menu.open { display: flex; }
+#item-ctx-menu.open { display: flex; }
 .ctx-item {
   background: none; border: none; border-bottom: 1px solid var(--border);
   color: var(--text); font-family: var(--mono); font-size: 13px;
@@ -801,6 +800,7 @@ label.btn { cursor: pointer; }
   padding: 8px 12px; cursor: pointer; text-align: left;
   transition: background 0.1s, color 0.1s;
 }
+#item-ctx-sep { height: 1px; background: var(--border); margin: 2px 0; }
 .ctx-item:last-child { border-bottom: none; }
 .ctx-item:hover { background: var(--panel3); color: var(--accent); }
 .ctx-item.danger:hover { color: var(--accent2); }
@@ -1326,6 +1326,28 @@ label.btn { cursor: pointer; }
 }
 .item:active { cursor: grabbing; }
 .item.dragging { opacity: 0.3; transform: scale(0.88); }
+
+/* Selected item overlay */
+.item.selected {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px var(--accent), inset 0 0 0 1px rgba(0,221,255,0.4);
+  z-index: 2;
+}
+.item.selected::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 221, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--accent);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.9), 0 0 12px rgba(0,221,255,0.6);
+  pointer-events: none;
+  font-family: var(--mono);
+}
 .item-rm {
   position: absolute; top: 1px; right: 1px;
   background: rgba(0,0,0,0.75); border: none; color: #f55;
@@ -1371,10 +1393,10 @@ label.btn { cursor: pointer; }
 
 
 #grid-cog-panel {
-  display: none; position: absolute;
-  top: 42px; left: 12px;
+  display: none; position: fixed;
+  top: 0; left: 0;
   background: var(--panel); border: 1px solid var(--border-hi);
-  padding: 10px; z-index: 300; min-width: 210px;
+  padding: 10px; z-index: 9200; min-width: 210px;
   box-shadow: 0 4px 24px rgba(0,0,0,.4);
   animation: modal-pop .18s cubic-bezier(.34,1.3,.64,1) both;
   flex-direction: column; gap: 7px;
@@ -3844,6 +3866,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   /* Hide desktop tabs and desktop action buttons */
   #app-tabs      { display: none !important; }
   #edit-mode-btn { display: none !important; }
+  #gen-settings-btn { display: none !important; }
   #collab-btn    { display: none !important; }
   #dd-export     { display: none !important; }
   .btn-donate    { display: none !important; }
@@ -4057,17 +4080,6 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   #matchup-vs { font-size: 28px; padding: 4px 0; }
   #matchup-close-btn { margin-top: 12px; min-height: 40px; padding: 8px 20px; }
 
-  /* ── GEN tab: stack vertically ── */
-  #tab-gen { flex-direction: column !important; }
-  #gen-content-row { flex-direction: column !important; }
-  #gen-config-col {
-    width: 100% !important; min-width: 0 !important; max-width: 100% !important;
-    border-left: none !important; border-top: 1px solid var(--border);
-    max-height: 45vh; overflow-y: auto;
-  }
-  #gen-preview-col { min-height: 220px; }
-  #gen-preview-box { min-height: 180px; }
-
   /* ── Library view: scrollable toolbar + table ── */
   #lv-toolbar { flex-wrap: nowrap; flex-shrink: 0; overflow-x: auto; padding-bottom: 2px; }
   #lv-toolbar .lv-sep { display: none; }
@@ -4133,6 +4145,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     <button class="btn btn-lib" id="mobile-lib-btn" onclick="mobileLibToggle()" title="Library">☰ LIBRARY</button>
     <div id="mobile-action-row">
       <button class="btn mob-icon-btn" onclick="openCollab()" title="Collab">⇄</button>
+      <button class="btn mob-icon-btn" onclick="openGenSettings()" title="Gen Settings">✦</button>
       <button class="btn mob-icon-btn" onclick="toggleEditMode()" title="Edit">✎</button>
       <div class="tb-dropdown mob-icon-dd" id="dd-mob-export">
         <button class="btn mob-icon-btn" onclick="tbToggle('dd-mob-export')" title="Export">↓</button>
@@ -4153,7 +4166,6 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     </button>
     <div class="tb-drop-menu" id="dd-mobile-tabs-menu">
       <button class="tb-drop-item" onclick="switchTab('tier');tbClose('dd-mobile-tabs');document.getElementById('mobile-tab-lbl').textContent='TIER'">TIER</button>
-      <button class="tb-drop-item" onclick="switchTab('gen');tbClose('dd-mobile-tabs');document.getElementById('mobile-tab-lbl').textContent='✦ GEN'">✦ GEN</button>
       <button class="tb-drop-item" onclick="switchTab('bracket');tbClose('dd-mobile-tabs');document.getElementById('mobile-tab-lbl').textContent='BRACKET'">BRACKET</button>
       <button class="tb-drop-item" onclick="switchTab('grid');tbClose('dd-mobile-tabs');document.getElementById('mobile-tab-lbl').textContent='GRID'">GRID</button>
       <button class="tb-drop-item" onclick="switchTab('libview');tbClose('dd-mobile-tabs');document.getElementById('mobile-tab-lbl').textContent='♫ LIBRARY'">♫ LIBRARY</button>
@@ -4163,7 +4175,6 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   <!-- Desktop tabs (hidden on mobile) -->
   <div id="app-tabs">
     <button class="app-tab active" id="tab-btn-tier"    onclick="switchTab('tier')">TIER</button>
-    <button class="app-tab tab-gen" id="tab-btn-gen"    onclick="switchTab('gen')">✦ GEN</button>
     <button class="app-tab tab-bracket" id="tab-btn-bracket" onclick="switchTab('bracket')">BRACKET</button>
     <button class="app-tab tab-grid" id="tab-btn-grid"  onclick="switchTab('grid')">GRID</button>
     <button class="app-tab tab-libview" id="tab-btn-libview" onclick="switchTab('libview')">♫ LIBRARY</button>
@@ -4181,6 +4192,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     </div>
   </div>
   <button class="btn" id="collab-btn" onclick="openCollab()" title="Real-time collaboration"><span class="collab-btn-icon">⇄</span><span class="collab-btn-txt"> COLLAB</span></button>
+  <button class="btn" id="gen-settings-btn" onclick="openGenSettings()" title="Track image generation settings">✦ GEN</button>
   <button class="btn" id="edit-mode-btn" onclick="toggleEditMode()" title="Edit Mode — rearrange tiers, add new rows (Ctrl+E)">✎ EDIT</button>
   <!-- Export dropdown — export image + clear -->
   <div class="tb-dropdown" id="dd-export">
@@ -4310,7 +4322,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
       <div id="pool-wrap">
         <button id="pool-popdown-btn" onclick="collapsePool()" title="Collapse pool">▾ COLLAPSE POOL</button>
         <div id="pool-resize-handle" title="Drag to resize pool"></div>
-        <div id="pool-hdr">STAGING POOL <button id="pool-dedup-btn" onclick="openDedupModal()" title="Find & merge duplicates">⧉ DUPES</button></div>
+        <div id="pool-hdr">STAGING POOL <button id="pool-dedup-btn" onclick="openDedupModal()" title="Find & merge duplicates">⧉ DUPES</button><button id="pool-clear-btn" onclick="clearPool()" title="Remove all items from pool">✕ CLEAR</button></div>
         <div id="cat-bar-wrap"><div id="cat-bar"></div></div>
         <div id="pool"></div>
       </div>
@@ -4615,187 +4627,6 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     </div><!-- /tab-libview -->
 
     <!-- GEN TAB -->
-    <div class="tab-pane" id="tab-gen">
-      <!-- album banner — spans full width -->
-      <div id="gen-album-banner" class="empty">
-        <div id="gen-banner-cover-ph">♪</div>
-        <img id="gen-banner-cover" src="" alt="" style="display:none;">
-        <div id="gen-banner-info">
-          <div id="gen-banner-title">—</div>
-          <div id="gen-banner-artist">Select an album from the library</div>
-        </div>
-      </div>
-
-      <!-- gen empty state — shown when no album loaded -->
-      <div id="gen-empty-state">
-        <div id="gen-empty-icon">✦</div>
-        <div id="gen-empty-title">GEN — Track Image Generator</div>
-        <div id="gen-empty-desc">Select an album from the library panel to generate custom track artwork. Open the library (☰), expand an artist, then click any album to load it here.</div>
-      </div>
-
-      <!-- gen-content-row: preview + config side by side -->
-      <div id="gen-content-row" class="hidden">
-      <!-- preview -->
-      <div id="gen-preview-col">
-        <div id="gen-preview-box">
-          <canvas id="gen-preview-canvas" style="display:none;"></canvas>
-          <div id="gen-preview-empty">Select album · pick a track · preview appears here<br><span style="font-size:11px;opacity:0.5;">← use the library panel to load an album</span></div>
-        </div>
-        <div id="gen-preview-controls">
-          <button class="btn btn-gen" onclick="sendToPool()">[ → SEND TO POOL ]</button>
-          <button class="btn btn-gen" onclick="sendAllToPool()">[ ⇒ ALL TO POOL ]</button>
-          <button class="btn" onclick="downloadCurrentPreview()">[ ↓ SAVE PREVIEW ]</button>
-        </div>
-      </div>
-
-      <!-- config -->
-      <div id="gen-config-col">
-        <div id="gen-config-scroll">
-
-          <div class="gc-section">
-            <div class="gc-title">TEXT POSITION</div>
-            <div class="gc-row">
-              <div class="gc-label">VERTICAL</div>
-              <select class="gc-select" id="gc-pos" onchange="updatePreview()">
-                <option value="center">Center</option>
-                <option value="lower">Lower Third</option>
-                <option value="top">Top</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="gc-section">
-            <div class="gc-title">BACKGROUND DIM</div>
-            <div class="gc-row">
-              <div class="gc-label">OPACITY</div>
-              <input type="range" class="gc-range" id="gc-dim" min="0" max="100" value="0" oninput="document.getElementById('gc-dim-val').textContent=this.value+'%';updatePreview()">
-              <div class="gc-range-val" id="gc-dim-val">0%</div>
-            </div>
-          </div>
-
-          <div class="gc-section">
-            <div class="gc-title">TEXT STYLE</div>
-            <div class="gc-row">
-              <label class="gc-toggle">
-                <input type="checkbox" id="gc-show-title" checked onchange="updatePreview()"> INCLUDE TITLE TEXT
-              </label>
-            </div>
-            <div class="gc-row">
-              <label class="gc-toggle">
-                <input type="checkbox" id="gc-shadow" onchange="updatePreview()"> DROP SHADOW
-              </label>
-            </div>
-            <div class="gc-row">
-              <label class="gc-toggle">
-                <input type="checkbox" id="gc-uppercase" onchange="updatePreview()"> UPPERCASE
-              </label>
-            </div>
-          </div>
-
-          <div class="gc-section">
-            <div class="gc-title">FONT</div>
-            <div class="gc-row">
-              <select class="gc-select" id="gc-font" onchange="updatePreview()">
-                <optgroup label="── SANS SERIF ──">
-                  <option value="bold">Barlow Condensed (Default)</option>
-                  <option value="anton">Anton — Heavy Impact</option>
-                  <option value="russo">Russo One — Rounded Bold</option>
-                  <option value="bebas">Bebas Neue — Tall &amp; Narrow</option>
-                  <option value="teko">Teko — Geometric Compressed</option>
-                  <option value="saira">Saira Condensed — Dense</option>
-                  <option value="fjalla">Fjalla One — Clean &amp; Strong</option>
-                  <option value="bsdisp">Big Shoulders Display</option>
-                  <option value="righteous">Righteous — Rounded</option>
-                </optgroup>
-                <optgroup label="── DISPLAY / POSTER ──">
-                  <option value="staatlich">Staatliches — Stretched</option>
-                  <option value="bungee">Bungee — Urban Sign</option>
-                  <option value="bangers">Bangers — Comic Book</option>
-                  <option value="ultra">Ultra — Heavy Roman</option>
-                  <option value="alfaslab">Alfa Slab One — Slab Poster</option>
-                  <option value="abril">Abril Fatface — Editorial</option>
-                  <option value="blackops">Black Ops One — Military</option>
-                </optgroup>
-                <optgroup label="── SERIF ──">
-                  <option value="playfair">Playfair Display — Elegant</option>
-                  <option value="cinzel">Cinzel — Classical</option>
-                  <option value="librebask">Libre Baskerville</option>
-                  <option value="unna">Unna — Editorial Italic</option>
-                </optgroup>
-                <optgroup label="── MONOSPACE / TECH ──">
-                  <option value="mono">Share Tech Mono</option>
-                  <option value="spacemono">Space Mono</option>
-                  <option value="orbitron">Orbitron — Sci-Fi</option>
-                  <option value="audiowide">Audiowide — Futuristic</option>
-                  <option value="pressstart">Press Start 2P — Pixel</option>
-                  <option value="vt323">VT323 — Terminal</option>
-                </optgroup>
-                <optgroup label="── SLAB SERIF ──">
-                  <option value="slab">Oswald</option>
-                  <option value="rocksalt">Rock Salt — Rough</option>
-                  <option value="specialelite">Special Elite — Typewriter</option>
-                </optgroup>
-                <optgroup label="── ELEGANT / SCRIPT ──">
-                  <option value="thin">Cormorant Garamond — Thin</option>
-                  <option value="playfairita">Playfair Italic</option>
-                  <option value="pinyon">Pinyon Script — Calligraphy</option>
-                  <option value="greatvibes">Great Vibes — Flourish</option>
-                  <option value="dancing">Dancing Script — Handwritten</option>
-                  <option value="pacifico">Pacifico — Retro Casual</option>
-                  <option value="lobster">Lobster — Retro Script</option>
-                  <option value="fredoka">Fredoka One — Friendly</option>
-                </optgroup>
-                <optgroup label="── HORROR / METAL ──">
-                  <option value="creepster">Creepster — Spooky</option>
-                  <option value="nosifer">Nosifer — Drip Horror</option>
-                  <option value="metalmania">Metal Mania — Heavy Metal</option>
-                  <option value="rajdhani">Rajdhani — Aggressive</option>
-                </optgroup>
-              </select>
-            </div>
-          </div>
-
-          <div class="gc-section">
-            <div class="gc-title">OUTPUT</div>
-            <div class="gc-row">
-              <div class="gc-label">FORMAT</div>
-              <select class="gc-select" id="gc-fmt">
-                <option value="jpeg">JPEG</option>
-                <option value="png">PNG</option>
-                <option value="webp">WebP</option>
-              </select>
-            </div>
-            <div class="gc-row">
-              <div class="gc-label">SIZE</div>
-              <select class="gc-select" id="gc-size">
-                <option value="3000">3000 × 3000</option>
-                <option value="2000">2000 × 2000</option>
-                <option value="1500">1500 × 1500</option>
-                <option value="1000">1000 × 1000</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="gc-section">
-            <div class="gc-title">TRACKS</div>
-            <div id="gen-track-list"></div>
-          </div>
-
-          <button id="gen-generate-btn" disabled onclick="generateBatch()">
-            ✦ GENERATE ALL TRACK IMAGES
-          </button>
-        </div>
-
-        <div id="gen-progress-wrap">
-          <div id="gen-bar-track"><div id="gen-bar"></div></div>
-          <div id="gen-status">
-            <span id="gen-stat-txt">—</span>
-            <span id="gen-stat-pct">0%</span>
-          </div>
-        </div>
-      </div>
-      </div><!-- /gen-content-row -->
-    </div>
 
   </div>
 </div>
@@ -5017,7 +4848,171 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   <button class="ctx-item danger" id="ctx-delete" onclick="libCtxDelete()">✕ Delete Release</button>
 </div>
 
+<!-- Pool item context menu -->
+<div id="item-ctx-menu">
+  <button class="ctx-item" id="ictx-select-all" onclick="itemCtxSelectAll()">⊡ Select All in Pool</button>
+  <button class="ctx-item" id="ictx-deselect" onclick="itemCtxDeselect()">○ Deselect All</button>
+  <div id="item-ctx-sep"></div>
+  <button class="ctx-item danger" id="ictx-delete-one" onclick="itemCtxDeleteOne()">✕ Remove This Item</button>
+  <button class="ctx-item danger" id="ictx-delete-sel" onclick="itemCtxDeleteSelected()">✕✕ Remove Selected (<span id="ictx-sel-count">0</span>)</button>
+</div>
+
+<!-- Gen Settings modal -->
+
+<!-- Gen Settings modal -->
+<div class="overlay" id="genSettingsOvr">
+  <div class="modal" style="width:min(660px,100%);max-height:92vh;display:flex;flex-direction:column;gap:0;padding:20px;">
+    <div class="modal-title" style="margin-bottom:8px;">✦ GEN SETTINGS</div>
+
+    <!-- Album header -->
+    <div id="gen-modal-album-hdr" style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--panel2);border:1px solid var(--border);margin-bottom:12px;min-height:52px;">
+      <div style="width:36px;height:36px;background:var(--panel3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-dim);flex-shrink:0;">♪</div>
+      <div style="color:var(--text-dim);font-size:12px;">No album selected — click an album in the library to load it here</div>
+    </div>
+
+    <!-- Body: preview left, config right -->
+    <div style="display:flex;gap:14px;flex:1;min-height:0;overflow:hidden;">
+
+      <!-- Left col -->
+      <div style="flex:0 0 196px;display:flex;flex-direction:column;gap:7px;min-width:0;">
+        <div id="gen-preview-box" style="width:196px;height:196px;background:var(--panel2);border:1px solid var(--border);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <canvas id="gen-preview-canvas" style="display:none;position:absolute;inset:0;width:100%;height:100%;"></canvas>
+          <div id="gen-preview-empty" style="font-size:11px;color:var(--text-dim);text-align:center;padding:12px;line-height:1.6;">Select an album<br>from the library<br><span style="opacity:0.4;font-size:10px;">preview here</span></div>
+        </div>
+        <div id="gen-progress-wrap" style="display:none;">
+          <div style="height:3px;background:var(--border);overflow:hidden;"><div id="gen-bar" style="height:100%;background:var(--accent-gen);width:0%;transition:width 0.2s;"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:2px;color:var(--text-dim);">
+            <span id="gen-stat-txt">—</span><span id="gen-stat-pct">0%</span>
+          </div>
+        </div>
+        <button class="btn btn-gen" onclick="sendToPool()" style="font-size:11px;padding:5px 4px;">→ SEND TRACK</button>
+        <button class="btn btn-gen" onclick="sendAllToPool()" style="font-size:11px;padding:5px 4px;">⇒ ALL TO POOL</button>
+        <button class="btn" onclick="downloadCurrentPreview()" style="font-size:11px;padding:5px 4px;">↓ SAVE PREVIEW</button>
+        <button id="gen-generate-btn" disabled onclick="generateBatch()" style="font-size:10px;padding:5px 4px;letter-spacing:0.5px;">✦ GENERATE ALL</button>
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-top:2px;">Tracks</div>
+        <div id="gen-track-list" style="flex:1;overflow-y:auto;min-height:50px;max-height:160px;border:1px solid var(--border);background:var(--panel2);"></div>
+      </div>
+
+      <!-- Right col: config -->
+      <div id="gen-config-col" style="flex:1;min-width:180px;overflow-y:auto;">
+        <div id="gen-config-scroll">
+          <div class="gc-section">
+            <div class="gc-title">TEXT POSITION</div>
+            <div class="gc-row">
+              <div class="gc-label">VERTICAL</div>
+              <select class="gc-select" id="gc-pos" onchange="updatePreview()">
+                <option value="center">Center</option>
+                <option value="lower">Lower Third</option>
+                <option value="top">Top</option>
+              </select>
+            </div>
+          </div>
+          <div class="gc-section">
+            <div class="gc-title">BACKGROUND DIM</div>
+            <div class="gc-row">
+              <div class="gc-label">OPACITY</div>
+              <input type="range" class="gc-range" id="gc-dim" min="0" max="100" value="0" oninput="document.getElementById('gc-dim-val').textContent=this.value+'%';updatePreview()">
+              <div class="gc-range-val" id="gc-dim-val">0%</div>
+            </div>
+          </div>
+          <div class="gc-section">
+            <div class="gc-title">TEXT STYLE</div>
+            <div class="gc-row"><label class="gc-toggle"><input type="checkbox" id="gc-show-title" checked onchange="updatePreview()"> INCLUDE TITLE TEXT</label></div>
+            <div class="gc-row"><label class="gc-toggle"><input type="checkbox" id="gc-shadow" onchange="updatePreview()"> DROP SHADOW</label></div>
+            <div class="gc-row"><label class="gc-toggle"><input type="checkbox" id="gc-uppercase" onchange="updatePreview()"> UPPERCASE</label></div>
+          </div>
+          <div class="gc-section">
+            <div class="gc-title">FONT</div>
+            <div class="gc-row">
+              <select class="gc-select" id="gc-font" onchange="updatePreview()">
+                <optgroup label="── SANS SERIF ──">
+                  <option value="bold">Barlow Condensed (Default)</option>
+                  <option value="anton">Anton — Heavy Impact</option>
+                  <option value="russo">Russo One — Rounded Bold</option>
+                  <option value="bebas">Bebas Neue — Tall &amp; Narrow</option>
+                  <option value="teko">Teko — Geometric Compressed</option>
+                  <option value="saira">Saira Condensed — Dense</option>
+                  <option value="fjalla">Fjalla One — Clean &amp; Strong</option>
+                  <option value="bsdisp">Big Shoulders Display</option>
+                  <option value="righteous">Righteous — Rounded</option>
+                </optgroup>
+                <optgroup label="── DISPLAY / POSTER ──">
+                  <option value="staatlich">Staatliches — Stretched</option>
+                  <option value="bungee">Bungee — Urban Sign</option>
+                  <option value="bangers">Bangers — Comic Book</option>
+                  <option value="ultra">Ultra — Heavy Roman</option>
+                  <option value="alfaslab">Alfa Slab One — Slab Poster</option>
+                  <option value="abril">Abril Fatface — Editorial</option>
+                  <option value="blackops">Black Ops One — Military</option>
+                </optgroup>
+                <optgroup label="── SERIF ──">
+                  <option value="playfair">Playfair Display — Elegant</option>
+                  <option value="cinzel">Cinzel — Classical</option>
+                  <option value="librebask">Libre Baskerville</option>
+                  <option value="unna">Unna — Editorial Italic</option>
+                </optgroup>
+                <optgroup label="── MONOSPACE / TECH ──">
+                  <option value="mono">Share Tech Mono</option>
+                  <option value="spacemono">Space Mono</option>
+                  <option value="orbitron">Orbitron — Sci-Fi</option>
+                  <option value="audiowide">Audiowide — Futuristic</option>
+                  <option value="pressstart">Press Start 2P — Pixel</option>
+                  <option value="vt323">VT323 — Terminal</option>
+                </optgroup>
+                <optgroup label="── SLAB SERIF ──">
+                  <option value="slab">Oswald</option>
+                  <option value="rocksalt">Rock Salt — Rough</option>
+                  <option value="specialelite">Special Elite — Typewriter</option>
+                </optgroup>
+                <optgroup label="── ELEGANT / SCRIPT ──">
+                  <option value="thin">Cormorant Garamond — Thin</option>
+                  <option value="playfairita">Playfair Italic</option>
+                  <option value="pinyon">Pinyon Script — Calligraphy</option>
+                  <option value="greatvibes">Great Vibes — Flourish</option>
+                  <option value="dancing">Dancing Script — Handwritten</option>
+                  <option value="pacifico">Pacifico — Retro Casual</option>
+                  <option value="lobster">Lobster — Retro Script</option>
+                  <option value="fredoka">Fredoka One — Friendly</option>
+                </optgroup>
+                <optgroup label="── HORROR / METAL ──">
+                  <option value="creepster">Creepster — Spooky</option>
+                  <option value="nosifer">Nosifer — Drip Horror</option>
+                  <option value="metalmania">Metal Mania — Heavy Metal</option>
+                  <option value="rajdhani">Rajdhani — Aggressive</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          <div class="gc-section">
+            <div class="gc-title">OUTPUT</div>
+            <div class="gc-row">
+              <div class="gc-label">FORMAT</div>
+              <select class="gc-select" id="gc-fmt">
+                <option value="jpeg">JPEG</option>
+                <option value="png">PNG</option>
+                <option value="webp">WebP</option>
+              </select>
+            </div>
+            <div class="gc-row">
+              <div class="gc-label">SIZE</div>
+              <select class="gc-select" id="gc-size">
+                <option value="3000">3000 × 3000</option>
+                <option value="2000">2000 × 2000</option>
+                <option value="1500">1500 × 1500</option>
+                <option value="1000">1000 × 1000</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="modal-btn cancel" onclick="closeOverlay('genSettingsOvr')" style="margin-top:12px;flex-shrink:0;">CLOSE</button>
+  </div>
+</div>
+
 <!-- Album edit modal -->
+
 <div class="overlay" id="albEditOvr">
   <div class="modal" style="width:400px;">
     <div class="modal-hdr">// EDIT_RELEASE</div>
@@ -5074,7 +5069,8 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
           <button class="modal-btn" style="width:auto;padding:4px 10px;font-size:12px;" onclick="collabCopyCode()">COPY</button>
         </div>
       </div>
-      <div class="conn-info" style="font-size:11px;color:var(--text-dim);letter-spacing:1px;line-height:1.7;margin-bottom:8px;">Changes sync automatically. Keep this tab open.</div>
+      <div id="collab-peer-list" style="margin-top:6px;"></div>
+      <div class="conn-info" style="font-size:11px;color:var(--text-dim);letter-spacing:1px;line-height:1.7;margin-top:8px;margin-bottom:8px;">Changes sync in real-time. Up to 4 users.</div>
       <button class="modal-btn danger" onclick="collabDisconnect()" style="width:100%;">✕ DISCONNECT</button>
     </div>
 
@@ -5233,14 +5229,17 @@ function applyTheme(t, l, silent=false) {
 }
 function setLD(v) { applyTheme(currentTheme, v); }
 function openSettings() { openOverlay('settingsOvr'); }
+function openGenSettings() { loadGenAlbum(); updatePreview(); openOverlay('genSettingsOvr'); }
 
 
 function switchTab(tab) {
   activeTab = tab;
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.app-tab').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
-  document.getElementById('tab-btn-' + tab).classList.add('active');
+  const pane = document.getElementById('tab-' + tab);
+  const btn  = document.getElementById('tab-btn-' + tab);
+  if (pane) pane.classList.add('active');
+  if (btn)  btn.classList.add('active');
 
   // sidebar visibility: tier = respect setting; libview = always hide (it IS the library view); others = show
   if (tab === 'tier') {
@@ -5819,6 +5818,7 @@ function endDrag() {
   if (placeholder) { placeholder.remove(); placeholder = null; }
   dragged    = null;
   dragOrigin = null;
+  _dragGroup = [];
   invalidateRectCache();
   document.querySelectorAll('.dz-over').forEach(z => z.classList.remove('dz-over'));
   tiersFrame.classList.remove('drag-on');
@@ -5831,23 +5831,36 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) endDr
 
 function setupDraggable(item) {
   item.draggable = true;
+  _attachItemInteraction(item);
 
   item.addEventListener('dragstart', e => {
-    e.stopPropagation();                       // prevent bubbling to tier-row dragstart
+    e.stopPropagation();
     dragged    = item;
     dragOrigin = item.parentElement;
     item.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', '');   // required for drag in some browsers
+    e.dataTransfer.setData('text/plain', '');
     placeholder = mkPH();
     tiersFrame.classList.add('drag-on');
     pool.classList.add('drag-on');
 
-    // Custom drag image — avoids picking up shadows from tier labels / other items
+    // Build drag group: if this item is selected, drag all selected items; otherwise just this one
+    _dragGroup = item.classList.contains('selected') && _selectedItems.size > 1
+      ? [..._selectedItems]
+      : [item];
+
+    // Custom drag image
     const rect = item.getBoundingClientRect();
     const ghost = item.cloneNode(true);
     ghost.classList.remove('dragging');
     ghost.style.cssText = 'position:fixed;left:-9999px;top:0;width:'+rect.width+'px;height:'+rect.height+'px;box-shadow:0 12px 28px rgba(0,0,0,0.55);isolation:isolate;pointer-events:none;';
+    if (_dragGroup.length > 1) {
+      // Badge showing count
+      const badge = document.createElement('div');
+      badge.style.cssText = 'position:absolute;top:-6px;right:-6px;background:var(--accent,#0fc);color:#000;font-family:monospace;font-size:11px;font-weight:700;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;z-index:2;';
+      badge.textContent = _dragGroup.length;
+      ghost.appendChild(badge);
+    }
     document.body.appendChild(ghost);
     e.dataTransfer.setDragImage(ghost, rect.width/2, rect.height/2);
     requestAnimationFrame(() => ghost.remove());
@@ -5914,16 +5927,24 @@ function setupDZ(zone) {
       return;
     }
 
-    undoStack.push({ type: 'item_move', item: dragged, from: dragOrigin, before: dragged.nextSibling });
-    if (undoStack.length > UNDO_MAX) undoStack.shift();
+    const group = (_dragGroup && _dragGroup.length > 1) ? _dragGroup : [dragged];
 
-    placeholder?.parentNode === zone
-      ? zone.insertBefore(dragged, placeholder)
-      : zone.appendChild(dragged);
+    // Push one undo entry per item in the group
+    group.forEach(item => {
+      undoStack.push({ type: 'item_move', item, from: item.parentElement, before: item.nextSibling });
+      if (undoStack.length > UNDO_MAX) undoStack.shift();
+    });
 
-    const el = dragged;                        // capture before endDrag clears it
+    // Insert all group items at drop point; keep original relative order
+    const insertRef = placeholder?.parentNode === zone ? placeholder : null;
+    group.forEach(item => {
+      insertRef ? zone.insertBefore(item, insertRef) : zone.appendChild(item);
+    });
+
+    const firstEl = group[0];
     endDrag();
-    landAnim(el);
+    group.forEach(landAnim);
+    _clearSelection();
     renderCatBar(); updatePoolCount(); save();
   });
 }
@@ -5947,9 +5968,156 @@ function undo() {
     applyLabelColor(entry.lbl);
     save();
     toast('Color restored ↩', 'info', 1200);
+  } else if (entry.type === 'items_remove') {
+    // Restore batch-deleted items in reverse order so siblings are still valid
+    [...entry.items].reverse().forEach(({ item, parent, before }) => {
+      if (!parent || !parent.isConnected) pool.appendChild(item);
+      else before && before.parentNode === parent ? parent.insertBefore(item, before) : parent.appendChild(item);
+      landAnim(item);
+    });
+    renderCatBar(); updatePoolCount(); save();
+    toast(`Restored ${entry.items.length} item${entry.items.length > 1 ? 's' : ''} ↩`, 'info', 1400);
+  } else if (entry.type === 'pool_clear') {
+    [...entry.items].reverse().forEach(({ item, before }) => {
+      before && before.parentNode === pool ? pool.insertBefore(item, before) : pool.appendChild(item);
+      landAnim(item);
+    });
+    renderCatBar(); updatePoolCount(); save();
+    toast(`Pool clear undone — ${entry.items.length} item${entry.items.length > 1 ? 's' : ''} restored ↩`, 'info', 1600);
   }
 }
 
+
+
+// ══════════════════════════════════════════════════════════════════
+// MULTI-SELECT + ITEM CONTEXT MENU + CLEAR POOL
+// ══════════════════════════════════════════════════════════════════
+
+const _selectedItems = new Set();
+let _ictxTargetItem  = null;  // item that was right-clicked
+let _dragGroup       = [];    // items being dragged together (multi-drag)
+
+function _itemSelect(item, on) {
+  if (on) { item.classList.add('selected');    _selectedItems.add(item); }
+  else    { item.classList.remove('selected'); _selectedItems.delete(item); }
+  _updateIctxCount();
+}
+
+function _clearSelection() {
+  _selectedItems.forEach(el => el.classList.remove('selected'));
+  _selectedItems.clear();
+  _updateIctxCount();
+}
+
+function _updateIctxCount() {
+  const el = document.getElementById('ictx-sel-count');
+  if (el) el.textContent = _selectedItems.size;
+  const delSel = document.getElementById('ictx-delete-sel');
+  if (delSel) delSel.style.display = _selectedItems.size > 1 ? '' : 'none';
+}
+
+// Attach shift-click + right-click to a pool/tier item
+function _attachItemInteraction(item) {
+  item.addEventListener('click', function(e) {
+    if (e.target.closest('.item-rm')) return;
+    if (e.shiftKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      _itemSelect(item, !item.classList.contains('selected'));
+    } else if (!e.shiftKey && _selectedItems.size > 0) {
+      // Clear selection on plain click unless clicking a selected item to start drag
+      _clearSelection();
+    }
+  }, true);
+
+  item.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    _ictxTargetItem = item;
+    // Auto-select target if not already selected
+    if (!item.classList.contains('selected')) {
+      _clearSelection();
+      _itemSelect(item, true);
+    }
+    openItemCtxMenu(e);
+  });
+}
+
+// ── Item context menu ─────────────────────────────────────────────
+const _itemCtxMenu = document.getElementById('item-ctx-menu');
+
+function openItemCtxMenu(e) {
+  _updateIctxCount();
+  _itemCtxMenu.style.left = '0px'; _itemCtxMenu.style.top = '0px';
+  _itemCtxMenu.classList.add('open');
+  const mw = _itemCtxMenu.offsetWidth, mh = _itemCtxMenu.offsetHeight;
+  _itemCtxMenu.style.left = Math.min(e.clientX, window.innerWidth  - mw - 8) + 'px';
+  _itemCtxMenu.style.top  = Math.min(e.clientY, window.innerHeight - mh - 8) + 'px';
+}
+
+function closeItemCtxMenu() { _itemCtxMenu.classList.remove('open'); }
+
+document.addEventListener('click',   e => { if (!_itemCtxMenu.contains(e.target)) closeItemCtxMenu(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeItemCtxMenu(); _clearSelection(); } });
+
+function itemCtxSelectAll() {
+  closeItemCtxMenu();
+  document.querySelectorAll('#pool .item').forEach(el => _itemSelect(el, true));
+}
+
+function itemCtxDeselect() {
+  closeItemCtxMenu();
+  _clearSelection();
+}
+
+function itemCtxDeleteOne() {
+  closeItemCtxMenu();
+  if (!_ictxTargetItem) return;
+  _deleteItem(_ictxTargetItem);
+  _clearSelection();
+}
+
+function itemCtxDeleteSelected() {
+  closeItemCtxMenu();
+  const toDelete = [..._selectedItems];
+  _clearSelection();
+  // Push a single undo entry for the batch
+  undoStack.push({ type: 'items_remove', items: toDelete.map(item => ({ item, parent: item.parentElement, before: item.nextSibling })) });
+  if (undoStack.length > UNDO_MAX) undoStack.shift();
+  toDelete.forEach(item => _removeItemImmediate(item));
+  renderCatBar(); updatePoolCount(); save();
+  toast(`Removed ${toDelete.length} item${toDelete.length > 1 ? 's' : ''}`, 'info', 1600);
+}
+
+function _deleteItem(item) {
+  // Reuse the existing remove animation path
+  const rmBtn = item.querySelector('.item-rm');
+  if (rmBtn) rmBtn.click();
+}
+
+function _removeItemImmediate(item) {
+  catStore.forEach((entries, cat) => {
+    const idx = entries.findIndex(en => en.item === item);
+    if (idx !== -1) { entries.splice(idx, 1); if (!entries.length) catStore.delete(cat); }
+  });
+  if (item.dataset.genKey) genAddedKeys.delete(item.dataset.genKey);
+  item.remove();
+}
+
+// ── Clear pool ────────────────────────────────────────────────────
+function clearPool() {
+  const items = [...document.querySelectorAll('#pool .item')];
+  if (!items.length) { toast('Pool is already empty', 'info', 1200); return; }
+  if (!confirm(`Remove all ${items.length} item${items.length > 1 ? 's' : ''} from pool?`)) return;
+
+  undoStack.push({ type: 'pool_clear', items: items.map(item => ({ item, before: item.nextSibling })) });
+  if (undoStack.length > UNDO_MAX) undoStack.shift();
+
+  items.forEach(item => _removeItemImmediate(item));
+  _clearSelection();
+  renderCatBar(); updatePoolCount(); save();
+  toast('Pool cleared', 'info', 1400);
+}
 
 function updatePoolCount() {
   let badge = document.getElementById('pool-count');
@@ -6694,12 +6862,12 @@ function renderLibTree() {
       if (album.tracks.length > 0) {
         const genBtn = document.createElement('button');
         genBtn.className = 'tree-album-gen-btn';
-        genBtn.title = 'Open in GEN tab';
+        genBtn.title = 'Open Gen Settings';
         genBtn.innerHTML = `<span class="tree-album-gen-arrow">→</span><span>GEN</span>`;
         genBtn.addEventListener('click', function(e) {
           e.stopPropagation();
           selectAlbum(ak, alKey);
-          switchTab('gen');
+          openGenSettings();
         });
         alRow.appendChild(genBtn);
       }
@@ -7331,20 +7499,37 @@ function loadGenAlbum() {
   if(!genAlbum) return;
   const {album,artistName}=genAlbum;
 
-  // Hide empty state, show content
+  // Hide empty state, show content (these may not exist if old tab pane was removed — guard)
   const emptyState = document.getElementById('gen-empty-state');
   const contentRow = document.getElementById('gen-content-row');
   if (emptyState) emptyState.classList.add('hidden');
   if (contentRow) contentRow.classList.remove('hidden');
 
-  // banner
-  const banner=document.getElementById('gen-album-banner');
-  banner.classList.remove('empty');
-  document.getElementById('gen-banner-title').textContent=album.name;
-  document.getElementById('gen-banner-artist').textContent=artistName+(album.year?' · '+album.year:'');
-  const coverImg=document.getElementById('gen-banner-cover'), coverPh=document.getElementById('gen-banner-cover-ph');
-  if(album.coverDataUrl){coverImg.src=album.coverDataUrl;coverImg.style.display='';coverPh.style.display='none';}
-  else{coverImg.style.display='none';coverPh.style.display='';}
+  // Banner elements only exist if old tab pane is present — skip gracefully
+  const banner = document.getElementById('gen-album-banner');
+  if (banner) {
+    banner.classList.remove('empty');
+    const titleEl = document.getElementById('gen-banner-title');
+    const artistEl = document.getElementById('gen-banner-artist');
+    const coverImg = document.getElementById('gen-banner-cover');
+    const coverPh  = document.getElementById('gen-banner-cover-ph');
+    if (titleEl)  titleEl.textContent  = album.name;
+    if (artistEl) artistEl.textContent = artistName + (album.year ? ' · ' + album.year : '');
+    if (coverImg && coverPh) {
+      if (album.coverDataUrl) { coverImg.src = album.coverDataUrl; coverImg.style.display=''; coverPh.style.display='none'; }
+      else { coverImg.style.display='none'; coverPh.style.display=''; }
+    }
+  }
+
+  // Update modal album header if present
+  const modalAlbumHdr = document.getElementById('gen-modal-album-hdr');
+  if (modalAlbumHdr) {
+    const yr = album.year ? ' · ' + album.year : '';
+    const tracks = album.tracks.length ? ' · ' + album.tracks.length + ' tracks' : '';
+    modalAlbumHdr.innerHTML = album.coverDataUrl
+      ? `<img src="${album.coverDataUrl}" style="width:36px;height:36px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;"><div><div style="font-weight:700;font-size:13px;">${esc(album.name)}</div><div style="font-size:11px;color:var(--text-dim);">${esc(artistName)}${yr}${tracks}</div></div>`
+      : `<div style="width:36px;height:36px;background:var(--panel2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-dim);flex-shrink:0;">♪</div><div><div style="font-weight:700;font-size:13px;">${esc(album.name)}</div><div style="font-size:11px;color:var(--text-dim);">${esc(artistName)}${yr}${tracks}</div></div>`;
+  }
 
   // load cover into genCoverImg
   if(album.coverDataUrl){
@@ -7354,7 +7539,7 @@ function loadGenAlbum() {
   }
 
   // track list
-  const list=document.getElementById('gen-track-list'); list.innerHTML='';
+  const list=document.getElementById('gen-track-list'); if(!list) return; list.innerHTML='';
   album.tracks.forEach((t,i)=>{
     const key=`${genAlbum.artistKey}|${genAlbum.albumKey}|${i}`;
     const row=document.createElement('div'); row.className='gtl-item'+(i===genTrackIdx?' active':'');
@@ -7363,7 +7548,8 @@ function loadGenAlbum() {
     list.appendChild(row);
   });
 
-  document.getElementById('gen-generate-btn').disabled=!album.tracks.length;
+  const genBtn = document.getElementById('gen-generate-btn');
+  if (genBtn) genBtn.disabled = !album.tracks.length;
   updatePreview();
 }
 
@@ -7668,7 +7854,7 @@ function generateBatch() {
   if(!total){alert('No tracks to generate.');return;}
 
   const btn=document.getElementById('gen-generate-btn'); btn.disabled=true; btn.textContent='⏳ GENERATING…';
-  const prog=document.getElementById('gen-progress-wrap'); prog.classList.add('visible');
+  const prog=document.getElementById('gen-progress-wrap'); prog.style.display='block';
   const bar=document.getElementById('gen-bar'), statTxt=document.getElementById('gen-stat-txt'), statPct=document.getElementById('gen-stat-pct');
   let done=0;
   const generated=[];
@@ -7693,7 +7879,7 @@ function generateBatch() {
 
   function finish() {
     bar.style.width='100%'; statTxt.textContent='Zipping…'; statPct.textContent='100%';
-    btn.disabled=false; btn.textContent='✦ GENERATE ALL TRACK IMAGES';
+    btn.disabled=false; btn.textContent='✦ GENERATE ALL';
 
     if (typeof JSZip === 'undefined') {
       // Fallback: individual downloads if JSZip somehow not loaded
@@ -7717,7 +7903,7 @@ function generateBatch() {
       setTimeout(() => URL.revokeObjectURL(a.href), 5000);
       statTxt.textContent = 'Done!';
       toast(`${generated.length} images → ${zipName}`, 'success', 3500);
-      setTimeout(()=>prog.classList.remove('visible'), 2000);
+      setTimeout(()=>{ prog.style.display='none'; }, 2000);
     });
   }
 
@@ -8284,65 +8470,85 @@ async function mbSearch() {
   mbSelectedRelease = null;
 
   try {
-    // Multi-strategy search for best results
-    // Strategy 1: explicit "artist - title" or "artist: title" separator
-    // Strategy 2: treat multi-word query as "artist title" freetext (handles "pink floyd echoes")
-    // Strategy 3: fallback plain release OR artist text search
-    const splitMatch = q.match(/^(.+?)\s*[-:]\s*(.+)$/);
-    let queries = [];
-    if (splitMatch) {
-      const artist = splitMatch[1].trim();
-      const title  = splitMatch[2].trim();
-      // Exact field match for explicit separator queries
-      queries.push(`release:"${title}" AND artist:"${artist}"`);
-      queries.push(`release:${title} AND artist:${artist}`);
-    } else {
-      const words = q.split(/\s+/);
-      if (words.length >= 2) {
-        // Try all splits: first N words as artist, rest as title
-        // This catches "pink floyd echoes", "radiohead ok computer", etc.
-        for (let i = 1; i < words.length; i++) {
-          const artist = words.slice(0, i).join(' ');
-          const title  = words.slice(i).join(' ');
-          queries.push(`release:"${title}" AND artist:"${artist}"`);
-        }
-        // Also try reversed (title first, artist after) for edge cases
-        for (let i = 1; i < words.length; i++) {
-          const title  = words.slice(0, i).join(' ');
-          const artist = words.slice(i).join(' ');
-          queries.push(`release:"${title}" AND artist:"${artist}"`);
-        }
-      }
-      // Always include a broad fallback
-      queries.push(`(release:"${q}" OR artist:"${q}")`);
-      queries.push(`release:${q}`);
-    }
-    // Dedupe queries
-    queries = [...new Set(queries)].slice(0, 4);
+    // Extract year if present (e.g. "kraftwerk 1977" or "trans europa express 1977")
+    const yearMatch = q.match(/\b(19[0-9]{2}|20[0-2][0-9])\b/);
+    const year = yearMatch ? parseInt(yearMatch[0]) : null;
+    const qBase = q.replace(/\b(19[0-9]{2}|20[0-2][0-9])\b/, '').replace(/\s+/g, ' ').trim();
 
-    // Fetch all strategies in parallel, merge and dedupe by mbid
-    const allFetches = queries.map(mq =>
+    // Detect explicit "X - Y" or "X: Y" separator
+    const splitMatch = qBase.match(/^(.+?)\s*[-:]\s*(.+)$/);
+
+    const querySet = new Set();
+
+    if (splitMatch) {
+      const a = splitMatch[1].trim();
+      const b = splitMatch[2].trim();
+      // Try both interpretations: artist-title AND title-artist
+      querySet.add(`release:"${b}" AND artist:"${a}"`);
+      querySet.add(`release:"${a}" AND artist:"${b}"`);
+      querySet.add(`release:${JSON.stringify(b)} AND artist:${JSON.stringify(a)}`);
+    } else {
+      const words = qBase.split(/\s+/).filter(Boolean);
+
+      // 1. Full freetext — best for native-language exact titles (e.g. "Die Mensch-Maschine")
+      querySet.add(`"${qBase}"`);
+
+      // 2. Title-only — good when no artist prefix
+      querySet.add(`release:"${qBase}"`);
+
+      // 3. ALL word splits, both directions (artist-first AND title-first)
+      //    Capped at splits that produce 1+ word on each side
+      for (let i = 1; i < words.length; i++) {
+        const left  = words.slice(0, i).join(' ');
+        const right = words.slice(i).join(' ');
+        // artist=left, release=right
+        querySet.add(`release:"${right}" AND artist:"${left}"`);
+        // artist=right, release=left  (title typed first)
+        querySet.add(`release:"${left}" AND artist:"${right}"`);
+      }
+    }
+
+    // If year present, prepend a year-constrained variant of the best query
+    let queryList = [...querySet];
+    if (year) {
+      const yearQ = queryList[0] + ` AND firstreleasedate:${year}`;
+      queryList = [yearQ, ...queryList];
+    }
+    // Cap at 8 queries to avoid hammering the API
+    queryList = queryList.slice(0, 8);
+
+    const allFetches = queryList.map(mq =>
       mbFetch(`${MB_API}/release-group?query=${encodeURIComponent(mq)}&limit=25&fmt=json`)
         .then(d => d['release-groups'] || [])
         .catch(() => [])
     );
     const allResults = await Promise.all(allFetches);
 
-    // Merge: dedupe by id, keep highest score, preserve insertion order of first occurrence
+    // Dedupe by id; keep the highest MB score seen
     const seen = new Map();
     for (const batch of allResults) {
       for (const rg of batch) {
-        if (!seen.has(rg.id)) {
+        if (!seen.has(rg.id) || (rg.score || 0) > (seen.get(rg.id).score || 0)) {
           seen.set(rg.id, rg);
-        } else {
-          // Keep whichever has higher score
-          const existing = seen.get(rg.id);
-          if ((rg.score || 0) > (existing.score || 0)) seen.set(rg.id, rg);
         }
       }
     }
-    // Sort by MusicBrainz relevance score descending
-    const merged = [...seen.values()].sort((a, b) => (b.score || 0) - (a.score || 0));
+
+    // Sort: MB relevance + year bonus (originals first) + penalties
+    function _sortKey(rg) {
+      let s = (rg.score || 0) * 0.65;
+      const yr = rg['first-release-date'] ? parseInt(rg['first-release-date'].slice(0,4)) || 3000 : 3000;
+      s += Math.max(0, (2025 - yr)) * 0.35;
+      const sg = (rg['secondary-types'] || []).map(x => x.toLowerCase());
+      if (sg.includes('live'))        s -= 40;
+      if (sg.includes('compilation')) s -= 25;
+      if (sg.includes('remix'))       s -= 20;
+      const titleLc = (rg.title || '').toLowerCase();
+      if (/remaster|reissue|re-issue|deluxe|anniversary|expanded|edition|bonus/.test(titleLc)) s -= 30;
+      return s;
+    }
+
+    const merged = [...seen.values()].sort((a, b) => _sortKey(b) - _sortKey(a));
 
     const filtered = merged.filter(rg => {
       if (!mbActiveTypes.size) return true;
@@ -8351,13 +8557,12 @@ async function mbSearch() {
       if (!pg) return true;
       if (pg === 'album') {
         if (sg.includes('compilation')) return mbActiveTypes.has('compilation');
-        // Live albums are filtered strictly — only show if live type is explicitly enabled
         if (sg.includes('live'))        return mbActiveTypes.has('live');
         return mbActiveTypes.has('album');
       }
       if (pg === 'single') return mbActiveTypes.has('single');
       if (pg === 'ep')     return mbActiveTypes.has('ep');
-      return mbActiveTypes.has('album'); // other types default to album filter
+      return mbActiveTypes.has('album');
     });
 
     mbSearchResults = filtered;
@@ -9246,8 +9451,9 @@ async function libCtxRefetch() {
 
 // ── Collab 2-player state ─────────────────────────────────────────
 let _collabRoom           = null;   // Trystero room
-let _collabSendMsg        = null;   // Trystero send action function
-let _collabPeerId         = null;   // remote peer's Trystero ID
+let _collabSendMsg        = null;   // Trystero send(data) broadcasts to all peers
+let _collabSendCursor     = null;   // Trystero send for cursor position
+let _collabPeers          = new Map(); // peerId -> { color, name }
 let collabConnected       = false;
 let collabRole            = null;   // 'host' | 'guest'
 let _suppressBroadcast    = false;  // echo-loop guard
@@ -9259,6 +9465,81 @@ let _collabJoinTimeout    = null;   // timeout guard for join attempts
 const _myWriterId = Math.random().toString(36).slice(2); // unique per session
 const HEARTBEAT_INTERVAL  = 15000;  // ms between pings
 const HEARTBEAT_MAX_MISS  = 3;      // missed pongs before declaring dead
+
+// Remote peer cursors
+const _peerCursors    = new Map();  // peerId -> DOM element
+const CURSOR_COLORS   = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#c77dff','#ff9a3c'];
+let   _cursorColorIdx = 0;
+
+// Throttle for cursor send (20fps)
+let _cursorSendTs = 0;
+document.addEventListener('mousemove', function(e) {
+  if (!collabConnected || !_collabSendCursor) return;
+  const now = Date.now();
+  if (now - _cursorSendTs < 50) return;
+  _cursorSendTs = now;
+  try { _collabSendCursor({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight, n: _myWriterId.slice(0,4) }); } catch(_) {}
+});
+
+function _renderPeerCursor(peerId, data) {
+  let el = _peerCursors.get(peerId);
+  if (!el) {
+    const peer = _collabPeers.get(peerId);
+    const color = peer ? peer.color : CURSOR_COLORS[0];
+    el = document.createElement('div');
+    el.className = 'peer-cursor';
+    el.innerHTML = `<svg width="18" height="22" viewBox="0 0 18 22"><path d="M2 2L16 7.5L9.5 11L6.5 19.5L2 2Z" fill="${color}" stroke="rgba(0,0,0,0.7)" stroke-width="1.5"/></svg><div class="peer-cursor-label" style="background:${color};">${data.n || 'peer'}</div>`;
+    el.style.cssText = 'position:fixed;pointer-events:none;z-index:9999;left:-999px;top:-999px;';
+    document.body.appendChild(el);
+    _peerCursors.set(peerId, el);
+  }
+  el.style.left = (data.x * window.innerWidth)  + 'px';
+  el.style.top  = (data.y * window.innerHeight) + 'px';
+  el.style.opacity = '1';
+  clearTimeout(el._hide);
+  el._hide = setTimeout(() => { el.style.opacity = '0'; }, 3000);
+}
+
+function _removeAllPeerCursors() {
+  _peerCursors.forEach(el => el.remove());
+  _peerCursors.clear();
+  _cursorColorIdx = 0;
+}
+
+function _removePeerCursor(peerId) {
+  const el = _peerCursors.get(peerId);
+  if (el) { el.remove(); _peerCursors.delete(peerId); }
+}
+
+function _updateCollabPeerList() {
+  const list = document.getElementById('collab-peer-list');
+  if (!list) return;
+  list.innerHTML = '';
+  let idx = 0;
+  _collabPeers.forEach((peer, pid) => {
+    const color = peer.color;
+    const div = document.createElement('div');
+    div.className = 'collab-peer-entry';
+    div.innerHTML = `<div class="collab-peer-dot" style="background:${color};"></div><span>PEER ${++idx}</span>`;
+    list.appendChild(div);
+  });
+}
+
+function _addCollabPeer(peerId) {
+  const color = CURSOR_COLORS[_cursorColorIdx % CURSOR_COLORS.length];
+  _cursorColorIdx++;
+  _collabPeers.set(peerId, { color });
+  collabConnected = true;
+  _updateCollabPeerList();
+}
+
+function _removeCollabPeer(peerId) {
+  _collabPeers.delete(peerId);
+  _removePeerCursor(peerId);
+  collabConnected = _collabPeers.size > 0;
+  _updateCollabPeerList();
+}
+
 
 function _generateCode() {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -9322,13 +9603,17 @@ function _collabHandleDrop(reason) {
   _stopHeartbeat();
   collabConnected = false;
   collabRole = null;
-  _collabSendMsg = null; _collabPeerId = null;
+  _collabSendMsg = null; _collabSendCursor = null;
+  _collabPeers.clear();
+  _removeAllPeerCursors();
   collabSetStatus('error', reason || 'PEER DISCONNECTED');
   toast('Collab: ' + (reason || 'peer disconnected'), 'error', 4000);
   document.getElementById('collab-connected-panel').style.display = 'none';
   document.getElementById('collab-room-display').style.display    = 'none';
   document.getElementById('collab-setup-ui').style.display        = '';
   document.getElementById('collab-host-btn').disabled             = false;
+  const peerList = document.getElementById('collab-peer-list');
+  if (peerList) peerList.innerHTML = '';
   const joinErrEl = document.getElementById('collab-join-err');
   if (joinErrEl) { joinErrEl.style.display = 'none'; }
 }
@@ -9339,7 +9624,9 @@ function _collabTeardown() {
   clearTimeout(_collabBroadcastTimer);
   clearTimeout(_collabJoinTimeout);
   if (_collabRoom)  { try { _collabRoom.leave();  } catch(_) {} _collabRoom  = null; }
-  _collabSendMsg = null; _collabPeerId = null;
+  _collabSendMsg = null; _collabSendCursor = null;
+  _collabPeers.clear();
+  _removeAllPeerCursors();
   collabConnected = false; collabRole = null; _collabCurrentCode = null;
   _suppressBroadcast = false;
 }
@@ -9355,66 +9642,14 @@ function collabCreate() {
 
   _collabTeardown();
   _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }] } }, code);
-  var actions = _collabRoom.makeAction('msg');
-  _collabSendMsg = actions[0];
-  var receiveMsg = actions[1];
+  var msgActions    = _collabRoom.makeAction('msg');
+  _collabSendMsg    = msgActions[0];
+  var receiveMsg    = msgActions[1];
+  var cursorActions = _collabRoom.makeAction('cursor');
+  _collabSendCursor = cursorActions[0];
+  var receiveCursor = cursorActions[1];
 
-  receiveMsg(function(data) {
-    if (!data) return;
-    if (data.__ping) { try { _collabSendMsg({ __pong: true }); } catch(_) {} return; }
-    if (data.__pong) { _collabHeartbeatMiss = 0; return; }
-    if (data.__event) { try { _collabHandleEvent(data.__event); } catch(e) { console.warn('[collab] event error:', e); } return; }
-    _collabHandleRemoteData(data);
-  });
-
-  _collabRoom.onPeerJoin(function(peerId) {
-    if (collabConnected) return; // already have a guest
-    _collabPeerId = peerId;
-    collabConnected = true;
-    collabRole = 'host';
-    document.getElementById('collab-conn-role').textContent = '⇄ CONNECTED AS HOST';
-    collabSetStatus('connected', 'ROOM ' + code + ' — GUEST CONNECTED');
-    toast('Guest connected!', 'success', 2000);
-    _startHeartbeat();
-    _collabSendFullState();
-  });
-
-  _collabRoom.onPeerLeave(function() {
-    if (collabConnected) { collabConnected = false; _collabHandleDrop('PEER DISCONNECTED'); }
-  });
-
-  // Room is ready immediately — no async "open" needed with Trystero
-  collabRole = 'host';
-  document.getElementById('collab-room-code-display').textContent = code;
-  document.getElementById('collab-room-display').style.display    = '';
-  document.getElementById('collab-conn-role').textContent         = '⇄ WAITING FOR GUEST…';
-  document.getElementById('collab-connected-panel').style.display = '';
-  document.getElementById('collab-setup-ui').style.display        = 'none';
-  collabSetStatus('waiting', 'ROOM ' + code + ' — WAITING FOR GUEST…');
-  _collabUpdateTopbarCode(code);
-  toast('Room created! Code: ' + code, 'success', 5000);
-}
-
-function collabJoin() {
-  if (typeof window.__trysteroJoinRoom !== 'function') {
-    toast('Collab still loading — please try again in a moment', 'info', 3000); return;
-  }
-  const code  = (document.getElementById('collab-join-code').value || '').trim().toUpperCase();
-  const errEl = document.getElementById('collab-join-err');
-  errEl.style.display = 'none';
-  if (code.length < 4) { errEl.textContent = 'Enter a valid room code'; errEl.style.display = ''; return; }
-
-  _collabCurrentCode = code;
-  collabRole = 'guest';
-  collabSetStatus('waiting', 'JOINING…');
-
-  _collabTeardown();
-  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }] } }, code);
-  var actions = _collabRoom.makeAction('msg');
-  _collabSendMsg = actions[0];
-  var receiveMsg = actions[1];
-
-  receiveMsg(function(data) {
+  receiveMsg(function(data, peerId) {
     if (!data) return;
     if (data.__ping) { try { _collabSendMsg({ __pong: true }); } catch(_) {} return; }
     if (data.__pong) { _collabHeartbeatMiss = 0; return; }
@@ -9438,7 +9673,98 @@ function collabJoin() {
     _collabHandleRemoteData(data);
   });
 
-  // Timeout — if no host peer joins within 30s, give up
+  receiveCursor(function(data, peerId) {
+    if (!data || !collabConnected) return;
+    _renderPeerCursor(peerId, data);
+  });
+
+  _collabRoom.onPeerJoin(function(peerId) {
+    _addCollabPeer(peerId);
+    const peerCount = _collabPeers.size;
+    collabRole = 'host';
+    document.getElementById('collab-conn-role').textContent = '⇄ HOST — ' + peerCount + ' peer' + (peerCount > 1 ? 's' : '') + ' connected';
+    collabSetStatus('connected', 'ROOM ' + code + ' — ' + peerCount + ' peer' + (peerCount > 1 ? 's' : ''));
+    toast('Peer connected! (' + peerCount + '/3 max)', 'success', 2000);
+    if (peerCount === 1) _startHeartbeat();
+    _collabSendFullState();
+  });
+
+  _collabRoom.onPeerLeave(function(peerId) {
+    _removeCollabPeer(peerId);
+    const peerCount = _collabPeers.size;
+    if (peerCount === 0) {
+      _collabHandleDrop('ALL PEERS LEFT');
+    } else {
+      document.getElementById('collab-conn-role').textContent = '⇄ HOST — ' + peerCount + ' peer' + (peerCount > 1 ? 's' : '') + ' connected';
+      collabSetStatus('connected', 'ROOM ' + code + ' — ' + peerCount + ' peer' + (peerCount > 1 ? 's' : ''));
+      toast('A peer disconnected', 'info', 2000);
+    }
+  });
+
+  collabRole = 'host';
+  document.getElementById('collab-room-code-display').textContent = code;
+  document.getElementById('collab-room-display').style.display    = '';
+  document.getElementById('collab-conn-role').textContent         = '⇄ WAITING FOR GUESTS…';
+  document.getElementById('collab-connected-panel').style.display = '';
+  document.getElementById('collab-setup-ui').style.display        = 'none';
+  collabSetStatus('waiting', 'ROOM ' + code + ' — WAITING FOR GUESTS…');
+  _collabUpdateTopbarCode(code);
+  toast('Room created! Code: ' + code, 'success', 5000);
+}
+
+
+function collabJoin() {
+  if (typeof window.__trysteroJoinRoom !== 'function') {
+    toast('Collab still loading — please try again in a moment', 'info', 3000); return;
+  }
+  const code  = (document.getElementById('collab-join-code').value || '').trim().toUpperCase();
+  const errEl = document.getElementById('collab-join-err');
+  errEl.style.display = 'none';
+  if (code.length < 4) { errEl.textContent = 'Enter a valid room code'; errEl.style.display = ''; return; }
+
+  _collabCurrentCode = code;
+  collabRole = 'guest';
+  collabSetStatus('waiting', 'JOINING…');
+
+  _collabTeardown();
+  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }] } }, code);
+  var msgActions    = _collabRoom.makeAction('msg');
+  _collabSendMsg    = msgActions[0];
+  var receiveMsg    = msgActions[1];
+  var cursorActions = _collabRoom.makeAction('cursor');
+  _collabSendCursor = cursorActions[0];
+  var receiveCursor = cursorActions[1];
+
+  receiveMsg(function(data, peerId) {
+    if (!data) return;
+    if (data.__ping) { try { _collabSendMsg({ __pong: true }); } catch(_) {} return; }
+    if (data.__pong) { _collabHeartbeatMiss = 0; return; }
+    if (data.__full_state) {
+      _suppressBroadcast = true;
+      try {
+        if (data.tier_state    && _validTierState(data.tier_state))    applyTierState(data.tier_state);
+        if (data.bracket_state && _validBracketState(data.bracket_state)) {
+          bracketRounds = data.bracket_state.rounds; bracketSize = data.bracket_state.size;
+          if (activeTab === 'bracket') renderBracket();
+        }
+        if (data.pool_state) {
+          const ps = data.pool_state;
+          applyPoolState(Array.isArray(ps.items) ? ps.items : (Array.isArray(ps) ? ps : []));
+        }
+        if (data.grid_state) applyGridState(data.grid_state);
+      } finally { _suppressBroadcast = false; }
+      return;
+    }
+    if (data.__event) { try { _collabHandleEvent(data.__event); } catch(e) { console.warn('[collab] event error:', e); } return; }
+    _collabHandleRemoteData(data);
+  });
+
+  receiveCursor(function(data, peerId) {
+    if (!data || !collabConnected) return;
+    _renderPeerCursor(peerId, data);
+  });
+
+  // Timeout — if no peer joins within 30s, give up
   _collabJoinTimeout = setTimeout(function() {
     if (!collabConnected) {
       errEl.textContent = 'No host found — check the room code and try again';
@@ -9449,28 +9775,35 @@ function collabJoin() {
   }, 30000);
 
   _collabRoom.onPeerJoin(function(peerId) {
-    if (collabConnected) return;
     clearTimeout(_collabJoinTimeout);
-    _collabPeerId = peerId;
-    collabConnected = true;
+    _addCollabPeer(peerId);
+    const peerCount = _collabPeers.size;
     collabRole = 'guest';
-    document.getElementById('collab-conn-role').textContent         = '⇄ CONNECTED AS GUEST';
+    document.getElementById('collab-conn-role').textContent         = '⇄ GUEST — ' + peerCount + ' peer' + (peerCount > 1 ? 's' : '') + ' connected';
     document.getElementById('collab-room-display').style.display    = 'none';
     document.getElementById('collab-connected-panel').style.display = '';
     document.getElementById('collab-setup-ui').style.display        = 'none';
     collabSetStatus('connected', 'SYNCED TO ROOM ' + code);
     toast('Joined room ' + code, 'success', 2000);
-    _startHeartbeat();
+    if (peerCount === 1) _startHeartbeat();
   });
 
-  _collabRoom.onPeerLeave(function() {
-    if (collabConnected) { collabConnected = false; _collabHandleDrop('PEER DISCONNECTED'); }
+  _collabRoom.onPeerLeave(function(peerId) {
+    _removeCollabPeer(peerId);
+    const peerCount = _collabPeers.size;
+    if (peerCount === 0) {
+      _collabHandleDrop('HOST DISCONNECTED');
+    } else {
+      document.getElementById('collab-conn-role').textContent = '⇄ GUEST — ' + peerCount + ' peer' + (peerCount > 1 ? 's' : '') + ' connected';
+      toast('A peer disconnected', 'info', 2000);
+    }
   });
 
   document.getElementById('collab-connected-panel').style.display = '';
   document.getElementById('collab-setup-ui').style.display        = 'none';
   collabSetStatus('waiting', 'JOINING ROOM ' + code + '…');
 }
+
 
 // Send the full current state snapshot to the connected peer (host → guest)
 function _collabSendFullState() {
@@ -11472,6 +11805,9 @@ function toggleBracketCog() {
   const isOpen = panel.classList.toggle('open');
   btn.classList.toggle('cog-open', isOpen);
   if (isOpen) {
+    const r = btn.getBoundingClientRect();
+    panel.style.top  = (r.bottom + 4) + 'px';
+    panel.style.left = Math.min(r.left, window.innerWidth - 230) + 'px';
     // Close when clicking outside
     setTimeout(() => {
       document.addEventListener('click', _closeCogOutside, { once: true, capture: true });
@@ -12594,7 +12930,23 @@ function gridApplyStyle() {
 }
 
 function gridToggleCog() {
-  document.getElementById('grid-cog-panel').classList.toggle('open');
+  const panel = document.getElementById('grid-cog-panel');
+  const btn   = document.getElementById('grid-cog-btn');
+  const isOpen = panel.classList.toggle('open');
+  if (isOpen) {
+    const r = btn.getBoundingClientRect();
+    panel.style.top  = (r.bottom + 4) + 'px';
+    panel.style.left = Math.min(r.left, window.innerWidth - 220) + 'px';
+    setTimeout(() => {
+      document.addEventListener('click', function _closeGridCog(e) {
+        if (!panel.contains(e.target) && !btn.contains(e.target)) {
+          panel.classList.remove('open');
+        } else if (panel.classList.contains('open')) {
+          document.addEventListener('click', _closeGridCog, { once: true, capture: true });
+        }
+      }, { once: true, capture: true });
+    }, 50);
+  }
 }
 
 function gridToggleLabel(type, btn) {
@@ -13518,6 +13870,15 @@ document.addEventListener('DOMContentLoaded', function() {
   transition: all .1s;
 }
 #pool-dedup-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+#pool-clear-btn {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
+  background: none; border: 1px solid var(--border); color: var(--text-dim);
+  padding: 1px 6px; cursor: pointer; margin-left: 8px; vertical-align: middle;
+  transition: all .1s;
+}
+#pool-clear-btn:hover { border-color: #f44; color: #f44; }
+
 #lv-dedup-btn {
   font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
   background: none; border: 1px solid var(--border); color: var(--text-dim);
@@ -13705,14 +14066,13 @@ document.addEventListener('DOMContentLoaded', function() {
     {
       tab: 'tier',
       title: '\u229e  TIER LIST',
-      body: 'The main feature of this site! You can import your own images or search through your library under <strong>\u2726 MEDIA</strong>. If you want to generate images of album tracks, head on through the <strong>GEN</strong> tab to generate the images!',
+      body: 'The main feature of this site! You can import your own images or search through your library under <strong>\u2726 MEDIA</strong>. To generate custom track artwork, click the <strong>✦ GEN</strong> button in the toolbar — it opens a settings panel where you can preview fonts, layout, and export options.',
       targets: [
         { sel: '#dd-import .tb-dropdown-btn', lbl: '\u2726 MEDIA \u2014 search & import', pos: 'below' },
         { sel: '#pool-hdr, #pool-collapsed-btn', lbl: 'Staging Pool — drag from here', pos: 'above' },
       ]
     },
     {
-      tab: 'gen',
       title: '✦  IMAGE GEN',
       body: 'Here you can generate track images of albums, EPs, singles, compilations, whatever music release you can think of! Pressing <strong>ALL TO POOL</strong> will generate temporary images that get deleted once you exit the page. Pressing <strong>GENERATE ALL TRACK IMAGES</strong> will save all the images in a zip file for you to download!',
       targets: [
@@ -13751,7 +14111,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {
       tab: null,
       title: '♥  ONE LAST THING',
-      body: 'If you feel generous and find this site to your liking, consider donating a quick buck or so to help keep it running! I plan to make this site permanently ad-free, so any support you can throw my way goes a long way towards that! Otherwise, I won\'t keep you any longer — I hope you have a great time using Musetier! ♥',
+      body: 'If you feel generous and find this site to your liking, consider donating a quick buck or so to help keep it running! I plan to implement ranked seasons, which requires paying for server hosting and potentially a domain name — any support you can throw my way goes a long way towards that! Otherwise, I won\'t keep you any longer — I hope you have a great time using Musetier! ♥',
       targets: [
         { sel: '.btn-donate', lbl: '♥ DONATE — buymeacoffee', pos: 'below' },
       ]
@@ -14001,55 +14361,54 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 // ── Mobile sidebar toggle ──────────────────────────────────────
-let _mobileLibJustOpened = false; // guard against immediate ghost-click close
+// Uses a pointerdown/touchstart outside-tap listener instead of backdrop onclick,
+// which eliminates ghost-click issues on iOS/Android.
+
+let _mobileLibOpen = false;
 
 function mobileLibToggle() {
-  const sidebar  = document.getElementById('sidebar');
-  const backdrop = document.getElementById('mobile-sidebar-backdrop');
-  if (!sidebar || !backdrop) return;
-  const isOpen = sidebar.classList.contains('mobile-open');
-  if (isOpen) {
+  if (_mobileLibOpen) {
     mobileLibClose();
   } else {
+    _mobileLibOpen = true;
+    const sidebar  = document.getElementById('sidebar');
+    const backdrop = document.getElementById('mobile-sidebar-backdrop');
+    if (!sidebar || !backdrop) return;
     sidebar.classList.remove('collapsed');
     sidebar.classList.add('mobile-open');
     backdrop.classList.add('visible');
     document.body.style.overflow = 'hidden';
-    // Guard: ignore backdrop clicks for 350ms after open (prevents ghost-click close on iOS)
-    _mobileLibJustOpened = true;
-    setTimeout(() => { _mobileLibJustOpened = false; }, 350);
+    // Attach outside-tap listener on next tick so the current touch doesn't fire it
+    setTimeout(_attachOutsideTapListener, 0);
   }
 }
 
 function mobileLibClose() {
-  if (_mobileLibJustOpened) return; // swallow the ghost-click that triggered the open tap
+  if (!_mobileLibOpen) return;
+  _mobileLibOpen = false;
   const sidebar  = document.getElementById('sidebar');
   const backdrop = document.getElementById('mobile-sidebar-backdrop');
-  if (!sidebar || !backdrop) return;
-  sidebar.classList.remove('mobile-open');
-  backdrop.classList.remove('visible');
+  if (sidebar) sidebar.classList.remove('mobile-open');
+  if (backdrop) backdrop.classList.remove('visible');
   document.body.style.overflow = '';
+  _detachOutsideTapListener();
 }
 
-// Stop all touch/click events originating inside the sidebar from reaching the backdrop
-(function() {
-  document.addEventListener('DOMContentLoaded', function() {
-    const sb = document.getElementById('sidebar');
-    if (!sb) return;
-    // Stop clicks inside sidebar from bubbling to the backdrop's onclick handler.
-    // NOTE: We do NOT stop touchend — stopping touchend on a parent suppresses the
-    // synthesized click event on iOS/Android, breaking all tap interactions.
-    sb.addEventListener('click', function(e) { e.stopPropagation(); });
-  });
-})();
+function _outsideTapHandler(e) {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  // If the tap target is inside the sidebar, ignore
+  const target = e.target || e.touches?.[0]?.target;
+  if (target && sidebar.contains(target)) return;
+  mobileLibClose();
+}
 
-// Close mobile sidebar when a library item is dragged to the tier
-(function() {
-  document.addEventListener('touchend', function(e) {
-    const sidebar = document.getElementById('sidebar');
-    if (!sidebar || !sidebar.classList.contains('mobile-open')) return;
-  }, { passive: true });
-})();
+function _attachOutsideTapListener() {
+  document.addEventListener('touchstart', _outsideTapHandler, { passive: true, capture: true });
+}
+function _detachOutsideTapListener() {
+  document.removeEventListener('touchstart', _outsideTapHandler, { capture: true });
+}
 
 // ── MOBILE TOUCH DRAG ─────────────────────────────────────────────────────
 // HTML5 drag API is broken on iOS/Android. This implements pointer-event based
