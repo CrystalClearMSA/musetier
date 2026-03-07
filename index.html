@@ -3725,7 +3725,19 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 /* Mobile-only elements hidden on desktop */
 #dd-mobile-tabs  { display: none; }
 #mobile-action-row { display: none; }
+#mobile-lib-row { display: none; }
 /* Small icon buttons for mobile action row */
+.mob-icon-btn {
+  background: none; border: 1px solid var(--border); color: var(--text);
+  font-size: 16px; padding: 0; width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border-radius: var(--r);
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  flex-shrink: 0;
+}
+.mob-icon-btn:active { background: var(--panel2); }
+.mob-icon-dd { position: relative; }
+.tb-drop-menu-left { right: 0; left: auto; }
 .btn-icon-sm {
   background: none; border: 1px solid var(--border); color: var(--text);
   font-family: var(--mono); font-size: 15px; cursor: pointer;
@@ -3816,13 +3828,15 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     min-height: 0;
     padding: 0;
     gap: 0;
-    flex-wrap: nowrap;
-    flex-direction: column;
+    flex-wrap: wrap;
+    flex-direction: row;
     align-items: stretch;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
   }
 
-  /* Row 1: logo + tab dropdown + media + settings */
-  #logo          { font-size: 14px; letter-spacing: 2px; padding: 6px 8px; flex-shrink: 0; }
+  /* Row 1: logo + tab dropdown — fills one line */
+  #logo          { font-size: 14px; letter-spacing: 2px; padding: 6px 8px; flex-shrink: 0; order: 1; align-self: center; }
   #logo-credit   { display: none; }
   .tb-sep        { display: none; }
   #sb-tab-btn    { display: none; }
@@ -3835,90 +3849,62 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   .btn-donate    { display: none !important; }
   .tb-right      { display: none !important; }
 
-  /* Row 1 built as a flex row inside topbar */
-  #topbar { display: flex; flex-direction: column; }
-
-  /* Inner row 1: logo + tab picker + media + settings */
-  #topbar > #logo,
-  #topbar > #logo-credit,
-  #topbar > #dd-mobile-tabs,
-  #topbar > #dd-import,
-  #topbar > #dd-export,
-  #topbar > .tb-right,
-  #topbar > #collab-btn,
-  #topbar > #edit-mode-btn { order: 0; }
-
-  /* Arrange top row items */
-  #topbar::before {
-    content: none;
-  }
-
-  /* Top control row */
+  /* Tab dropdown: fills remaining space in row 1 */
   #dd-mobile-tabs {
     display: flex !important;
     flex: 1;
+    min-width: 0;
+    order: 2;
+    align-self: center;
   }
   #dd-mobile-tabs .tb-dropdown-btn {
     width: 100%; font-size: 13px; min-height: 36px;
     justify-content: space-between; padding: 6px 10px;
   }
 
-  /* Lib button — full-width row */
+  /* Media button on row 1 */
+  #dd-import { order: 3; display: flex !important; align-self: center; }
+  #dd-import .tb-dropdown-btn { font-size: 12px; padding: 6px 8px; min-height: 36px; }
+
+  #topbar::before { content: none; }
+  #topbar::after  { display: none; }
+  #topbar > * { flex-shrink: 0; }
+
+  /* Row 2: lib button full-width + action icons right */
+  #mobile-lib-row {
+    display: flex !important;
+    order: 10;
+    flex-basis: 100%;
+    width: 100%;
+    align-items: stretch;
+    border-bottom: 1px solid var(--border);
+  }
   #mobile-lib-btn {
     display: flex !important;
-    width: 100%;
+    flex: 1;
     justify-content: center;
+    align-items: center;
     min-height: 40px;
     font-size: 13px;
     letter-spacing: 2px;
     border-radius: 0;
-    border-left: none; border-right: none; border-top: none;
+    border: none;
+    border-right: 1px solid var(--border);
     background: var(--panel2);
-    order: 10;
-    flex-basis: 100%;
+    order: 1;
   }
-
-  /* Compact top row: logo + tab dropdown + media icon + settings icon */
-  #topbar {
-    background: var(--panel);
-    border-bottom: 1px solid var(--border);
-  }
-
-  /* Build the top row using a wrapper approach via flex-wrap */
-  #topbar > * { flex-shrink: 0; }
-
-  /* Topbar first row (logo, tab-dd, dd-import, settings) as a flex row */
-  #topbar > #logo             { order: 1; }
-  #topbar > #dd-mobile-tabs   { order: 2; flex: 1; min-width: 0; }
-  #topbar > #dd-import        { order: 3; display: flex !important; }
-  #topbar > .tb-right         { display: none !important; }
-
-  /* Media button compact on mobile */
-  #dd-import .tb-dropdown-btn { font-size: 12px; padding: 6px 8px; min-height: 36px; }
-
-  /* Settings icon inline after media */
-  #topbar::after { display: none; }
-
-  /* Second row: lib button (full width) */
-  #mobile-lib-btn { order: 10; width: 100%; flex-basis: 100%; flex-grow: 1; }
-
-  /* Action icon row: edit, export, collab, settings — right-aligned after lib */
-  /* Use a pseudo-row via flex-wrap + full-width lib btn pushing others to next row */
-  /* Actually we use a real DOM row: */
   #mobile-action-row {
     display: flex !important;
-    order: 11;
-    flex-basis: 100%;
-    width: 100%;
-    justify-content: flex-end;
+    order: 2;
     align-items: center;
-    gap: 4px;
-    padding: 3px 8px;
+    gap: 2px;
+    padding: 2px 6px;
     background: var(--panel2);
-    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
   }
+  .mob-icon-btn { width: 34px; height: 34px; font-size: 15px; }
 
-  /* Aux bar: wrap into topbar naturally */
+  /* Aux bar wraps below */
   #aux-bar { order: 12; flex-shrink: 0; flex-basis: 100%; }
   #aux-role-pill { order: 13; flex-shrink: 0; }
 
@@ -4142,8 +4128,24 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 <div id="topbar">
   <div id="logo">MUSE<span>_</span>TIER</div>
   <div id="logo-credit"></div>
-  <!-- Mobile-only: full-width lib button in its own row -->
-  <button class="btn btn-lib" id="mobile-lib-btn" onclick="mobileLibToggle()" title="Library">☰ LIBRARY</button>
+  <!-- Mobile-only: full-width lib button + action icons in same row -->
+  <div id="mobile-lib-row">
+    <button class="btn btn-lib" id="mobile-lib-btn" onclick="mobileLibToggle()" title="Library">☰ LIBRARY</button>
+    <div id="mobile-action-row">
+      <button class="btn mob-icon-btn" onclick="openCollab()" title="Collab">⇄</button>
+      <button class="btn mob-icon-btn" onclick="toggleEditMode()" title="Edit">✎</button>
+      <div class="tb-dropdown mob-icon-dd" id="dd-mob-export">
+        <button class="btn mob-icon-btn" onclick="tbToggle('dd-mob-export')" title="Export">↓</button>
+        <div class="tb-drop-menu tb-drop-menu-left" id="dd-mob-export-menu">
+          <button class="tb-drop-item" onclick="exportTierImage();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">↓</span>Save as Image</button>
+          <div class="tb-drop-sep"></div>
+          <button class="tb-drop-item tb-drop-danger" onclick="clearTier();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">✕</span>Clear Tier</button>
+          <button class="tb-drop-item tb-drop-danger" onclick="clearAllItems();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">⊘</span>Clear All</button>
+        </div>
+      </div>
+      <button class="btn mob-icon-btn" onclick="openSettings()" title="Settings">⚙</button>
+    </div>
+  </div>
   <!-- Mobile-only: tab picker dropdown -->
   <div class="tb-dropdown" id="dd-mobile-tabs">
     <button class="tb-dropdown-btn" id="mobile-tab-btn" onclick="tbToggle('dd-mobile-tabs')">
@@ -4881,7 +4883,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
       <button class="mb-type-btn active" data-type="single"      onclick="mbToggleType('single',this)">SINGLE</button>
       <button class="mb-type-btn active" data-type="ep"          onclick="mbToggleType('ep',this)">EP</button>
       <button class="mb-type-btn active" data-type="compilation" onclick="mbToggleType('compilation',this)">COMPILATION</button>
-      <button class="mb-type-btn active" data-type="live"        onclick="mbToggleType('live',this)">LIVE</button>
+      <button class="mb-type-btn" data-type="live"        onclick="mbToggleType('live',this)">LIVE</button>
     </div>
 
     <!-- WIP notices — shown when games or movies tab is active -->
@@ -6609,6 +6611,9 @@ function renderLibTree() {
   if (sig === _libTreeSignature) return; // nothing changed — skip rebuild
   _libTreeSignature = sig;
 
+  // Preserve scroll position so taps on mobile don't jump back to top
+  const _scrollTop = tree.scrollTop;
+
   // Remove old rows (keep #sb-empty)
   [...tree.children].forEach(ch => { if (ch.id !== 'sb-empty') ch.remove(); });
 
@@ -6791,6 +6796,8 @@ function renderLibTree() {
     frag.appendChild(group);
   });
   tree.appendChild(frag);
+  // Restore scroll position so mobile taps don't jump to top
+  if (_scrollTop) tree.scrollTop = _scrollTop;
   // Keep library view in sync whenever sidebar tree is rebuilt
   if (activeTab === 'libview') lvRender();
 }
@@ -8196,7 +8203,7 @@ const MB_UA   = 'MuseTier/1.0 (local-tool)';
 function _libKey(str) { return str.toLowerCase().trim().replace(/\s+/g, '_'); }
 function _libAlbumKey(artist, title) { return _libKey(artist) + '|' + _libKey(title); }
 
-let mbActiveTypes = new Set(['album','single','ep','compilation','live']);
+let mbActiveTypes = new Set(['album','single','ep','compilation']);
 let mbSelectedRelease = null;   // full release object with tracks + cover
 let mbSearchResults  = [];
 
@@ -8277,39 +8284,84 @@ async function mbSearch() {
   mbSelectedRelease = null;
 
   try {
-    // Use release-group endpoint — primary-type lives here, not on individual releases
-    // Smart query: "artist - album" splits into fields; plain text searches both title AND artist
-    let mbQuery;
+    // Multi-strategy search for best results
+    // Strategy 1: explicit "artist - title" or "artist: title" separator
+    // Strategy 2: treat multi-word query as "artist title" freetext (handles "pink floyd echoes")
+    // Strategy 3: fallback plain release OR artist text search
     const splitMatch = q.match(/^(.+?)\s*[-:]\s*(.+)$/);
+    let queries = [];
     if (splitMatch) {
       const artist = splitMatch[1].trim();
       const title  = splitMatch[2].trim();
-      mbQuery = `release:"${title}" AND artist:"${artist}"`;
+      // Exact field match for explicit separator queries
+      queries.push(`release:"${title}" AND artist:"${artist}"`);
+      queries.push(`release:${title} AND artist:${artist}`);
     } else {
-      mbQuery = `(release:"${q}" OR artist:"${q}")`;
+      const words = q.split(/\s+/);
+      if (words.length >= 2) {
+        // Try all splits: first N words as artist, rest as title
+        // This catches "pink floyd echoes", "radiohead ok computer", etc.
+        for (let i = 1; i < words.length; i++) {
+          const artist = words.slice(0, i).join(' ');
+          const title  = words.slice(i).join(' ');
+          queries.push(`release:"${title}" AND artist:"${artist}"`);
+        }
+        // Also try reversed (title first, artist after) for edge cases
+        for (let i = 1; i < words.length; i++) {
+          const title  = words.slice(0, i).join(' ');
+          const artist = words.slice(i).join(' ');
+          queries.push(`release:"${title}" AND artist:"${artist}"`);
+        }
+      }
+      // Always include a broad fallback
+      queries.push(`(release:"${q}" OR artist:"${q}")`);
+      queries.push(`release:${q}`);
     }
-    const searchUrl = `${MB_API}/release-group?query=${encodeURIComponent(mbQuery)}&limit=25&fmt=json`;
-    const data = await mbFetch(searchUrl);
-    const groups = (data['release-groups'] || []);
+    // Dedupe queries
+    queries = [...new Set(queries)].slice(0, 4);
 
-    const filtered = groups.filter(rg => {
-      if (!mbActiveTypes.size) return true;  // no filter = show all
+    // Fetch all strategies in parallel, merge and dedupe by mbid
+    const allFetches = queries.map(mq =>
+      mbFetch(`${MB_API}/release-group?query=${encodeURIComponent(mq)}&limit=25&fmt=json`)
+        .then(d => d['release-groups'] || [])
+        .catch(() => [])
+    );
+    const allResults = await Promise.all(allFetches);
+
+    // Merge: dedupe by id, keep highest score, preserve insertion order of first occurrence
+    const seen = new Map();
+    for (const batch of allResults) {
+      for (const rg of batch) {
+        if (!seen.has(rg.id)) {
+          seen.set(rg.id, rg);
+        } else {
+          // Keep whichever has higher score
+          const existing = seen.get(rg.id);
+          if ((rg.score || 0) > (existing.score || 0)) seen.set(rg.id, rg);
+        }
+      }
+    }
+    // Sort by MusicBrainz relevance score descending
+    const merged = [...seen.values()].sort((a, b) => (b.score || 0) - (a.score || 0));
+
+    const filtered = merged.filter(rg => {
+      if (!mbActiveTypes.size) return true;
       const pg = (rg['primary-type'] || '').toLowerCase();
       const sg = (rg['secondary-types'] || []).map(s => s.toLowerCase());
-      if (!pg) return true;  // unknown type always shows
-      // Album includes compilations/live unless those filters are explicitly off
+      if (!pg) return true;
       if (pg === 'album') {
-        if (sg.includes('compilation')) return mbActiveTypes.has('compilation') || mbActiveTypes.has('album');
-        if (sg.includes('live'))        return mbActiveTypes.has('live')        || mbActiveTypes.has('album');
+        if (sg.includes('compilation')) return mbActiveTypes.has('compilation');
+        // Live albums are filtered strictly — only show if live type is explicitly enabled
+        if (sg.includes('live'))        return mbActiveTypes.has('live');
         return mbActiveTypes.has('album');
       }
       if (pg === 'single') return mbActiveTypes.has('single');
       if (pg === 'ep')     return mbActiveTypes.has('ep');
-      return true; // any other type not covered = show
+      return mbActiveTypes.has('album'); // other types default to album filter
     });
 
     mbSearchResults = filtered;
-    mbSetStatus(filtered.length ? `${filtered.length} releases found` : 'No results — try different spelling or disable type filters above.');
+    mbSetStatus(filtered.length ? `${filtered.length} releases found` : 'No results — try different spelling or enable more type filters above.');
     renderMBResults(filtered);
   } catch(e) {
     mbSetStatus(`Error: ${e.message}. Check your connection.`);
@@ -9302,7 +9354,7 @@ function collabCreate() {
   document.getElementById('collab-host-btn').disabled = true;
 
   _collabTeardown();
-  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:hk-turn1.xirsys.com' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:80?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:80?transport=tcp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp', 'turns:hk-turn1.xirsys.com:443?transport=tcp', 'turns:hk-turn1.xirsys.com:5349?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:80?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:80?transport=tcp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp', 'turns:hk-turn1.xirsys.com:443?transport=tcp', 'turns:hk-turn1.xirsys.com:5349?transport=tcp'] }] } }, code);
+  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }] } }, code);
   var actions = _collabRoom.makeAction('msg');
   _collabSendMsg = actions[0];
   var receiveMsg = actions[1];
@@ -9357,7 +9409,7 @@ function collabJoin() {
   collabSetStatus('waiting', 'JOINING…');
 
   _collabTeardown();
-  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:hk-turn1.xirsys.com' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:80?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:80?transport=tcp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp', 'turns:hk-turn1.xirsys.com:443?transport=tcp', 'turns:hk-turn1.xirsys.com:5349?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:80?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:80?transport=tcp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp', 'turns:hk-turn1.xirsys.com:443?transport=tcp', 'turns:hk-turn1.xirsys.com:5349?transport=tcp'] }] } }, code);
+  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }] } }, code);
   var actions = _collabRoom.makeAction('msg');
   _collabSendMsg = actions[0];
   var receiveMsg = actions[1];
@@ -11772,7 +11824,7 @@ function auxJudgeCreate() {
   _auxRoomCode = code;
 
   if (_auxRoom) { try { _auxRoom.leave(); } catch(_) {} }
-  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', rtcConfig: { iceServers: [{ urls: 'stun:hk-turn1.xirsys.com' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:80?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:80?transport=tcp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp', 'turns:hk-turn1.xirsys.com:443?transport=tcp', 'turns:hk-turn1.xirsys.com:5349?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:80?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:80?transport=tcp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp', 'turns:hk-turn1.xirsys.com:443?transport=tcp', 'turns:hk-turn1.xirsys.com:5349?transport=tcp'] }] } }, code);
+  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }] } }, code);
   var auxActions = _auxRoom.makeAction('aux');
   _auxSendFn = auxActions[0];
   var receiveAux = auxActions[1];
@@ -11871,7 +11923,7 @@ function auxContestantJoin() {
   _auxRoomCode  = code;
 
   if (_auxRoom) { try { _auxRoom.leave(); } catch(_) {} }
-  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', rtcConfig: { iceServers: [{ urls: 'stun:hk-turn1.xirsys.com' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:80?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:80?transport=tcp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp', 'turns:hk-turn1.xirsys.com:443?transport=tcp', 'turns:hk-turn1.xirsys.com:5349?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:80?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:80?transport=tcp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp', 'turns:hk-turn1.xirsys.com:443?transport=tcp', 'turns:hk-turn1.xirsys.com:5349?transport=tcp'] }] } }, code);
+  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }] } }, code);
   var auxActions = _auxRoom.makeAction('aux');
   _auxSendFn = auxActions[0];
   var receiveAux = auxActions[1];
@@ -14007,7 +14059,7 @@ function mobileLibClose() {
   let _tdOrigin = null, _tdBefore = null;
   let _tdOffX = 0, _tdOffY = 0, _tdLastZone = null;
   let _tdTimer = null, _tdStartX = 0, _tdStartY = 0;
-  const LONG_PRESS = 200;
+  const LONG_PRESS = 150;
 
   function _isMobile() { return window.matchMedia('(pointer:coarse)').matches; }
 
@@ -14032,6 +14084,11 @@ function mobileLibClose() {
       'width:'+rect.width+'px;height:'+rect.height+'px;';
     document.body.appendChild(_tdGhost);
     item.style.opacity = '0.25'; item.style.pointerEvents = 'none';
+    // Freeze pool scroll so dragging doesn't scroll the pool container
+    const poolWrap = document.getElementById('pool-wrap');
+    const poolEl   = document.getElementById('pool');
+    if (poolWrap) { poolWrap._savedOverflow = poolWrap.style.overflowX; poolWrap.style.overflowX = 'hidden'; }
+    if (poolEl)   { poolEl._savedOverflow   = poolEl.style.overflowX;   poolEl.style.overflowX   = 'hidden'; }
     window.dragged = item; dragged = item; dragOrigin = _tdOrigin;
     placeholder = mkPH();
     tiersFrame.classList.add('drag-on'); pool.classList.add('drag-on');
@@ -14071,6 +14128,11 @@ function mobileLibClose() {
     }
     landAnim(_tdItem);
     tiersFrame.classList.remove('drag-on'); pool.classList.remove('drag-on');
+    // Restore pool scroll after drag
+    const poolWrap = document.getElementById('pool-wrap');
+    const poolEl   = document.getElementById('pool');
+    if (poolWrap && poolWrap._savedOverflow !== undefined) { poolWrap.style.overflowX = poolWrap._savedOverflow; delete poolWrap._savedOverflow; }
+    if (poolEl   && poolEl._savedOverflow   !== undefined) { poolEl.style.overflowX   = poolEl._savedOverflow;   delete poolEl._savedOverflow; }
     window.dragged = null; dragged = null; dragOrigin = null; placeholder = null;
     _tdLastZone = null; _tdItem = null;
     updatePoolCount(); renderCatBar(); save();
@@ -14083,6 +14145,11 @@ function mobileLibClose() {
     if (_tdItem) { _tdItem.style.opacity=''; _tdItem.style.pointerEvents=''; }
     if (placeholder && placeholder.parentElement) placeholder.remove();
     tiersFrame.classList.remove('drag-on'); pool.classList.remove('drag-on');
+    // Restore pool scroll on cancel
+    const poolWrap = document.getElementById('pool-wrap');
+    const poolEl   = document.getElementById('pool');
+    if (poolWrap && poolWrap._savedOverflow !== undefined) { poolWrap.style.overflowX = poolWrap._savedOverflow; delete poolWrap._savedOverflow; }
+    if (poolEl   && poolEl._savedOverflow   !== undefined) { poolEl.style.overflowX   = poolEl._savedOverflow;   delete poolEl._savedOverflow; }
     window.dragged=null; dragged=null; dragOrigin=null; placeholder=null;
     _tdActive=false; _tdItem=null; _tdGhost=null; _tdLastZone=null;
   }
@@ -14099,7 +14166,7 @@ function mobileLibClose() {
   document.addEventListener('touchmove', function(e) {
     const touch = e.touches[0];
     if (_tdTimer) {
-      if (Math.abs(touch.clientX-_tdStartX)>8 || Math.abs(touch.clientY-_tdStartY)>8) {
+      if (Math.abs(touch.clientX-_tdStartX)>12 || Math.abs(touch.clientY-_tdStartY)>12) {
         clearTimeout(_tdTimer); _tdTimer = null;
       }
     }
