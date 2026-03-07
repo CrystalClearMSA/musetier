@@ -3855,6 +3855,9 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     align-items: stretch;
     background: var(--panel);
     border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 300;
   }
 
   /* Row 1: logo + tab dropdown — fills one line */
@@ -14403,9 +14406,12 @@ function mobileLibClose() {
 function _outsideTapHandler(e) {
   const sidebar = document.getElementById('sidebar');
   if (!sidebar) return;
-  // If the tap target is inside the sidebar, ignore
   const target = e.target || e.touches?.[0]?.target;
-  if (target && sidebar.contains(target)) return;
+  if (!target) return;
+  // Tap inside the sidebar itself — ignore
+  if (sidebar.contains(target)) return;
+  // Tap inside a teleported dropdown menu (appended to body, not sidebar) — ignore
+  if (target.closest('.tb-drop-menu')) return;
   mobileLibClose();
 }
 
