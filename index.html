@@ -1608,6 +1608,29 @@ label.btn { cursor: pointer; }
 .grid-cell-label .gcl-artist { color: var(--text-hi); }
 .grid-cell-label .gcl-title  { color: var(--text-dim); }
 
+/* Side panel: numbered list column to the right of the entire grid */
+#grid-side-panel {
+  display: none;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-left: 14px;
+  min-width: 160px;
+  max-width: 280px;
+  pointer-events: none;
+  align-self: flex-start;
+}
+#grid-side-panel.visible { display: flex; }
+#grid-pan-wrap {
+  position: absolute;
+  top: 0; left: 0;
+  transform-origin: 0 0;
+  padding: 24px;
+  will-change: transform;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
 #grid-viewport {
   flex: 1; overflow: hidden; position: relative;
   cursor: grab;
@@ -1615,13 +1638,20 @@ label.btn { cursor: pointer; }
 #grid-viewport.panning { cursor: grabbing; }
 #grid-viewport::-webkit-scrollbar { width: 4px; height: 4px; }
 #grid-viewport::-webkit-scrollbar-thumb { background: var(--border-hi); }
-#grid-pan-wrap {
-  position: absolute;
-  top: 0; left: 0;
-  transform-origin: 0 0;
-  padding: 24px;
-  will-change: transform;
+
+.grid-side-entry {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .3px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-dim);
 }
+.grid-side-entry .gse-num    { color: var(--text-dim); opacity: 0.5; margin-right: 4px; }
+.grid-side-entry .gse-artist { color: var(--text-hi); }
+.grid-side-entry .gse-sep    { color: var(--text-dim); opacity: 0.4; margin: 0 3px; }
 
 #grid-canvas {
   display: inline-grid;
@@ -4325,7 +4355,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 ═══════════════════════════════════════════ -->
 <div id="topbar">
   <div id="logo">MUSE<span>_</span>TIER</div>
-  <button id="ver-badge" onclick="openOverlay('supportOvr')" title="Early Access — click to report bugs &amp; join support server"><span id="ver-badge-ea">EA</span><span id="ver-badge-num">1.0.9.5</span><span id="ver-badge-icon">?</span></button>
+  <button id="ver-badge" onclick="openOverlay('supportOvr')" title="Early Access — click to report bugs &amp; join support server"><span id="ver-badge-ea">EA</span><span id="ver-badge-num">1.0.10.0</span><span id="ver-badge-icon">?</span></button>
   <div id="logo-credit"></div>
   <!-- Mobile-only: full-width lib button + action icons in same row -->
   <div id="mobile-lib-row">
@@ -4369,7 +4399,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   <div class="tb-sep"></div>
   <!-- Media dropdown — search, scan, upload -->
   <div class="tb-dropdown" id="dd-import">
-    <button class="tb-dropdown-btn" onclick="tbToggle('dd-import')">✦ MEDIA <span class="dd-arrow">▾</span></button>
+    <button class="tb-dropdown-btn" id="btn-media" onclick="tbToggle('dd-import')">✦ MEDIA <span class="dd-arrow">▾</span></button>
     <div class="tb-drop-menu" id="dd-import-menu">
       <button class="tb-drop-item" onclick="openMBSearch();tbClose('dd-import')"><span class="tb-drop-item-icon">✦</span>Search</button>
       <div class="tb-drop-sep"></div>
@@ -4646,6 +4676,9 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
           <div class="gcp-row">
             <button class="gcp-toggle" id="gcp-title" onclick="gridToggleLabel('title',this)">ALBUM TITLE OFF</button>
           </div>
+          <div class="gcp-row">
+            <button class="gcp-toggle" id="gcp-label-side" onclick="gridToggleLabelSide(this)">LABEL POSITION: BELOW</button>
+          </div>
           <div class="gcp-divider"></div>
           <div class="gcp-lbl">DISPLAY</div>
           <div class="gcp-row">
@@ -4659,6 +4692,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
           </div>
           <div class="gcp-row">
             <button class="gcp-toggle" id="gcp-titles-overlay" onclick="gridToggleTitles(this)">HOVER TITLES OFF</button>
+          <button class="gcp-toggle" id="gcp-lastfm-btn" onclick="openMBSearch();setTimeout(()=>{msSetTab('lastfm',document.getElementById('ms-tab-lastfm'));msLfSubTab('import',document.getElementById('ms-lf-tab-import'));},80);" style="color:var(--accent-lib);">♫ LAST.FM IMPORT</button>
           </div>
         </div>
       </div>
@@ -4678,6 +4712,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
       <div id="grid-viewport">
         <div id="grid-pan-wrap">
           <div id="grid-canvas"></div>
+          <div id="grid-side-panel"></div>
         </div>
       </div>
     </div>
@@ -4838,30 +4873,18 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   <div class="modal" style="width:min(580px,100%);max-height:90vh;display:flex;flex-direction:column;">
     <div class="modal-hdr">// SUPPORT &amp; BUG REPORTS</div>
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0 8px;flex-shrink:0;">
-      <span id="ver-badge-modal" style="font-family:var(--mono);font-size:11px;background:rgba(255,200,0,.13);border:1px solid rgba(255,200,0,.35);color:#fc0;padding:3px 8px;letter-spacing:1px;">EA&#8209;1.0.9.5 — EARLY ACCESS</span>
+      <span id="ver-badge-modal" style="font-family:var(--mono);font-size:11px;background:rgba(255,200,0,.13);border:1px solid rgba(255,200,0,.35);color:#fc0;padding:3px 8px;letter-spacing:1px;">EA&#8209;1.0.10.0 — EARLY ACCESS</span>
       <span style="font-size:11px;color:var(--text-dim);letter-spacing:1px;">This build is unfinished. Bugs are expected.</span>
     </div>
     <p style="font-size:12px;color:var(--text-dim);letter-spacing:1px;line-height:1.8;flex-shrink:0;margin:0 0 10px;">
       Found a bug? Please report it in the official support server.<br>
       Include what you were doing, your browser, and if possible a screenshot.
     </p>
-    <div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;padding:14px;background:var(--panel2);border:1px solid var(--border);border-radius:4px;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:28px;line-height:1;">&#x1F4AC;</span>
-        <div>
-          <div style="font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--text);margin-bottom:3px;">OFFICIAL SUPPORT SERVER</div>
-          <div style="font-size:11px;color:var(--text-dim);letter-spacing:.5px;line-height:1.7;">discord.gg/YCBykMGchn</div>
-        </div>
-      </div>
-      <div style="font-size:11px;color:var(--text-dim);letter-spacing:.5px;line-height:1.8;border-left:2px solid var(--border);padding-left:10px;">
-        When reporting a bug, please include:<br>
-        &bull; What you were doing when it happened<br>
-        &bull; Your browser and device<br>
-        &bull; A screenshot if possible
-      </div>
+    <div style="flex:1;min-height:0;overflow:hidden;border:1px solid var(--border);border-radius:4px;">
+      <iframe src="https://discord.com/widget?id=885935621409996881&theme=dark" width="100%" height="100%" style="display:block;min-height:400px;" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
     </div>
     <div style="display:flex;gap:8px;margin-top:10px;flex-shrink:0;">
-      <a class="modal-btn primary" href="https://discord.gg/YCBykMGchn" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;flex:1;">&#x21D7; OPEN DISCORD SERVER</a>
+      <a class="modal-btn primary" href="https://discord.com/channels/885935621409996881" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;flex:1;">&#x21D7; OPEN DISCORD SERVER</a>
       <button class="modal-btn cancel" style="flex:1;" onclick="closeOverlay('supportOvr')">CLOSE</button>
     </div>
   </div>
@@ -4909,23 +4932,68 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     <div class="modal-hdr">// MEDIA_SEARCH</div>
 
     <!-- Source tabs -->
-    <div id="ms-tabs" style="display:flex;gap:4px;margin-bottom:8px;">
+    <div id="ms-tabs" style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
       <button class="mb-type-btn active" id="ms-tab-music"  onclick="msSetTab('music',this)">♪ MUSIC</button>
-      <button class="mb-type-btn"        id="ms-tab-games"  onclick="msSetTab('games',this)">⚙ GAMES <span style="font-size:10px;letter-spacing:1px;color:#f90;border:1px solid #f90;padding:0 3px;margin-left:2px;vertical-align:middle;">WIP</span></button>
-      <button class="mb-type-btn"        id="ms-tab-movies" onclick="msSetTab('movies',this)">▶ MOVIES / TV <span style="font-size:10px;letter-spacing:1px;color:#f90;border:1px solid #f90;padding:0 3px;margin-left:2px;vertical-align:middle;">WIP</span></button>
+      <button class="mb-type-btn"        id="ms-tab-games"  onclick="msSetTab('games',this)">⚙ GAMES</button>
+      <button class="mb-type-btn"        id="ms-tab-movies" onclick="msSetTab('movies',this)">▶ MOVIES / TV</button>
+      <button class="mb-type-btn"        id="ms-tab-lastfm" onclick="msSetTab('lastfm',this)">♫ LAST.FM</button>
     </div>
 
-    <!-- No setup needed for games — OpenCritic is keyless and CORS-friendly -->
-
-    <!-- TMDB key setup — shown only when movies tab is active and key not yet saved -->
-    <div id="ms-key-tmdb" style="display:none;margin-bottom:8px;padding:8px 10px;background:var(--panel2);border:1px solid var(--border-hi);font-family:var(--mono);">
-      <div style="font-size:11px;color:var(--text-hi);letter-spacing:1px;margin-bottom:4px;">▶ ONE-TIME MOVIE/TV SETUP</div>
-      <div style="font-size:11px;color:var(--text-dim);letter-spacing:1px;line-height:1.8;margin-bottom:6px;">
-        Create a free account at <strong style="color:var(--accent);">themoviedb.org</strong> → Settings → API → Request a Developer key. Free, instant, never expires.
+    <!-- Last.fm panel — shown only when lastfm tab is active -->
+    <div id="ms-lastfm-panel" style="display:none;">
+      <!-- Sub-tabs -->
+      <div style="display:flex;gap:4px;margin-bottom:10px;">
+        <button class="mb-type-btn active" id="ms-lf-tab-search" onclick="msLfSubTab('search',this)">SEARCH</button>
+        <button class="mb-type-btn" id="ms-lf-tab-import" onclick="msLfSubTab('import',this)">IMPORT PROFILE</button>
       </div>
-      <div style="display:flex;gap:6px;">
-        <input id="ms-tmdb-key-input" class="gc-input" placeholder="Paste TMDB v3 API key here…" style="flex:1;font-size:12px;">
-        <button class="modal-btn primary" style="width:auto;padding:3px 10px;font-size:11px;" onclick="msSaveApiKey('tmdb')">SAVE</button>
+      <!-- Search sub-panel -->
+      <div id="ms-lf-sub-search">
+        <div style="display:flex;gap:6px;margin-bottom:6px;">
+          <input type="text" id="ms-lf-search-input" placeholder="album or artist…" style="flex:1;" onkeydown="if(event.key==='Enter')msLfSearch()">
+          <button id="ms-lf-search-btn" onclick="msLfSearch()">SEARCH</button>
+        </div>
+        <div id="ms-lf-search-status" style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-bottom:4px;"></div>
+        <div id="ms-lf-results" style="max-height:200px;overflow-y:auto;"></div>
+      </div>
+      <!-- Import profile sub-panel -->
+      <div id="ms-lf-sub-import" style="display:none;">
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;min-width:70px;">USERNAME</span>
+            <input type="text" id="ms-lf-username" placeholder="last.fm username" style="flex:1;">
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;min-width:70px;">PERIOD</span>
+            <select id="ms-lf-period" onchange="msLfTogglePeriod()" style="flex:1;font-family:var(--mono);font-size:12px;background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:3px 6px;">
+              <option value="7day">7 Days</option>
+              <option value="1month">1 Month</option>
+              <option value="3month">3 Months</option>
+              <option value="6month">6 Months</option>
+              <option value="12month">1 Year</option>
+              <option value="overall" selected>All Time</option>
+              <option value="custom">Custom Range</option>
+            </select>
+          </div>
+          <div id="ms-lf-custom-range" style="display:none;flex-direction:column;gap:6px;padding:8px;background:var(--panel2);border:1px solid var(--border);">
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);min-width:70px;">FROM</span>
+              <input type="date" id="ms-lf-from" style="flex:1;font-family:var(--mono);font-size:12px;background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:3px 6px;">
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);min-width:70px;">TO</span>
+              <input type="date" id="ms-lf-to" style="flex:1;font-family:var(--mono);font-size:12px;background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:3px 6px;">
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;min-width:70px;">LIMIT</span>
+            <input type="number" id="ms-lf-limit" value="25" min="1" max="100" style="width:70px;font-family:var(--mono);font-size:12px;background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:3px 6px;">
+            <span style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">albums (max 100)</span>
+          </div>
+
+          <button class="modal-btn primary" id="ms-lf-import-btn" onclick="msLfImportProfile()" style="margin-top:2px;">⬇ IMPORT</button>
+          <div id="ms-lf-import-progress" style="font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;text-align:center;min-height:16px;"></div>
+
+        </div>
       </div>
     </div>
 
@@ -4936,14 +5004,6 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
       <button class="mb-type-btn active" data-type="ep"          onclick="mbToggleType('ep',this)">EP</button>
       <button class="mb-type-btn active" data-type="compilation" onclick="mbToggleType('compilation',this)">COMPILATION</button>
       <button class="mb-type-btn" data-type="live"        onclick="mbToggleType('live',this)">LIVE</button>
-    </div>
-
-    <!-- WIP notices — shown when games or movies tab is active -->
-    <div id="ms-wip-games" style="display:none;margin-bottom:8px;padding:7px 10px;background:repeating-linear-gradient(45deg,#1a1500,#1a1500 6px,#1d1800 6px,#1d1800 12px);border:1px solid #f90;font-family:var(--mono);font-size:11px;letter-spacing:1px;line-height:1.8;color:var(--text-dim);">
-      <span style="color:#f90;font-weight:700;">🚧 WORK IN PROGRESS</span> — Games search is functional but cover art loading is unreliable and metadata may be incomplete. Results depend on OpenCritic availability.
-    </div>
-    <div id="ms-wip-movies" style="display:none;margin-bottom:8px;padding:7px 10px;background:repeating-linear-gradient(45deg,#1a1500,#1a1500 6px,#1d1800 6px,#1d1800 12px);border:1px solid #f90;font-family:var(--mono);font-size:11px;letter-spacing:1px;line-height:1.8;color:var(--text-dim);">
-      <span style="color:#f90;font-weight:700;">🚧 WORK IN PROGRESS</span> — Movies &amp; TV search requires a TMDB API key. Poster loading and metadata may be inconsistent. Feature needs further polish.
     </div>
 
     <div id="mb-search-row">
@@ -8629,9 +8689,31 @@ function switchThemeAnim(theme) {
 switchThemeAnim(currentTheme);
 
 
-const MB_API  = 'https://musicbrainz.org/ws/2';
-const CAA_API = 'https://coverartarchive.org';
-const MB_UA   = 'MuseTier/1.0 (local-tool)';
+const MB_API      = 'https://musicbrainz.org/ws/2';
+const CAA_API     = 'https://coverartarchive.org';
+const MB_UA       = 'MuseTier/1.0 (local-tool)';
+const TMDB_KEY    = '377bf67badaf3a97121971242eb34f63';
+const TMDB_IMG    = 'https://image.tmdb.org/t/p/';
+const IGDB_CLIENT_ID = 'kpfes95cz5k5echwuureyts6z0ufv0';
+const IGDB_SECRET    = 'sy86ejh4as6h7ubvb77s2wm0suu7lx';
+let   _igdbToken     = null;
+let   _igdbTokenExp  = 0;
+
+async function _igdbGetToken() {
+  if (_igdbToken && Date.now() < _igdbTokenExp) return _igdbToken;
+  const r = await fetch(
+    'https://corsproxy.io/?' + encodeURIComponent(
+      `https://id.twitch.tv/oauth2/token?client_id=${IGDB_CLIENT_ID}&client_secret=${IGDB_SECRET}&grant_type=client_credentials`
+    ), { method: 'POST' }
+  );
+  if (!r.ok) throw new Error('Twitch token error ' + r.status);
+  const d = await r.json();
+  _igdbToken    = d.access_token;
+  _igdbTokenExp = Date.now() + (d.expires_in - 60) * 1000;
+  return _igdbToken;
+}
+const LASTFM_KEY  = 'ec5299456bf1592ad5964cea4140ac40';
+const LASTFM_API  = 'https://ws.audioscrobbler.com/2.0/';
 
 // Shared key normaliser — used by both folder-scan and MB/media import so
 // the same artist never creates two library entries.
@@ -8650,6 +8732,7 @@ function mbToggleType(type, btn) {
 
 let _msTab = 'music'; // current media search tab
 let _msSelected = null; // unified selected item for all tabs
+let _lfSelected = null; // selected Last.fm album
 
 function openMBSearch() {
   document.getElementById('mb-search-input').value = '';
@@ -8658,6 +8741,10 @@ function openMBSearch() {
   document.getElementById('mb-selected-detail').classList.remove('visible');
   mbSelectedRelease = null;
   _msSelected = null;
+  _lfSelected = null;
+  document.getElementById('ms-lastfm-panel').style.display = 'none';
+  document.getElementById('mb-search-row').style.display = '';
+  document.getElementById('mb-results-wrap').style.display = '';
   msSetTab('music', document.getElementById('ms-tab-music'));
   openOverlay('mbOvr');
   setTimeout(() => document.getElementById('mb-search-input').focus(), 80);
@@ -8669,12 +8756,11 @@ function msSetTab(tab, btn) {
   btn.classList.add('active');
   // Show/hide music type filters
   document.getElementById('mb-type-filter').style.display = tab === 'music' ? '' : 'none';
-  // Show setup banners when key is missing for that tab
-  const _tmdbOk  = !!localStorage.getItem('mt_tmdb_key');
-  document.getElementById('ms-key-tmdb').style.display  = (tab === 'movies' && !_tmdbOk)  ? '' : 'none';
-  // WIP banners
-  document.getElementById('ms-wip-games').style.display  = tab === 'games'  ? '' : 'none';
-  document.getElementById('ms-wip-movies').style.display = tab === 'movies' ? '' : 'none';
+  // Show/hide Last.fm panel
+  document.getElementById('ms-lastfm-panel').style.display = tab === 'lastfm' ? '' : 'none';
+  // Show/hide search row (hidden on lastfm — it has its own UI)
+  document.getElementById('mb-search-row').style.display = tab === 'lastfm' ? 'none' : '';
+  document.getElementById('mb-results-wrap').style.display = tab === 'lastfm' ? 'none' : '';
   // Update placeholder
   const ph = { music: 'artist — album…', games: 'game title…', movies: 'movie or show title…' };
   document.getElementById('mb-search-input').placeholder = ph[tab] || 'Search…';
@@ -8684,7 +8770,7 @@ function msSetTab(tab, btn) {
   document.getElementById('mb-selected-detail').classList.remove('visible');
   _msSelected = null; mbSelectedRelease = null;
   // Update sel cover ph icon
-  document.getElementById('mb-sel-cover-ph').textContent = tab === 'music' ? '♪' : tab === 'games' ? '⚙' : '▶';
+  document.getElementById('mb-sel-cover-ph').textContent = tab === 'music' ? '♪' : tab === 'games' ? '⚙' : tab === 'lastfm' ? '♫' : '▶';
 }
 
 // Unified dispatcher
@@ -8692,10 +8778,12 @@ function msSearch() {
   if (_msTab === 'music')  { mbSearch(); return; }
   if (_msTab === 'games')  { msSearchGames(); return; }
   if (_msTab === 'movies') { msSearchMovies(); return; }
+  if (_msTab === 'lastfm') { msLfSearch(); return; }
 }
 
 function msImport() {
   if (_msTab === 'music')  { mbImport(); return; }
+  if (_msTab === 'lastfm') { msLfImportAlbum(); return; }
   if (_msSelected)         { msImportMedia(); return; }
 }
 
@@ -9065,8 +9153,7 @@ function mbImport() {
   closeOverlay('mbOvr');
 }
 
-// ── GAMES SEARCH — Wikipedia API (keyless, native browser CORS via origin=*) ──
-const WP = 'https://en.wikipedia.org/w/api.php';
+// ── GAMES SEARCH — Giant Bomb API ────────────────────────────────────────────
 
 async function msSearchGames() {
   const q = document.getElementById('mb-search-input').value.trim();
@@ -9077,12 +9164,19 @@ async function msSearchGames() {
   document.getElementById('mb-selected-detail').classList.remove('visible');
   _msSelected = null;
   try {
-    // Search without "video game" suffix — it causes false matches on developer pages
-    const url = `${WP}?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*&srlimit=20&srnamespace=0&srinfo=&srprop=snippet`;
-    const r = await fetch(url);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const data = await r.json();
-    const results = data.query?.search || [];
+    const token = await _igdbGetToken();
+    const body  = `search "${q}"; fields name,cover.url,first_release_date,summary,involved_companies.company.name,id; limit 20;`;
+    const r = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://api.igdb.com/v4/games'), {
+      method: 'POST',
+      headers: {
+        'Client-ID': IGDB_CLIENT_ID,
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'text/plain'
+      },
+      body
+    });
+    if (!r.ok) throw new Error('IGDB error ' + r.status);
+    const results = await r.json();
     if (!results.length) { mbSetStatus('No results found.'); document.getElementById('mb-search-btn').disabled = false; return; }
     mbSetStatus(results.length + ' results found');
     _msRenderGameResults(results);
@@ -9097,91 +9191,61 @@ function _msRenderGameResults(results) {
   wrap.innerHTML = '';
   const frag = document.createDocumentFragment();
   results.forEach(g => {
-    const snippet = g.snippet.replace(/<[^>]+>/g, '');
-    const row = document.createElement('div');
+    const year = g.first_release_date ? new Date(g.first_release_date * 1000).getFullYear() : '';
+    const dev  = (g.involved_companies || []).filter(ic => ic.company).map(ic => ic.company.name).join(', ') || '';
+    const uid  = 'igdb-' + g.id;
+    const row  = document.createElement('div');
     row.className = 'mb-result-row';
     row.innerHTML = `
-      <div class="mb-thumb-ph" id="ms-thumb-${g.pageid}">⚙</div>
+      <div class="mb-thumb-ph" id="ms-gthumb-${uid}">⚙</div>
       <div style="flex:1;overflow:hidden;">
-        <div style="font-size:13px;color:var(--text-hi);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(g.title)}</div>
-        <div style="font-size:11px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(snippet)}</div>
+        <div style="font-size:13px;color:var(--text-hi);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(g.name)}</div>
+        <div style="font-size:11px;color:var(--text-dim);">${dev ? esc(dev) + (year ? ' · ' : '') : ''}${year}</div>
       </div>`;
-    _wpThumb(g.title, row.querySelector('#ms-thumb-' + g.pageid));
+    // IGDB cover URL: replace "t_thumb" with "t_cover_big"
+    const rawCover = g.cover?.url || '';
+    const thumbSrc = rawCover ? 'https:' + rawCover.replace('t_thumb', 't_cover_big') : '';
+    if (thumbSrc) {
+      const ph  = row.querySelector('#ms-gthumb-' + uid);
+      const img = document.createElement('img');
+      img.className = 'mb-thumb';
+      img.src = thumbSrc;
+      img.onload = () => ph && ph.replaceWith(img);
+    }
     row.addEventListener('click', () => _msSelectGame(g, row));
     frag.appendChild(row);
   });
   wrap.appendChild(frag);
 }
 
-async function _wpThumb(title, ph) {
-  try {
-    const url = `${WP}?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&pithumbsize=120&piprop=thumbnail&format=json&origin=*`;
-    const r   = await fetch(url);
-    const d   = await r.json();
-    const page = Object.values(d.query?.pages || {})[0];
-    const src  = page?.thumbnail?.source;
-    if (src && ph?.parentNode) {
-      const img = document.createElement('img');
-      img.className = 'mb-thumb'; img.src = src;
-      img.onload = () => ph && ph.replaceWith(img);
-    }
-  } catch(_) {}
-}
-
 async function _msSelectGame(g, rowEl) {
   document.querySelectorAll('.mb-result-row').forEach(r => r.classList.remove('selected'));
   rowEl.classList.add('selected');
-  mbSetStatus('<span class="mb-spinner"></span> Loading details…');
+  mbSetStatus('<span class="mb-spinner"></span> Loading cover…');
   document.getElementById('mb-selected-detail').classList.remove('visible');
 
-  let dev = '', year = '', coverSrc = '';
-  try {
-    // Step 1: get all image filenames + extract text from the article
-    const infoUrl = `${WP}?action=query&titles=${encodeURIComponent(g.title)}&prop=images|extracts&exintro=1&exchars=400&format=json&origin=*&imlimit=30`;
-    const infoR = await fetch(infoUrl);
-    const infoD = await infoR.json();
-    const page  = Object.values(infoD.query?.pages || {})[0];
+  const title  = g.name || '—';
+  const year   = g.first_release_date ? String(new Date(g.first_release_date * 1000).getFullYear()) : '';
+  const dev    = (g.involved_companies || []).filter(ic => ic.company).map(ic => ic.company.name).join(', ') || 'Video Game';
+  const desc   = (g.summary || '').slice(0, 120) + ((g.summary || '').length > 120 ? '…' : '');
+  const rawCover = g.cover?.url || '';
+  const imgUrl = rawCover ? 'https:' + rawCover.replace('t_thumb', 't_cover_big') : '';
 
-    // Parse year and developer from extract
-    const extract = (page?.extract || '').replace(/<[^>]+>/g, '');
-    const yearMatch = extract.match(/\b(19[7-9]\d|20[0-3]\d)\b/);
-    if (yearMatch) year = yearMatch[1];
-    const devMatch = extract.match(/developed by ([^,.]+)/i) || extract.match(/developer[s]?\s*:?\s*([^,.]+)/i);
-    if (devMatch) dev = devMatch[1].trim().slice(0, 40);
+  let coverDataUrl = null;
+  if (imgUrl) {
+    try { coverDataUrl = await _urlToDataUrl(imgUrl); } catch(_) {}
+  }
 
-    // Step 2: filter images for box art by filename keywords
-    const allImages = (page?.images || []).map(i => i.title);
-    const coverKeywords = ['cover', 'box', 'boxart', 'box_art', 'front', 'artwork', 'keyart', 'key_art', 'poster'];
-    const skipKeywords  = ['logo', 'icon', 'flag', 'map', 'portrait', 'photo', 'screenshot', 'screen'];
-    const coverFile = allImages.find(f => {
-      const low = f.toLowerCase();
-      return coverKeywords.some(k => low.includes(k)) && !skipKeywords.some(k => low.includes(k));
-    }) || allImages.find(f => {
-      // fallback: first jpg/png that isn't obviously a person/logo
-      const low = f.toLowerCase();
-      return (low.endsWith('.jpg') || low.endsWith('.png')) && !skipKeywords.some(k => low.includes(k));
-    });
+  _msSelected = { type: 'game', title, artist: dev, year, coverDataUrl, tracks: [], meta: desc };
 
-    if (coverFile) {
-      // Step 3: resolve the File: page to an actual upload URL
-      const fileUrl = `${WP}?action=query&titles=${encodeURIComponent(coverFile)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
-      const fileR = await fetch(fileUrl);
-      const fileD = await fileR.json();
-      const filePage = Object.values(fileD.query?.pages || {})[0];
-      coverSrc = filePage?.imageinfo?.[0]?.url || '';
-    }
-  } catch(_) {}
-
-  _msSelected = { type: 'game', title: g.title, artist: dev || 'Video Game', year, coverDataUrl: coverSrc || null, tracks: [], meta: '' };
-
-  document.getElementById('mb-sel-title').textContent  = g.title;
-  document.getElementById('mb-sel-artist').textContent = dev || '—';
-  document.getElementById('mb-sel-meta').textContent   = year || '';
+  document.getElementById('mb-sel-title').textContent  = title;
+  document.getElementById('mb-sel-artist').textContent = dev;
+  document.getElementById('mb-sel-meta').textContent   = [year, desc].filter(Boolean).join(' · ');
   document.getElementById('mb-track-list').innerHTML   = '';
 
-  if (coverSrc) {
+  if (coverDataUrl) {
     const img = document.getElementById('mb-sel-cover');
-    img.src = coverSrc; img.style.display = '';
+    img.src = coverDataUrl; img.style.display = '';
     document.getElementById('mb-sel-cover-ph').style.display = 'none';
   } else {
     document.getElementById('mb-sel-cover').style.display = 'none';
@@ -9193,27 +9257,20 @@ async function _msSelectGame(g, rowEl) {
   mbSetStatus('');
 }
 
-// ── MOVIES / TV SEARCH — TMDB (open metadata, images on tmdb CDN) ───────────
-const TMDB_IMG = 'https://image.tmdb.org/t/p/';
+// ── MOVIES / TV SEARCH — TMDB ─────────────────────────────────────────────────
 
 async function msSearchMovies() {
   const q = document.getElementById('mb-search-input').value.trim();
   if (!q) return;
-  const tmdbKey = localStorage.getItem('mt_tmdb_key') || '';
-  if (!tmdbKey) {
-    document.getElementById('ms-key-tmdb').style.display = '';
-    mbSetStatus('Enter a TMDB API key above to search movies & TV.');
-    return;
-  }
   document.getElementById('mb-search-btn').disabled = true;
   mbSetStatus('<span class="mb-spinner"></span> Searching movies & TV…');
   document.getElementById('mb-results-wrap').innerHTML = '';
   document.getElementById('mb-selected-detail').classList.remove('visible');
   _msSelected = null;
   try {
-    const url = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(q)}&language=en-US&page=1&api_key=${tmdbKey}`;
+    const url = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(q)}&language=en-US&page=1&api_key=${TMDB_KEY}`;
     const r = await fetch(url);
-    if (!r.ok) throw new Error('HTTP ' + r.status + (r.status === 401 ? ' — invalid TMDB key?' : ''));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     const data = await r.json();
     const results = (data.results || []).filter(x => x.media_type !== 'person').slice(0, 20);
     if (!results.length) { mbSetStatus('No results found.'); document.getElementById('mb-search-btn').disabled = false; return; }
@@ -9308,6 +9365,191 @@ function msImportMedia() {
   selectAlbum(artistKey, albumKey);
   closeOverlay('mbOvr');
 }
+
+// ── LAST.FM — album search ────────────────────────────────────────────────────
+
+async function msLfSearch() {
+  const q = document.getElementById('ms-lf-search-input').value.trim();
+  if (!q) return;
+  document.getElementById('ms-lf-search-btn').disabled = true;
+  document.getElementById('ms-lf-search-status').textContent = '';
+  document.getElementById('ms-lf-results').innerHTML = '<span style="color:var(--text-dim);font-size:12px;font-family:var(--mono);">Searching…</span>';
+  _lfSelected = null;
+  document.getElementById('mb-selected-detail').classList.remove('visible');
+  try {
+    const url = `${LASTFM_API}?method=album.search&album=${encodeURIComponent(q)}&api_key=${LASTFM_KEY}&format=json&limit=20`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    const albums = data.results?.albummatches?.album || [];
+    if (!albums.length) { document.getElementById('ms-lf-results').innerHTML = '<span style="color:var(--text-dim);font-size:12px;font-family:var(--mono);">No results.</span>'; document.getElementById('ms-lf-search-btn').disabled = false; return; }
+    _msRenderLfResults(albums);
+  } catch(e) {
+    document.getElementById('ms-lf-results').innerHTML = `<span style="color:var(--accent2);font-size:12px;font-family:var(--mono);">Error: ${esc(e.message)}</span>`;
+  }
+  document.getElementById('ms-lf-search-btn').disabled = false;
+}
+
+function _msRenderLfResults(albums) {
+  const wrap = document.getElementById('ms-lf-results');
+  wrap.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  albums.forEach(a => {
+    const row = document.createElement('div');
+    row.className = 'mb-result-row';
+    const imgSrc = _lfBestImage(a.image);
+    row.innerHTML = `
+      <div class="mb-thumb-ph" id="ms-lfthumb-${esc(a.mbid || a.name)}">♫</div>
+      <div style="flex:1;overflow:hidden;">
+        <div style="font-size:13px;color:var(--text-hi);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(a.name)}</div>
+        <div style="font-size:11px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(a.artist)}</div>
+      </div>`;
+    if (imgSrc) {
+      const ph  = row.querySelector('#ms-lfthumb-' + esc(a.mbid || a.name));
+      const img = document.createElement('img');
+      img.className = 'mb-thumb'; img.src = imgSrc;
+      img.onload = () => ph && ph.replaceWith(img);
+    }
+    row.addEventListener('click', () => _msSelectLfAlbum(a, row));
+    frag.appendChild(row);
+  });
+  wrap.appendChild(frag);
+}
+
+function _lfBestImage(imageArr) {
+  if (!imageArr || !imageArr.length) return '';
+  const pref = ['extralarge', 'large', 'medium', 'small'];
+  for (const size of pref) {
+    const found = imageArr.find(i => i.size === size);
+    if (found?.['#text']) return found['#text'];
+  }
+  return imageArr[imageArr.length - 1]?.['#text'] || '';
+}
+
+async function _msSelectLfAlbum(a, rowEl) {
+  document.querySelectorAll('#ms-lf-results .mb-result-row').forEach(r => r.classList.remove('selected'));
+  rowEl.classList.add('selected');
+  const imgUrl = _lfBestImage(a.image);
+  let coverDataUrl = null;
+  if (imgUrl) { try { coverDataUrl = await _urlToDataUrl(imgUrl); } catch(_) {} }
+  _lfSelected = { title: a.name, artist: a.artist, year: '', coverDataUrl, tracks: [] };
+  document.getElementById('mb-sel-title').textContent  = a.name;
+  document.getElementById('mb-sel-artist').textContent = a.artist;
+  document.getElementById('mb-sel-meta').textContent   = '';
+  document.getElementById('mb-track-list').innerHTML   = '';
+  if (coverDataUrl) {
+    const img = document.getElementById('mb-sel-cover'); img.src = coverDataUrl; img.style.display = '';
+    document.getElementById('mb-sel-cover-ph').style.display = 'none';
+  } else {
+    document.getElementById('mb-sel-cover').style.display = 'none';
+    document.getElementById('mb-sel-cover-ph').style.display = 'flex';
+  }
+  document.getElementById('mb-import-btn').textContent = '↓ ADD TO LIBRARY';
+  document.getElementById('mb-selected-detail').classList.add('visible');
+}
+
+function msLfImportAlbum() {
+  if (!_lfSelected) return;
+  const { title, artist, year, coverDataUrl, tracks } = _lfSelected;
+  const artistKey = _libKey(artist);
+  const albumKey  = _libAlbumKey(artist, title);
+  if (!library.has(artistKey)) library.set(artistKey, { name: artist, albums: new Map(), _exp: false });
+  const ao = library.get(artistKey);
+  if (ao.albums.has(albumKey)) { toast(`"${title}" already in library`, 'info'); return; }
+  ao.albums.set(albumKey, { name: title, artist, year, tracks, coverDataUrl: coverDataUrl || null });
+  _consolidateLibrary();
+  updateLibStats(); renderCatPills(); renderLibTree(); saveLibrary();
+  toast(`"${title}" added to library ✓`, 'success');
+  selectAlbum(artistKey, albumKey);
+  closeOverlay('mbOvr');
+}
+
+// ── LAST.FM — profile import ──────────────────────────────────────────────────
+function msLfTogglePeriod() {
+  const sel = document.getElementById('ms-lf-period').value;
+  document.getElementById('ms-lf-custom-range').style.display = sel === 'custom' ? 'flex' : 'none';
+}
+
+async function msLfImportProfile() {
+  const user   = document.getElementById('ms-lf-username').value.trim();
+  const period = document.getElementById('ms-lf-period').value;
+  const limit  = parseInt(document.getElementById('ms-lf-limit').value) || 25;
+  const target = 'grid'; // always imports to grid pool
+  if (!user) { toast('Enter a Last.fm username', 'error', 2000); return; }
+
+  const btn = document.getElementById('ms-lf-import-btn');
+  btn.disabled = true;
+  const prog = document.getElementById('ms-lf-import-progress');
+  prog.textContent = 'Fetching top albums…';
+
+  let albums = [];
+  try {
+    if (period === 'custom') {
+      const from = Math.floor(new Date(document.getElementById('ms-lf-from').value).getTime() / 1000);
+      const to   = Math.floor(new Date(document.getElementById('ms-lf-to').value).getTime() / 1000);
+      if (!from || !to) { toast('Enter valid start and end dates', 'error', 2000); btn.disabled = false; prog.textContent = ''; return; }
+      const url = `${LASTFM_API}?method=user.getWeeklyAlbumChart&user=${encodeURIComponent(user)}&from=${from}&to=${to}&api_key=${LASTFM_KEY}&format=json`;
+      const r = await fetch(url);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      if (data.error) throw new Error(data.message || 'Last.fm error ' + data.error);
+      albums = (data.weeklyalbumchart?.album || []).slice(0, limit);
+    } else {
+      const url = `${LASTFM_API}?method=user.getTopAlbums&user=${encodeURIComponent(user)}&period=${period}&limit=${limit}&api_key=${LASTFM_KEY}&format=json`;
+      const r = await fetch(url);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      if (data.error) throw new Error(data.message || 'Last.fm error ' + data.error);
+      albums = data.topalbums?.album || [];
+    }
+    if (!albums.length) { toast('No albums found for that user/period', 'info', 3000); btn.disabled = false; prog.textContent = ''; return; }
+
+    let added = 0, skipped = 0;
+    for (let i = 0; i < albums.length; i++) {
+      const a = albums[i];
+      prog.textContent = `Importing ${i + 1} / ${albums.length}…`;
+      const title  = a.name || '';
+      const artist = typeof a.artist === 'string' ? a.artist : (a.artist?.name || '');
+      if (!title || !artist) { skipped++; continue; }
+      let imgUrl = _lfBestImage(a.image);
+      if (!imgUrl) {
+        try {
+          const infoUrl = `${LASTFM_API}?method=album.getInfo&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(title)}&api_key=${LASTFM_KEY}&format=json`;
+          const ir = await fetch(infoUrl);
+          const id = await ir.json();
+          imgUrl = _lfBestImage(id.album?.image);
+        } catch(_) {}
+      }
+      let coverDataUrl = null;
+      if (imgUrl) { try { coverDataUrl = await _urlToDataUrl(imgUrl); } catch(_) {} }
+
+      // Add directly to grid pool
+      if (!coverDataUrl) { skipped++; continue; }
+      const catKey = artist + ' — ' + title;
+      if (!catStore.has(catKey)) catStore.set(catKey, []);
+      const bucket = catStore.get(catKey);
+      if (bucket.some(en => en.item.querySelector('img')?.alt === title)) { skipped++; continue; }
+      const item = createItem(coverDataUrl, title, artist + ' — ' + title);
+      setupDraggable(item);
+      item.dataset.dataUrl = coverDataUrl;
+      bucket.push({ item, bitmap: null });
+      if (!catOrder.includes(catKey)) catOrder.push(catKey);
+      if (!activeCategory) activeCategory = catKey;
+      added++;
+    }
+
+    renderCatBar(); updatePoolCount(); save();
+    if (typeof gridRenderPoolStrip === 'function') gridRenderPoolStrip();
+    prog.textContent = '';
+    toast(`Imported ${added} album${added !== 1 ? 's' : ''} to grid${skipped ? ` (${skipped} skipped)` : ''} ✓`, 'success', 4000);
+  } catch(e) {
+    prog.textContent = '';
+    toast('Import failed: ' + e.message, 'error', 4000);
+  }
+  btn.disabled = false;
+}
+
+
 
 
 let ctxArtistKey = null, ctxAlbumKey = null;
@@ -10434,14 +10676,16 @@ function collabRetry() {
   }
 }
 
-// ── Save API key for games/movies search ──────────────────────────
-function msSaveApiKey(service) {
-  // TMDB
-  const key = (document.getElementById('ms-tmdb-key-input')?.value || '').trim();
-  if (!key) { toast('Paste your TMDB key first', 'error', 2000); return; }
-  localStorage.setItem('mt_tmdb_key', key);
-  document.getElementById('ms-key-tmdb').style.display = 'none';
-  toast('TMDB key saved — movies & TV search ready!', 'success', 2000);
+// ── Last.fm sub-tab switcher ───────────────────────────────────────────────────
+function msLfSubTab(tab, btn) {
+  document.querySelectorAll('#ms-lastfm-panel .mb-type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ms-lf-sub-search').style.display = tab === 'search' ? '' : 'none';
+  document.getElementById('ms-lf-sub-import').style.display = tab === 'import' ? '' : 'none';
+  // search sub-panel has its own results area, not the shared mb-results-wrap
+  document.getElementById('mb-results-wrap').style.display  = 'none';
+  document.getElementById('mb-selected-detail').classList.remove('visible');
+  _lfSelected = null;
 }
 
 // ── Apply remote grid state from collab peer ──────────────────────
@@ -13188,7 +13432,7 @@ function _auxCleanup() {
 </script>
 
 <script>
-//  GRID TAB — Topsters-style album art chart
+//  GRID TAB — album art chart
 let gridData = [];        // array of {src, name, artist} or null per cell
 let gridCols = 5;
 let gridRows = 5;
@@ -13201,6 +13445,7 @@ let gridShowShadows    = false;
 let gridShowCorners    = false;
 let gridShowArtist     = false;
 let gridShowTitleLabel = false;
+let gridLabelSide      = false;
 let _gridZoom = 1;
 let _gridPanX = 24;
 let _gridPanY = 24;
@@ -13362,6 +13607,7 @@ function gridApplyStyle() {
   canvas.style.padding = _gridGap + 'px';
   const bgEl = document.getElementById('grid-bg-color');
   if (bgEl) canvas.style.background = bgEl.value;
+  gridRenderSidePanel();
 }
 
 function gridToggleCog() {
@@ -13394,6 +13640,57 @@ function gridToggleLabel(type, btn) {
     btn.textContent = on ? 'ALBUM TITLE ON' : 'ALBUM TITLE OFF';
   }
   gridRender(); gridApplyStyle();
+}
+
+function gridToggleLabelSide(btn) {
+  gridLabelSide = btn.classList.toggle('on');
+  btn.textContent = gridLabelSide ? 'LABEL POSITION: SIDE' : 'LABEL POSITION: BELOW';
+  gridRender(); gridApplyStyle();
+}
+
+function gridRenderSidePanel() {
+  const panel = document.getElementById('grid-side-panel');
+  if (!panel) return;
+  const showSide = gridLabelSide && (gridShowArtist || gridShowTitleLabel);
+  if (!showSide) { panel.classList.remove('visible'); panel.innerHTML = ''; return; }
+
+  panel.classList.add('visible');
+  panel.innerHTML = '';
+  const rowH = _gridCellSize + _gridGap;
+  const frag = document.createDocumentFragment();
+  let num = 1;
+
+  for (var r = 0; r < gridRows; r++) {
+    const rowEl = document.createElement('div');
+    rowEl.style.cssText = `height:${rowH}px;display:flex;flex-direction:column;justify-content:center;gap:1px;overflow:hidden;`;
+
+    for (var c = 0; c < gridCols; c++) {
+      const entry = gridData[r * gridCols + c];
+      if (!entry) { num++; continue; }
+
+      const line = document.createElement('div');
+      line.className = 'grid-side-entry';
+
+      const numSp = document.createElement('span'); numSp.className = 'gse-num'; numSp.textContent = (num++) + '.';
+      line.appendChild(numSp);
+
+      if (gridShowArtist && entry.artist) {
+        const a = document.createElement('span'); a.className = 'gse-artist'; a.textContent = entry.artist;
+        line.appendChild(a);
+      }
+      if (gridShowArtist && entry.artist && gridShowTitleLabel && entry.name) {
+        const sep = document.createElement('span'); sep.className = 'gse-sep'; sep.textContent = '—';
+        line.appendChild(sep);
+      }
+      if (gridShowTitleLabel && entry.name) {
+        const t = document.createElement('span'); t.textContent = entry.name;
+        line.appendChild(t);
+      }
+      rowEl.appendChild(line);
+    }
+    frag.appendChild(rowEl);
+  }
+  panel.appendChild(frag);
 }
 
 function gridToggleTitles(btn) {
@@ -13553,6 +13850,7 @@ function gridRenderCell(i) {
   } else {
     gridRender(); // fallback if cell missing (e.g. after resize)
   }
+  gridRenderSidePanel();
 }
 
 function gridRender() {
@@ -13587,6 +13885,7 @@ function gridRender() {
   existingWraps.slice(total).forEach(function(w) { w.remove(); });
   canvas.innerHTML = '';
   canvas.appendChild(frag);
+  gridRenderSidePanel();
 }
 
 // Click a cell → open a mini picker modal listing all albums
@@ -14501,19 +14800,19 @@ document.addEventListener('DOMContentLoaded', function() {
     {
       tab: 'tier',
       title: '\u229e  TIER LIST',
-      body: 'The main feature of this site! You can import your own images or search through your library under <strong>\u2726 MEDIA</strong>. To generate custom track artwork, click the <strong>✦ GEN</strong> button in the toolbar — it opens a settings panel where you can preview fonts, layout, and export options.',
+      body: 'The main feature of this site! You can import your own images or search through your library under <strong>\u2726 MEDIA</strong>. To generate custom track artwork, click the <strong>✦ GEN</strong> button in the toolbar to open the generation settings panel, where you can preview fonts, configure layout, and export options.',
+      onEnter: function() { if (window.expandPool) window.expandPool(); },
       targets: [
-        { sel: '#dd-import .tb-dropdown-btn', lbl: '\u2726 MEDIA \u2014 search & import', pos: 'below' },
-        { sel: '#pool-hdr, #pool-collapsed-btn', lbl: 'Staging Pool — drag from here', pos: 'above' },
+        { sel: '#btn-media', lbl: '\u2726 MEDIA \u2014 search & import', pos: 'below' },
+        { sel: '#pool-hdr', lbl: 'Staging Pool \u2014 drag from here', pos: 'above' },
       ]
     },
     {
-      title: '✦  IMAGE GEN',
-      body: 'Here you can generate track images of albums, EPs, singles, compilations, whatever music release you can think of! Pressing <strong>ALL TO POOL</strong> will generate temporary images that get deleted once you exit the page. Pressing <strong>GENERATE ALL TRACK IMAGES</strong> will save all the images in a zip file for you to download!',
+      tab: 'tier',
+      title: '\u2726  IMAGE GEN',
+      body: 'Click <strong>✦ GEN</strong> in the toolbar to open the generation panel. Select an album from your library, tweak fonts and layout in the settings, then use <strong>ALL TO POOL</strong> to send generated artwork straight to the staging pool, or <strong>GENERATE ALL</strong> to download everything as a zip.',
       targets: [
-        { sel: '#sb-tree',              lbl: 'Select an album →', pos: 'right' },
-        { sel: '#gen-preview-controls', lbl: 'Send to pool or save', pos: 'above' },
-        { sel: '#gen-generate-btn',     lbl: '→ ZIP download', pos: 'above' },
+        { sel: '#gen-settings-btn', lbl: '\u2726 GEN \u2014 open settings panel', pos: 'below' },
       ]
     },
     {
@@ -14546,7 +14845,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {
       tab: null,
       title: '♥  ONE LAST THING',
-      body: 'If you feel generous and find this site to your liking, consider donating a quick buck or so to help keep it running! I plan to implement ranked seasons, which requires paying for server hosting and potentially a domain name — any support you can throw my way goes a long way towards that! Otherwise, I won\'t keep you any longer — I hope you have a great time using Musetier! ♥',
+      body: 'If you feel generous and find this site to your liking, consider donating a quick buck or so to help keep it running! I plan to implement ranked seasons, which requires paying for server hosting and potentially a domain name. Any support you can throw my way goes a long way towards that! Otherwise, I won\'t keep you any longer. I hope you have a great time using Musetier! ♥',
       targets: [
         { sel: '.btn-donate', lbl: '♥ DONATE — buymeacoffee', pos: 'below' },
       ]
@@ -14667,6 +14966,7 @@ document.addEventListener('DOMContentLoaded', function() {
     _step = idx;
 
     if (s.tab && window._tutSwitchTab) window._tutSwitchTab(s.tab);
+    if (s.onEnter) s.onEnter();
 
     document.getElementById('tut-title').textContent = s.title;
     document.getElementById('tut-body').innerHTML    = s.body;
