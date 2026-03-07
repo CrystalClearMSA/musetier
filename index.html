@@ -295,6 +295,22 @@ body {
 }
 #logo span { animation: blink 1s step-end infinite; }
 
+#ver-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  background: rgba(255,200,0,.1);
+  border: 1px solid rgba(255,200,0,.3);
+  color: #fc0;
+  padding: 2px 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  align-self: center;
+  margin-left: 4px;
+  transition: background .15s, border-color .15s;
+  white-space: nowrap;
+}
+#ver-badge:hover { background: rgba(255,200,0,.2); border-color: rgba(255,200,0,.6); }
 #logo-credit {
   font-family: var(--mono);
   font-size: 11px;
@@ -1313,6 +1329,8 @@ label.btn { cursor: pointer; }
   display: none;
 }
 .item:hover .item-lbl { display: block; }
+/* Track items always show their label — title is the only identifier */
+.item.track-item .item-lbl { display: block; }
 
 .item[data-gen]:hover .item-lbl {
   font-size: 5.5px;
@@ -4142,6 +4160,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 ═══════════════════════════════════════════ -->
 <div id="topbar">
   <div id="logo">MUSE<span>_</span>TIER</div>
+  <button id="ver-badge" onclick="openOverlay('supportOvr')" title="Early Access — click for info & support">EA&#8209;1.0.9.3</button>
   <div id="logo-credit"></div>
   <!-- Mobile-only: full-width lib button + action icons in same row -->
   <div id="mobile-lib-row">
@@ -4209,6 +4228,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   </div>
   <div class="tb-right">
     <a class="btn btn-donate" href="https://buymeacoffee.com/crystalclearmsa" target="_blank" rel="noopener" title="Support the creator ♥">♥ DONATE</a>
+    <button class="btn" id="support-btn" onclick="openOverlay('supportOvr')" title="Support Server & Bug Reports">✦ SUPPORT</button>
     <button class="btn btn-icon" onclick="openSettings()" title="Settings">⚙</button>
   </div>
 </div>
@@ -4216,7 +4236,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 <!-- ═══════════════════════════════════════════
      BODY
 ═══════════════════════════════════════════ -->
-<div id="mobile-sidebar-backdrop" onclick="if(!_mobileLibJustOpened) mobileLibClose()"></div>
+<div id="mobile-sidebar-backdrop"></div>
 
 <div id="app-body">
 
@@ -4649,6 +4669,30 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 </div>
 
 <!-- Color picker -->
+<div class="overlay" id="supportOvr">
+  <div class="modal" style="width:min(580px,100%);max-height:90vh;display:flex;flex-direction:column;">
+    <div class="modal-hdr">// SUPPORT &amp; BUG REPORTS</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0 8px;flex-shrink:0;">
+      <span id="ver-badge-modal" style="font-family:var(--mono);font-size:11px;background:rgba(255,200,0,.13);border:1px solid rgba(255,200,0,.35);color:#fc0;padding:3px 8px;letter-spacing:1px;">EA&#8209;1.0.9.3 — EARLY ACCESS</span>
+      <span style="font-size:11px;color:var(--text-dim);letter-spacing:1px;">This build is unfinished. Bugs are expected.</span>
+    </div>
+    <p style="font-size:12px;color:var(--text-dim);letter-spacing:1px;line-height:1.8;flex-shrink:0;margin:0 0 10px;">
+      Found a bug? Please report it in the official support server.<br>
+      Include what you were doing, your browser, and if possible a screenshot.
+    </p>
+    <div style="flex:1;min-height:0;border:1px solid var(--border);border-radius:4px;overflow:hidden;">
+      <iframe src="https://discord.com/widget?id=YCBykMGchn&theme=dark"
+              style="width:100%;height:100%;min-height:340px;border:none;"
+              sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+              title="MuseTier Support Server"></iframe>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-shrink:0;">
+      <a class="modal-btn primary" href="https://discord.gg/YCBykMGchn" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;flex:1;">↗ OPEN IN DISCORD</a>
+      <button class="modal-btn cancel" style="flex:1;" onclick="closeOverlay('supportOvr')">CLOSE</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="colorPickerOvr">
   <div class="modal" style="width:320px;">
     <div class="modal-hdr">// COLOR_PICKER</div>
@@ -6865,12 +6909,27 @@ function renderLibTree() {
       if (album.tracks.length > 0) {
         const genBtn = document.createElement('button');
         genBtn.className = 'tree-album-gen-btn';
-        genBtn.title = 'Open Gen Settings';
-        genBtn.innerHTML = `<span class="tree-album-gen-arrow">→</span><span>GEN</span>`;
+        genBtn.title = 'Add all tracks to pool';
+        genBtn.innerHTML = `<span class="tree-album-gen-arrow">+</span><span>ADD ALL</span>`;
         genBtn.addEventListener('click', function(e) {
           e.stopPropagation();
-          selectAlbum(ak, alKey);
-          openGenSettings();
+          const ao2 = library.get(ak);
+          const al2 = ao2 && ao2.albums.get(alKey);
+          if (!al2) return;
+          let added = 0;
+          al2.tracks.forEach(function(t, i) {
+            const src2 = al2.coverDataUrl || '';
+            const item2 = createItem(src2, t.title, t.title);
+            item2.classList.add('track-item');
+            if (al2.coverDataUrl) item2.dataset.dataUrl = al2.coverDataUrl;
+            item2.dataset.genKey = ak + ':' + alKey + ':' + i;
+            if (!catStore.has(ak)) catStore.set(ak, []);
+            catStore.get(ak).push({ item: item2, bitmap: null });
+            setupDraggable(item2);
+            pool.appendChild(item2);
+            added++;
+          });
+          if (added) { updatePoolCount(); renderCatBar(); save(); toast('Added ' + added + ' tracks ✓', 'info', 1200); }
         });
         alRow.appendChild(genBtn);
       }
@@ -6932,6 +6991,7 @@ function renderLibTree() {
           const t = tAl.tracks[tIdx];
           const src = tAl.coverDataUrl || '';
           const item = createItem(src, t.title, t.title);
+          item.classList.add('track-item');
           if (tAl.coverDataUrl) item.dataset.dataUrl = tAl.coverDataUrl;
           item.dataset.genKey = tAk + ':' + tAlKey + ':' + tIdx;
           if (!catStore.has(tAk)) catStore.set(tAk, []);
@@ -6940,7 +7000,6 @@ function renderLibTree() {
           pool.appendChild(item);
           updatePoolCount(); renderCatBar(); save();
           toast('Added to pool ✓', 'info', 900);
-          if (window.matchMedia('(max-width:768px)').matches) mobileLibClose();
         });
       }
 
@@ -14387,8 +14446,6 @@ function mobileLibToggle() {
     sidebar.classList.add('mobile-open');
     backdrop.classList.add('visible');
     document.body.style.overflow = 'hidden';
-    // Attach outside-tap listener on next tick so the current touch doesn't fire it
-    setTimeout(_attachOutsideTapListener, 0);
   }
 }
 
@@ -14400,26 +14457,6 @@ function mobileLibClose() {
   if (sidebar) sidebar.classList.remove('mobile-open');
   if (backdrop) backdrop.classList.remove('visible');
   document.body.style.overflow = '';
-  _detachOutsideTapListener();
-}
-
-function _outsideTapHandler(e) {
-  const sidebar = document.getElementById('sidebar');
-  if (!sidebar) return;
-  const target = e.target || e.touches?.[0]?.target;
-  if (!target) return;
-  // Tap inside the sidebar itself — ignore
-  if (sidebar.contains(target)) return;
-  // Tap inside a teleported dropdown menu (appended to body, not sidebar) — ignore
-  if (target.closest('.tb-drop-menu')) return;
-  mobileLibClose();
-}
-
-function _attachOutsideTapListener() {
-  document.addEventListener('touchstart', _outsideTapHandler, { passive: true, capture: true });
-}
-function _detachOutsideTapListener() {
-  document.removeEventListener('touchstart', _outsideTapHandler, { capture: true });
 }
 
 // ── MOBILE TOUCH DRAG ─────────────────────────────────────────────────────
