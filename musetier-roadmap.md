@@ -3,7 +3,6 @@
 ---
 
 ## EA 1.1 — STABILITY TRACK
-*Tightening everything shipped in 1.0–1.1. No new systems, only correctness and completeness.*
 
 ### 1.1.1 — Core Bug Fixes
 - `_suppressBroadcast` boolean migrated to `_suppressDepth` re-entrant counter throughout all collab handlers
@@ -71,7 +70,7 @@
 ---
 
 ## EA 1.2 — TRANSPORT MIGRATION & MUSETIER.CC
-*Tear out WebRTC entirely. Replace Trystero, MQTT, and Xirsys with Cloudflare Workers + Durable Objects. Register musetier.cc. Nothing changes for the user — everything changes under the hood.*
+*Tear out WebRTC entirely. Replace Trystero, MQTT, and Xirsys with Cloudflare Workers + Durable Objects. Register musetier.cc.*
 
 ### 1.2.1 — Infrastructure Setup
 - Register `musetier.cc` via Cloudflare Registrar — at-cost, no markup
