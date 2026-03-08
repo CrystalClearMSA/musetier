@@ -1334,6 +1334,40 @@ label.btn { cursor: pointer; }
 .pool-cat-tab.cat-sub-inline.active { color: var(--accent); border-color: var(--accent); background: rgba(212,255,0,0.06); opacity: 1; }
 
 /* ── Grid pool strip ───────────────────────────────── */
+/* Drag-from-desktop highlight */
+#grid-file-drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,0.72);
+  border: 3px dashed var(--accent-gen);
+  box-sizing: border-box;
+  pointer-events: all;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+}
+#grid-file-drop-overlay.active { display: flex; }
+#grid-file-drop-overlay-label {
+  font-family: var(--mono);
+  font-size: 18px;
+  letter-spacing: 3px;
+  color: var(--accent-gen);
+  text-transform: uppercase;
+}
+#grid-file-drop-overlay-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+#grid-pool-strip.drag-over {
+  outline: 2px dashed var(--accent-gen);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--accent-gen) 8%, transparent);
+}
 #grid-pool-strip {
   flex-shrink: 0; border-bottom: 1px solid var(--border);
   background: var(--panel); display: flex; flex-direction: column;
@@ -1555,7 +1589,7 @@ label.btn { cursor: pointer; }
 
 #tab-grid {
   display: none; flex: 1; flex-direction: column;
-  overflow: hidden; background: var(--bg);
+  overflow: hidden; background: var(--bg); position: relative;
 }
 #tab-grid.active { display: flex; }
 
@@ -1574,6 +1608,68 @@ label.btn { cursor: pointer; }
 }
 .grid-size-input:focus { border-color: #0df; }
 
+
+
+
+/* ── Theme-aware mask-icon buttons ───────────────────────────────── */
+/* mask-image colors are driven by background-color, so they adapt to
+   any theme including light mode without any extra selectors.        */
+.btn-svg-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; padding: 0; flex-shrink: 0;
+}
+.btn-svg-icon::before {
+  content: '';
+  display: block;
+  width: 16px; height: 16px;
+  background-color: var(--text);
+  mask-size: contain; mask-repeat: no-repeat; mask-position: center;
+  -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;
+  transition: background-color .12s;
+}
+.btn-svg-icon:hover::before { background-color: var(--text-hi); }
+/* Last.fm keeps its brand red on both themes */
+.btn-svg-lastfm::before {
+  background-color: #d51007 !important;
+  mask-image: url("data:image/svg+xml,%3Csvg%20viewBox=%220%200%2032%2032%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath%20d=%22M14.131%2022.948l-1.172-3.193c0%200-1.912%202.131-4.771%202.131-2.537%200-4.333-2.203-4.333-5.729%200-4.511%202.276-6.125%204.515-6.125%203.224%200%204.245%202.089%205.125%204.772l1.161%203.667c1.161%203.561%203.365%206.421%209.713%206.421%204.548%200%207.631-1.391%207.631-5.068%200-2.968-1.697-4.511-4.844-5.244l-2.344-0.511c-1.624-0.371-2.104-1.032-2.104-2.131%200-1.249%200.985-1.984%202.604-1.984%201.767%200%202.704%200.661%202.865%202.24l3.661-0.444c-0.297-3.301-2.584-4.656-6.323-4.656-3.308%200-6.532%201.251-6.532%205.245%200%202.5%201.204%204.077%204.245%204.807l2.484%200.589c1.865%200.443%202.484%201.224%202.484%202.287%200%201.359-1.323%201.921-3.828%201.921-3.703%200-5.244-1.943-6.124-4.625l-1.204-3.667c-1.541-4.765-4.005-6.531-8.891-6.531-5.287-0.016-8.151%203.385-8.151%209.192%200%205.573%202.864%208.595%208.005%208.595%204.14%200%206.125-1.943%206.125-1.943z%22/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20viewBox=%220%200%2032%2032%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath%20d=%22M14.131%2022.948l-1.172-3.193c0%200-1.912%202.131-4.771%202.131-2.537%200-4.333-2.203-4.333-5.729%200-4.511%202.276-6.125%204.515-6.125%203.224%200%204.245%202.089%205.125%204.772l1.161%203.667c1.161%203.561%203.365%206.421%209.713%206.421%204.548%200%207.631-1.391%207.631-5.068%200-2.968-1.697-4.511-4.844-5.244l-2.344-0.511c-1.624-0.371-2.104-1.032-2.104-2.131%200-1.249%200.985-1.984%202.604-1.984%201.767%200%202.704%200.661%202.865%202.24l3.661-0.444c-0.297-3.301-2.584-4.656-6.323-4.656-3.308%200-6.532%201.251-6.532%205.245%200%202.5%201.204%204.077%204.245%204.807l2.484%200.589c1.865%200.443%202.484%201.224%202.484%202.287%200%201.359-1.323%201.921-3.828%201.921-3.703%200-5.244-1.943-6.124-4.625l-1.204-3.667c-1.541-4.765-4.005-6.531-8.891-6.531-5.287-0.016-8.151%203.385-8.151%209.192%200%205.573%202.864%208.595%208.005%208.595%204.14%200%206.125-1.943%206.125-1.943z%22/%3E%3C/svg%3E");
+}
+.btn-svg-lastfm:hover::before { background-color: #ff2010 !important; }
+.btn-svg-floppy::before {
+  mask-image: url("data:image/svg+xml,%3Csvg%20viewBox=%220%200%2032%2032%22%20xmlns=%22http://www.w3.org/2000/svg%22%20fill=%22none%22%20stroke=%22black%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Crect%20x=%229%22%20y=%2217%22%20width=%2214%22%20height=%2211%22/%3E%3Cline%20x1=%2218%22%20y1=%227%22%20x2=%2218%22%20y2=%229%22/%3E%3Cpath%20d=%22M21,4v6c0,1.1-0.9,2-2,2h-8c-1.1,0-2-0.9-2-2l0-6H4v24h24V9l-5-5H9%22/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20viewBox=%220%200%2032%2032%22%20xmlns=%22http://www.w3.org/2000/svg%22%20fill=%22none%22%20stroke=%22black%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Crect%20x=%229%22%20y=%2217%22%20width=%2214%22%20height=%2211%22/%3E%3Cline%20x1=%2218%22%20y1=%227%22%20x2=%2218%22%20y2=%229%22/%3E%3Cpath%20d=%22M21,4v6c0,1.1-0.9,2-2,2h-8c-1.1,0-2-0.9-2-2l0-6H4v24h24V9l-5-5H9%22/%3E%3C/svg%3E");
+}
+/* Grid toolbar sliders */
+.grid-slider-wrap {
+  display: flex; align-items: center; gap: 4px;
+}
+.grid-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 72px; height: 3px;
+  background: var(--panel3); outline: none; cursor: pointer;
+  border-radius: 2px;
+}
+.grid-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
+  transition: background .15s;
+}
+.grid-slider::-moz-range-thumb {
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--accent); cursor: pointer; border: none;
+}
+.grid-slider:hover::-webkit-slider-thumb { background: var(--text-hi); }
+.grid-slider:hover::-moz-range-thumb { background: var(--text-hi); }
+.grid-slider-num {
+  width: 36px !important;
+}
+.grid-color-swatch {
+  width: 22px; height: 22px; padding: 1px;
+  border: 1px solid var(--border); background: none; cursor: pointer;
+  border-radius: 2px;
+}
+.grid-color-swatch:hover { border-color: var(--border-hi); }
 
 #grid-cog-panel {
   display: none; position: fixed;
@@ -4330,7 +4426,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 <!--
   ╔══════════════════════════════════════════════════════════════╗
   ║  MUSETIER BUILD LOG — continuity across AI sessions          ║
-  ║  Current build: 1.3  |  Updated: 2026-03-07                  ║
+  ║  Current build: 1.4  |  Updated: 2026-03-08                  ║
   ║  CHANGELOG (increment build # each session that makes edits) ║
   ║  1.0.9 → baseline build as received                          ║
   ║  1.1   → mobile dvh fix, touch drag, sidebar tap-to-add,     ║
@@ -4346,6 +4442,11 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   ║           gen-content-row starts hidden, shown by loadGenAlbum║
   ║           Added touch-action:manipulation to all tree rows.   ║
   ║           Track tap-to-add-to-pool on mobile restored.        ║
+  ║  1.4   → Games tab: replaced IGDB with OpenCritic (RapidAPI) ║
+  ║           Covers via wsrv.nl proxy (CORS). Sort by relevance. ║
+  ║           Load more (20/page). Last.fm icon + floppy SVG.     ║
+  ║           Grid toolbar: sliders for size/gap. Drop overlay.   ║
+  ║           Version: EA 1.0.10.2                                ║
   ╚══════════════════════════════════════════════════════════════╝
 -->
 <canvas id="fx-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity 0.9s ease"></canvas>
@@ -4355,7 +4456,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 ═══════════════════════════════════════════ -->
 <div id="topbar">
   <div id="logo">MUSE<span>_</span>TIER</div>
-  <button id="ver-badge" onclick="openOverlay('supportOvr')" title="Early Access — click to report bugs &amp; join support server"><span id="ver-badge-ea">EA</span><span id="ver-badge-num">1.0.10.0</span><span id="ver-badge-icon">?</span></button>
+  <button id="ver-badge" onclick="openOverlay('supportOvr')" title="Early Access — click to report bugs &amp; join support server"><span id="ver-badge-ea">EA</span><span id="ver-badge-num">1.0.10.2</span><span id="ver-badge-icon">?</span></button>
   <div id="logo-credit"></div>
   <!-- Mobile-only: full-width lib button + action icons in same row -->
   <div id="mobile-lib-row">
@@ -4642,6 +4743,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     <div class="tab-pane" id="tab-grid">
       <div id="grid-toolbar" style="position:relative;">
         <button class="btn bk-icon-btn" onclick="gridToggleCog()" title="Grid options" id="grid-cog-btn">⚙</button>
+        <button class="btn bk-icon-btn btn-svg-icon btn-svg-lastfm" onclick="openMBSearch();setTimeout(()=>{msSetTab('lastfm',document.getElementById('ms-tab-lastfm'));msLfSubTab('import',document.getElementById('ms-lf-tab-import'));},80);" title="Last.fm import" id="grid-lastfm-btn"></button>
         <div class="tb-sep"></div>
         <span class="grid-lbl">W</span>
         <input class="grid-size-input" id="grid-cols-input" type="number" min="1" max="999" value="5" oninput="gridResize()">
@@ -4649,23 +4751,29 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
         <input class="grid-size-input" id="grid-rows-input" type="number" min="1" max="999" value="5" oninput="gridResize()">
         <div class="tb-sep"></div>
         <span class="grid-lbl">SIZE</span>
-        <input class="grid-size-input" id="grid-cell-size-input" type="number" min="40" max="300" value="100" oninput="gridApplyStyle()" style="width:52px;">
+        <div class="grid-slider-wrap">
+          <input class="grid-slider" id="grid-cell-size-slider" type="range" min="40" max="300" value="100" oninput="document.getElementById('grid-cell-size-input').value=this.value;gridApplyStyle();">
+          <input class="grid-size-input grid-slider-num" id="grid-cell-size-input" type="number" min="40" max="300" value="100" oninput="document.getElementById('grid-cell-size-slider').value=Math.max(40,Math.min(300,parseInt(this.value)||100));gridApplyStyle();" style="width:42px;">
+        </div>
         <div class="tb-sep"></div>
         <span class="grid-lbl">GAP</span>
-        <input class="grid-size-input" id="grid-gap-input" type="number" min="0" max="40" value="4" oninput="gridApplyStyle()" style="width:48px;">
+        <div class="grid-slider-wrap">
+          <input class="grid-slider" id="grid-gap-slider" type="range" min="0" max="40" value="4" oninput="document.getElementById('grid-gap-input').value=this.value;gridApplyStyle();">
+          <input class="grid-size-input grid-slider-num" id="grid-gap-input" type="number" min="0" max="40" value="4" oninput="document.getElementById('grid-gap-slider').value=Math.max(0,Math.min(40,parseInt(this.value)||0));gridApplyStyle();" style="width:36px;">
+        </div>
         <div class="tb-sep"></div>
         <span class="grid-lbl">BG</span>
-        <input type="color" id="grid-bg-color" value="#111111" title="Background color" oninput="gridApplyStyle()" style="width:28px;height:22px;padding:1px;border:1px solid var(--border);background:none;cursor:pointer;">
+        <input type="color" id="grid-bg-color" value="#111111" title="Background color" oninput="gridApplyStyle()" class="grid-color-swatch">
         <div class="tb-sep"></div>
-        <button class="btn" onclick="gridDownload()" title="Save as image">↓ SAVE</button>
-        <button class="btn" onclick="gridClear()" title="Clear all cells">✕ CLEAR</button>
+        <button class="btn bk-icon-btn btn-svg-icon btn-svg-floppy" onclick="gridDownload()" title="Save as image"></button>
+        <button class="btn bk-icon-btn" onclick="gridClear()" title="Clear all cells" style="font-size:13px;">✕</button>
         <div class="tb-sep"></div>
-        <button class="btn" id="grid-zoom-out" onclick="gridZoom(-0.15)">−</button>
-        <span id="grid-zoom-lbl" style="font-family:var(--mono);font-size:12px;color:var(--text-dim);min-width:36px;text-align:center;">100%</span>
-        <button class="btn" id="grid-zoom-in"  onclick="gridZoom(+0.15)">+</button>
-        <button class="btn" onclick="gridFitView()">[ FIT ]</button>
+        <button class="btn bk-icon-btn" id="grid-zoom-out" onclick="gridZoom(-0.15)" style="font-size:14px;font-weight:bold;">−</button>
+        <span id="grid-zoom-lbl" style="font-family:var(--mono);font-size:11px;color:var(--text-dim);min-width:32px;text-align:center;">100%</span>
+        <button class="btn bk-icon-btn" id="grid-zoom-in"  onclick="gridZoom(+0.15)" style="font-size:14px;font-weight:bold;">+</button>
+        <button class="btn" onclick="gridFitView()" style="font-size:11px;padding:3px 6px;">FIT</button>
         <div class="tb-sep"></div>
-        <span class="grid-lbl" style="color:var(--text-dim);font-size:11px;">DRAG FROM LIBRARY →</span>
+        <span class="grid-lbl" style="color:var(--text-dim);font-size:11px;">DRAG FROM LIBRARY OR FILES →</span>
 
         <!-- Cog panel -->
         <div id="grid-cog-panel">
@@ -4692,7 +4800,6 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
           </div>
           <div class="gcp-row">
             <button class="gcp-toggle" id="gcp-titles-overlay" onclick="gridToggleTitles(this)">HOVER TITLES OFF</button>
-          <button class="gcp-toggle" id="gcp-lastfm-btn" onclick="openMBSearch();setTimeout(()=>{msSetTab('lastfm',document.getElementById('ms-tab-lastfm'));msLfSubTab('import',document.getElementById('ms-lf-tab-import'));},80);" style="color:var(--accent-lib);">♫ LAST.FM IMPORT</button>
           </div>
         </div>
       </div>
@@ -4873,7 +4980,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   <div class="modal" style="width:min(580px,100%);max-height:90vh;display:flex;flex-direction:column;">
     <div class="modal-hdr">// SUPPORT &amp; BUG REPORTS</div>
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0 8px;flex-shrink:0;">
-      <span id="ver-badge-modal" style="font-family:var(--mono);font-size:11px;background:rgba(255,200,0,.13);border:1px solid rgba(255,200,0,.35);color:#fc0;padding:3px 8px;letter-spacing:1px;">EA&#8209;1.0.10.0 — EARLY ACCESS</span>
+      <span id="ver-badge-modal" style="font-family:var(--mono);font-size:11px;background:rgba(255,200,0,.13);border:1px solid rgba(255,200,0,.35);color:#fc0;padding:3px 8px;letter-spacing:1px;">EA&#8209;1.0.10.2 — EARLY ACCESS</span>
       <span style="font-size:11px;color:var(--text-dim);letter-spacing:1px;">This build is unfinished. Bugs are expected.</span>
     </div>
     <p style="font-size:12px;color:var(--text-dim);letter-spacing:1px;line-height:1.8;flex-shrink:0;margin:0 0 10px;">
@@ -6738,6 +6845,86 @@ document.getElementById('folderInput').addEventListener('change',e=>{loadImageFi
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hookGridPoolInput);
   else hookGridPoolInput();
   setTimeout(hookGridPoolInput, 400);
+})();
+
+// Grid tab — OS file drag-drop.
+// Uses a full-tab overlay as the actual drop target to avoid all z-index/child issues.
+(function() {
+  var overlay = null;
+  var _enteredFromOutside = false;
+
+  function getOverlay() {
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'grid-file-drop-overlay';
+      overlay.innerHTML = '<div id="grid-file-drop-overlay-label">Drop images here</div>'
+        + '<div id="grid-file-drop-overlay-sub">JPG · PNG · WEBP · GIF</div>';
+      overlay.addEventListener('dragover', function(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+      overlay.addEventListener('dragleave', function(e) { hideOverlay(); });
+      overlay.addEventListener('drop', function(e) {
+        e.preventDefault();
+        hideOverlay();
+        if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
+        var files = Array.from(e.dataTransfer.files).filter(function(f) { return f.type.startsWith('image/'); });
+        if (files.length) loadImageFiles(files, false);
+      });
+    }
+    return overlay;
+  }
+
+  function showOverlay() {
+    var tab = document.getElementById('tab-grid');
+    if (!tab) return;
+    var ov = getOverlay();
+    if (!tab.contains(ov)) tab.appendChild(ov);
+    ov.classList.add('active');
+    var s = document.getElementById('grid-pool-strip');
+    if (s) s.classList.add('drag-over');
+  }
+
+  function hideOverlay() {
+    if (overlay) overlay.classList.remove('active');
+    var s = document.getElementById('grid-pool-strip');
+    if (s) s.classList.remove('drag-over');
+    _enteredFromOutside = false;
+  }
+
+  // Listen on document in capture phase - this always fires first
+  document.addEventListener('dragenter', function(e) {
+    if (activeTab !== 'grid') return;
+    // Only respond to file drags - check types where available
+    var types = e.dataTransfer ? e.dataTransfer.types : [];
+    var hasFile = false;
+    for (var i = 0; i < types.length; i++) {
+      if (types[i] === 'Files' || types[i] === 'files' || types[i] === 'application/x-moz-file') {
+        hasFile = true; break;
+      }
+    }
+    if (!hasFile) return;
+    e.preventDefault();
+    showOverlay();
+  }, true);
+
+  document.addEventListener('dragover', function(e) {
+    if (activeTab !== 'grid') return;
+    if (overlay && overlay.classList.contains('active')) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    }
+  }, true);
+
+  // When drag leaves the window
+  document.addEventListener('dragleave', function(e) {
+    if (activeTab !== 'grid') return;
+    if (e.relatedTarget === null) hideOverlay();
+  }, true);
+
+  document.addEventListener('drop', function(e) {
+    if (activeTab !== 'grid') return;
+    if (overlay && overlay.style.display !== 'none') return; // overlay handles it
+    // Fallback: if somehow overlay missed the drop
+    hideOverlay();
+  }, true);
 })();
 
 
@@ -8694,24 +8881,7 @@ const CAA_API     = 'https://coverartarchive.org';
 const MB_UA       = 'MuseTier/1.0 (local-tool)';
 const TMDB_KEY    = '377bf67badaf3a97121971242eb34f63';
 const TMDB_IMG    = 'https://image.tmdb.org/t/p/';
-const IGDB_CLIENT_ID = 'kpfes95cz5k5echwuureyts6z0ufv0';
-const IGDB_SECRET    = 'sy86ejh4as6h7ubvb77s2wm0suu7lx';
-let   _igdbToken     = null;
-let   _igdbTokenExp  = 0;
-
-async function _igdbGetToken() {
-  if (_igdbToken && Date.now() < _igdbTokenExp) return _igdbToken;
-  const r = await fetch(
-    'https://corsproxy.io/?' + encodeURIComponent(
-      `https://id.twitch.tv/oauth2/token?client_id=${IGDB_CLIENT_ID}&client_secret=${IGDB_SECRET}&grant_type=client_credentials`
-    ), { method: 'POST' }
-  );
-  if (!r.ok) throw new Error('Twitch token error ' + r.status);
-  const d = await r.json();
-  _igdbToken    = d.access_token;
-  _igdbTokenExp = Date.now() + (d.expires_in - 60) * 1000;
-  return _igdbToken;
-}
+// To add MobyGames later: set MOBYGAMES_KEY and it auto-activates as second source.
 const LASTFM_KEY  = 'ec5299456bf1592ad5964cea4140ac40';
 const LASTFM_API  = 'https://ws.audioscrobbler.com/2.0/';
 
@@ -9158,66 +9328,139 @@ function mbImport() {
 async function msSearchGames() {
   const q = document.getElementById('mb-search-input').value.trim();
   if (!q) return;
+  _ocOffset = 0;
+  _ocLastQuery = q;
+  _ocAllResults = [];
   document.getElementById('mb-search-btn').disabled = true;
-  mbSetStatus('<span class="mb-spinner"></span> Searching games…');
   document.getElementById('mb-results-wrap').innerHTML = '';
   document.getElementById('mb-selected-detail').classList.remove('visible');
   _msSelected = null;
-  try {
-    const token = await _igdbGetToken();
-    const body  = `search "${q}"; fields name,cover.url,first_release_date,summary,involved_companies.company.name,id; limit 20;`;
-    const r = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://api.igdb.com/v4/games'), {
-      method: 'POST',
-      headers: {
-        'Client-ID': IGDB_CLIENT_ID,
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'text/plain'
-      },
-      body
-    });
-    if (!r.ok) throw new Error('IGDB error ' + r.status);
-    const results = await r.json();
-    if (!results.length) { mbSetStatus('No results found.'); document.getElementById('mb-search-btn').disabled = false; return; }
-    mbSetStatus(results.length + ' results found');
-    _msRenderGameResults(results);
-  } catch(e) {
-    mbSetStatus('Search failed: ' + e.message);
-  }
+  await _ocFetchAndRender(q, 0, true);
   document.getElementById('mb-search-btn').disabled = false;
 }
 
-function _msRenderGameResults(results) {
+// ── OpenCritic game search ────────────────────────────────────────────────────
+const _OC_KEY  = '0edc6b2dc4mshc5539c51de193cbp11f90cjsn51a916b311ac';
+const _OC_HOST = 'opencritic-api.p.rapidapi.com';
+const _OC_PAGE = 20;
+let _ocOffset = 0, _ocLastQuery = '', _ocAllResults = [];
+
+async function _ocFetchAndRender(q, offset, clear) {
+  mbSetStatus('<span class="mb-spinner"></span> ' + (clear ? 'Searching games…' : 'Loading more…'));
+  try {
+    // Only fetch from API on a fresh search, not on "load more"
+    if (clear) {
+      const r = await fetch('https://opencritic-api.p.rapidapi.com/game/search?criteria=' + encodeURIComponent(q), {
+        headers: { 'x-rapidapi-host': _OC_HOST, 'x-rapidapi-key': _OC_KEY }
+      });
+      if (!r.ok) throw new Error('OpenCritic error ' + r.status);
+      const results = await r.json();
+      // Sort: exact > prefix > substring > rest
+      const lq = q.trim().toLowerCase();
+      results.sort((a, b) => {
+        function score(n) {
+          n = (n || '').toLowerCase();
+          if (n === lq) return 0;
+          if (n.startsWith(lq + ' ') || n.startsWith(lq + ':') || n.startsWith(lq + ',') || n === lq) return 1;
+          if (n.includes(lq)) return 2;
+          return 3;
+        }
+        return score(a.name) - score(b.name);
+      });
+      _ocAllResults = results;
+      document.getElementById('mb-results-wrap').innerHTML = '';
+    }
+
+    const slice = _ocAllResults.slice(offset, offset + _OC_PAGE);
+    if (!slice.length) { mbSetStatus('No results found.'); return; }
+    mbSetStatus(slice.length + ' of ' + _ocAllResults.length + ' results');
+    _ocOffset = offset + slice.length;
+
+    _msRenderGameResults(slice, offset > 0);
+
+    // "Load more" button if there are more results
+    const wrap = document.getElementById('mb-results-wrap');
+    const existing = document.getElementById('oc-load-more');
+    if (existing) existing.remove();
+    if (_ocOffset < _ocAllResults.length) {
+      const btn = document.createElement('button');
+      btn.id = 'oc-load-more';
+      btn.className = 'btn';
+      btn.style.cssText = 'display:block;width:100%;margin-top:8px;padding:6px;font-size:12px;letter-spacing:2px;';
+      btn.textContent = 'LOAD MORE (' + (_ocAllResults.length - _ocOffset) + ' remaining)';
+      btn.onclick = () => _ocFetchAndRender(_ocLastQuery, _ocOffset, false);
+      wrap.appendChild(btn);
+    }
+  } catch(e) {
+    mbSetStatus('Search failed: ' + e.message);
+  }
+}
+
+function _msRenderGameResults(results, append) {
   const wrap = document.getElementById('mb-results-wrap');
-  wrap.innerHTML = '';
+  if (!append) {
+    // Remove load more btn if present before clearing
+    const lm = document.getElementById('oc-load-more');
+    if (lm) lm.remove();
+  }
   const frag = document.createDocumentFragment();
   results.forEach(g => {
-    const year = g.first_release_date ? new Date(g.first_release_date * 1000).getFullYear() : '';
-    const dev  = (g.involved_companies || []).filter(ic => ic.company).map(ic => ic.company.name).join(', ') || '';
-    const uid  = 'igdb-' + g.id;
-    const row  = document.createElement('div');
+    const uid = 'oc-' + g.id;
+    const row = document.createElement('div');
     row.className = 'mb-result-row';
     row.innerHTML = `
-      <div class="mb-thumb-ph" id="ms-gthumb-${uid}">⚙</div>
+      <div class="mb-thumb-ph" id="ms-gthumb-${uid}" style="min-width:40px;">⚙</div>
       <div style="flex:1;overflow:hidden;">
         <div style="font-size:13px;color:var(--text-hi);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(g.name)}</div>
-        <div style="font-size:11px;color:var(--text-dim);">${dev ? esc(dev) + (year ? ' · ' : '') : ''}${year}</div>
+        <div style="font-size:11px;color:var(--text-dim);">${g.firstReleaseDate ? new Date(g.firstReleaseDate).getFullYear() : ''}</div>
       </div>`;
-    // IGDB cover URL: replace "t_thumb" with "t_cover_big"
-    const rawCover = g.cover?.url || '';
-    const thumbSrc = rawCover ? 'https:' + rawCover.replace('t_thumb', 't_cover_big') : '';
-    if (thumbSrc) {
-      const ph  = row.querySelector('#ms-gthumb-' + uid);
+
+    // Use wsrv.nl proxy for thumbnails — serves with CORS headers, resizes to 80px
+    // Also batch-fetch detail for the first 20 so _msSelectGame has image data ready
+    const ph = row.querySelector('#ms-gthumb-' + uid);
+    const _loadThumb = (imgPath) => {
+      const src = 'https://wsrv.nl/?url=' + encodeURIComponent('img.opencritic.com/' + imgPath) + '&w=80&h=80&fit=cover&output=jpg';
       const img = document.createElement('img');
       img.className = 'mb-thumb';
-      img.src = thumbSrc;
-      img.onload = () => ph && ph.replaceWith(img);
+      img.src = src;
+      img.onload = () => ph && ph.isConnected && ph.replaceWith(img);
+    };
+    // If images already merged (re-render after load more), use immediately
+    const _existingPath = (g.images && g.images.box && g.images.box.og) ? g.images.box.og
+                        : (g.images && g.images.banner && g.images.banner.og) ? g.images.banner.og : '';
+    if (_existingPath) {
+      _loadThumb(_existingPath);
+    } else {
+      // Lazy-fetch detail only when row enters viewport
+      const obs = new IntersectionObserver((entries, o) => {
+        if (!entries[0].isIntersecting) return;
+        o.disconnect();
+        fetch('https://opencritic-api.p.rapidapi.com/game/' + g.id, {
+          headers: { 'x-rapidapi-host': _OC_HOST, 'x-rapidapi-key': _OC_KEY }
+        })
+        .then(r => r.ok ? r.json() : null)
+        .then(detail => {
+          if (!detail) return;
+          Object.assign(g, detail);
+          const imgPath = (detail.images && detail.images.box && detail.images.box.og)
+            ? detail.images.box.og
+            : (detail.images && detail.images.banner && detail.images.banner.og)
+            ? detail.images.banner.og : '';
+          if (imgPath) _loadThumb(imgPath);
+        })
+        .catch(() => {});
+      }, { threshold: 0.1 });
+      obs.observe(row);
     }
+
     row.addEventListener('click', () => _msSelectGame(g, row));
     frag.appendChild(row);
   });
-  wrap.appendChild(frag);
+  // Insert before load-more button if it exists
+  const lm = document.getElementById('oc-load-more');
+  if (lm) wrap.insertBefore(frag, lm);
+  else wrap.appendChild(frag);
 }
-
 async function _msSelectGame(g, rowEl) {
   document.querySelectorAll('.mb-result-row').forEach(r => r.classList.remove('selected'));
   rowEl.classList.add('selected');
@@ -9225,15 +9468,31 @@ async function _msSelectGame(g, rowEl) {
   document.getElementById('mb-selected-detail').classList.remove('visible');
 
   const title  = g.name || '—';
-  const year   = g.first_release_date ? String(new Date(g.first_release_date * 1000).getFullYear()) : '';
-  const dev    = (g.involved_companies || []).filter(ic => ic.company).map(ic => ic.company.name).join(', ') || 'Video Game';
-  const desc   = (g.summary || '').slice(0, 120) + ((g.summary || '').length > 120 ? '…' : '');
-  const rawCover = g.cover?.url || '';
-  const imgUrl = rawCover ? 'https:' + rawCover.replace('t_thumb', 't_cover_big') : '';
+  const year   = g.firstReleaseDate ? String(new Date(g.firstReleaseDate).getFullYear()) : '';
+  const dev    = (g.Companies || []).map(c => c.name).join(', ') || 'Game';
+  const desc   = g.description ? g.description.slice(0, 140) + (g.description.length > 140 ? '…' : '') : '';
 
+  // Get image path — may already be on g from IntersectionObserver, otherwise fetch detail
+  let _imgPath = (g.images && g.images.box && g.images.box.og) ? g.images.box.og
+               : (g.images && g.images.banner && g.images.banner.og) ? g.images.banner.og : '';
+  if (!_imgPath) {
+    try {
+      const _detail = await fetch('https://opencritic-api.p.rapidapi.com/game/' + g.id, {
+        headers: { 'x-rapidapi-host': _OC_HOST, 'x-rapidapi-key': _OC_KEY }
+      }).then(r => r.ok ? r.json() : null);
+      if (_detail) {
+        Object.assign(g, _detail);
+        _imgPath = (_detail.images && _detail.images.box && _detail.images.box.og) ? _detail.images.box.og
+                 : (_detail.images && _detail.images.banner && _detail.images.banner.og) ? _detail.images.banner.og : '';
+      }
+    } catch(_) {}
+  }
+
+  // wsrv.nl proxies any image with correct CORS headers — works for fetch/canvas
   let coverDataUrl = null;
-  if (imgUrl) {
-    try { coverDataUrl = await _urlToDataUrl(imgUrl); } catch(_) {}
+  if (_imgPath) {
+    const proxied = 'https://wsrv.nl/?url=' + encodeURIComponent('img.opencritic.com/' + _imgPath) + '&w=600&output=jpg';
+    try { coverDataUrl = await _urlToDataUrl(proxied); } catch(_) {}
   }
 
   _msSelected = { type: 'game', title, artist: dev, year, coverDataUrl, tracks: [], meta: desc };
@@ -13600,6 +13859,11 @@ function gridApplyStyle() {
   const canvas = document.getElementById('grid-canvas');
   _gridCellSize = Math.max(40, Math.min(300, parseInt(document.getElementById('grid-cell-size-input').value) || 100));
   _gridGap      = Math.max(0,  Math.min(40,  parseInt(document.getElementById('grid-gap-input').value)       || 4));
+  // Keep sliders in sync with number inputs
+  const sizeSlider = document.getElementById('grid-cell-size-slider');
+  const gapSlider  = document.getElementById('grid-gap-slider');
+  if (sizeSlider) sizeSlider.value = _gridCellSize;
+  if (gapSlider)  gapSlider.value  = _gridGap;
   canvas.style.setProperty('--grid-cell-size', _gridCellSize + 'px');
   canvas.style.setProperty('--grid-gap', _gridGap + 'px');
   canvas.style.gridTemplateColumns = 'repeat(' + gridCols + ', ' + _gridCellSize + 'px)';
@@ -14087,7 +14351,7 @@ function gridRenderPoolStrip() {
   const remAll = [...catStore.values()].reduce((s,a) => s + rem(a), 0);
 
   if (!catStore.size || !remAll) {
-    itemsEl.innerHTML = '<div id="grid-pool-strip-empty">Pool is empty — add items via IMPORT, GEN tab, or + ADD IMAGES</div>';
+    itemsEl.innerHTML = '<div id="grid-pool-strip-empty">Pool is empty — drag images here, or use IMPORT, GEN, or + ADD IMAGES</div>';
     return;
   }
 
