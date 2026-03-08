@@ -438,6 +438,7 @@ label.btn { cursor: pointer; }
   flex: 1;
   overflow: hidden;
   min-height: 0;
+  z-index: 65;
 }
 
 
@@ -1301,6 +1302,23 @@ label.btn { cursor: pointer; }
   font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
   color: var(--text-dim); padding: 5px 12px 3px; flex-shrink: 0;
 }
+#pool-search-wrap { padding: 3px 10px 2px; flex-shrink: 0; }
+#pool-search {
+  width: 100%; box-sizing: border-box;
+  background: var(--panel2); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.5px; padding: 3px 8px; border-radius: 3px;
+  outline: none; transition: border-color 0.15s;
+}
+#pool-search:focus { border-color: var(--accent); }
+#pool-search::placeholder { color: var(--text-dim); opacity: 0.7; }
+/* Auto-save dot */
+#autosave-dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); margin-left: 6px; vertical-align: middle;
+  opacity: 0; transition: opacity 0.3s;
+}
+#autosave-dot.visible { opacity: 0.8; }
 #cat-bar-wrap { position: relative; flex-shrink: 0; }
 #cat-bar {
   display: flex; gap: 3px; padding: 3px 12px;
@@ -3821,6 +3839,19 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   pointer-events: none;
   opacity: 1 !important;
 }
+.bm-slot.aux-locked {
+  opacity: 0.45 !important;
+  cursor: default !important;
+  pointer-events: none !important;
+}
+.bm-slot.aux-locked::after {
+  content: '🔒' !important;
+  position: absolute;
+  right: 6px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  pointer-events: none;
+}
 @keyframes aux-slot-reveal {
   0%   { opacity:0; transform:scaleY(0.3) translateX(-8px); }
   65%  { opacity:1; transform:scaleY(1.05) translateX(2px); }
@@ -4420,36 +4451,66 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   #gen-config-col { max-height: 40vh; }
 }
 
+
+/* ── Save/Load slots ──────────────────────────────────────────── */
+.sl-slot {
+  border: 1px solid var(--border);
+  background: var(--panel2);
+  padding: 10px 12px;
+  display: flex; align-items: center; gap: 10px;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+.sl-slot-num {
+  font-family: var(--mono); font-size: 18px; font-weight: bold;
+  color: var(--accent); min-width: 28px; text-align: center; flex-shrink: 0;
+}
+.sl-slot-info { flex: 1; overflow: hidden; min-width: 0; }
+.sl-slot-name {
+  font-size: 12px; letter-spacing: 1.5px; color: var(--text-hi);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sl-slot-meta { font-size: 10px; color: var(--text-dim); margin-top: 2px; letter-spacing: 0.5px; }
+.sl-slot-btns { display: flex; gap: 5px; flex-shrink: 0; }
+.sl-save-btn { font-size: 10px; padding: 4px 8px; letter-spacing: 1px; }
+.sl-load-btn { font-size: 10px; padding: 4px 8px; letter-spacing: 1px; }
+.sl-del-btn  { font-size: 10px; padding: 4px 6px; opacity: 0.6; }
+.sl-del-btn:hover { opacity: 1; color: #f55; }
+.sl-slot.empty .sl-slot-name { color: var(--text-dim); font-style: italic; }
+.sl-slot.empty .sl-load-btn  { opacity: 0.3; pointer-events: none; cursor: not-allowed; }
+.sl-slot.empty .sl-del-btn   { opacity: 0; pointer-events: none; }
+
 </style>
 </head>
 <body>
 <!--
-  ╔══════════════════════════════════════════════════════════════╗
-  ║  MUSETIER BUILD LOG — continuity across AI sessions          ║
-  ║  Current build: 1.4  |  Updated: 2026-03-08                  ║
-  ║  CHANGELOG (increment build # each session that makes edits) ║
-  ║  1.0.9 → baseline build as received                          ║
-  ║  1.1   → mobile dvh fix, touch drag, sidebar tap-to-add,     ║
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║  MUSETIER BUILD LOG — continuity across sessions           ║
+  ║  Current build: 1.4  |  Updated: 2026-03-08                   ║
+  ║  CHANGELOG (increment build # each session that makes edits)  ║
+  ║  1.0.9 → baseline build as received                           ║
+  ║  1.1   → mobile dvh fix, touch drag, sidebar tap-to-add,      ║
   ║           bracket drop fix (window.dragged)                   ║
-  ║  1.2   → mobile sidebar ghost-click guard; touch pan+pinch   ║
+  ║  1.2   → mobile sidebar ghost-click guard; touch pan+pinch    ║
   ║           bracket & grid; mobile topbar redesign; gen tab     ║
   ║           layout fix (gen-content-row); disable animations    ║
   ║           setting; bracket AUTO size button                   ║
-  ║  1.3   → FIXED: sidebar touchend stopPropagation was eating  ║
+  ║  1.3   → FIXED: sidebar touchend stopPropagation was eating   ║
   ║           synthesized click events on iOS/Android (all taps   ║
   ║           in sidebar broken). FIXED: gen tab empty state now  ║
   ║           shows a visible CTA instead of invisible text;      ║
   ║           gen-content-row starts hidden, shown by loadGenAlbum║
   ║           Added touch-action:manipulation to all tree rows.   ║
   ║           Track tap-to-add-to-pool on mobile restored.        ║
-  ║  1.4   → Games tab: replaced IGDB with OpenCritic (RapidAPI) ║
+  ║  1.4   → Games tab: replaced IGDB with OpenCritic (RapidAPI)  ║
   ║           Covers via wsrv.nl proxy (CORS). Sort by relevance. ║
   ║           Load more (20/page). Last.fm icon + floppy SVG.     ║
   ║           Grid toolbar: sliders for size/gap. Drop overlay.   ║
-  ║  1.5   → IGDB via Cloudflare Worker; dynamic Xirsys ICE;     ║
-  ║           EMQX broker; MB 429 retry; easter egg timing fix     ║
-  ║           Version: EA 1.0.10.3                                ║
-  ╚══════════════════════════════════════════════════════════════╝
+  ║  1.5   → IGDB via Cloudflare Worker; dynamic Xirsys ICE;      ║
+  ║           EMQX broker; MB 429 retry; easter egg timing fix    ║
+  ║  1.6   → Save/Load slots (5 DOOM-style slots); Xirsys ICE     ║
+  ║           via Cloudflare worker (/ice route)                  ║
+  ║           Version: EA 1.1 - Early Acess                       ║
+  ╚═══════════════════════════════════════════════════════════════╝
 -->
 <canvas id="fx-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity 0.9s ease"></canvas>
 
@@ -4458,7 +4519,8 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 ═══════════════════════════════════════════ -->
 <div id="topbar">
   <div id="logo">MUSE<span>_</span>TIER</div>
-  <button id="ver-badge" onclick="openOverlay('supportOvr')" title="Early Access — click to report bugs &amp; join support server"><span id="ver-badge-ea">EA</span><span id="ver-badge-num">1.0.10.3</span><span id="ver-badge-icon">?</span></button>
+  <span id="autosave-dot" title="Auto-saved"></span>
+  <button id="ver-badge" onclick="openOverlay('supportOvr')" title="Early Access — click to report bugs &amp; join support server"><span id="ver-badge-ea">EA</span><span id="ver-badge-num">1.1</span><span id="ver-badge-icon">?</span></button>
   <div id="logo-credit"></div>
   <!-- Mobile-only: full-width lib button + action icons in same row -->
   <div id="mobile-lib-row">
@@ -4471,6 +4533,8 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
         <button class="btn mob-icon-btn" onclick="tbToggle('dd-mob-export')" title="Export">↓</button>
         <div class="tb-drop-menu tb-drop-menu-left" id="dd-mob-export-menu">
           <button class="tb-drop-item" onclick="exportTierImage();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">↓</span>Save as Image</button>
+          <button class="tb-drop-item" onclick="exportTierText();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">≡</span>Export as Text</button>
+          <button class="tb-drop-item" onclick="openSaveLoad();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">💾</span>Save / Load</button>
           <div class="tb-drop-sep"></div>
           <button class="tb-drop-item tb-drop-danger" onclick="clearTier();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">✕</span>Clear Tier</button>
           <button class="tb-drop-item tb-drop-danger" onclick="clearAllItems();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">⊘</span>Clear All</button>
@@ -4520,6 +4584,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     <button class="tb-dropdown-btn" onclick="tbToggle('dd-export')">↓ EXPORT <span class="dd-arrow">▾</span></button>
     <div class="tb-drop-menu" id="dd-export-menu">
       <button class="tb-drop-item" onclick="exportTierImage();tbClose('dd-export')"><span class="tb-drop-item-icon">↓</span>Save as Image</button>
+      <button class="tb-drop-item" onclick="exportTierText();tbClose('dd-export')"><span class="tb-drop-item-icon">≡</span>Export as Text</button>
       <div class="tb-drop-sep"></div>
       <button class="tb-drop-item tb-drop-danger" onclick="clearTier();tbClose('dd-export')"><span class="tb-drop-item-icon">✕</span>Clear Tier</button>
       <button class="tb-drop-item tb-drop-danger" onclick="clearAllItems();tbClose('dd-export')"><span class="tb-drop-item-icon">⊘</span>Clear All Items</button>
@@ -4527,6 +4592,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   </div>
   <div class="tb-right">
     <a class="btn btn-donate" href="https://buymeacoffee.com/crystalclearmsa" target="_blank" rel="noopener" title="Support the creator ♥">♥ DONATE</a>
+    <button class="btn" id="saveload-btn" onclick="openSaveLoad()" title="Save / Load tier &amp; pool state">💾 SAVE/LOAD</button>
     <button class="btn btn-icon" onclick="openSettings()" title="Settings">⚙</button>
   </div>
 </div>
@@ -4644,6 +4710,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
         <button id="pool-popdown-btn" onclick="collapsePool()" title="Collapse pool">▾ COLLAPSE POOL</button>
         <div id="pool-resize-handle" title="Drag to resize pool"></div>
         <div id="pool-hdr">STAGING POOL <button id="pool-dedup-btn" onclick="openDedupModal()" title="Find & merge duplicates">⧉ DUPES</button><button id="pool-clear-btn" onclick="clearPool()" title="Remove all items from pool">✕ CLEAR</button></div>
+        <div id="pool-search-wrap"><input id="pool-search" type="text" placeholder="🔍 filter pool…" oninput="filterPool(this.value)" autocomplete="off"></div>
         <div id="cat-bar-wrap"><div id="cat-bar"></div></div>
         <div id="pool"></div>
       </div>
@@ -4706,6 +4773,8 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
             </div>
             <div class="bcp-divider"></div>
             <button class="bcp-btn" onclick="fillBracketFromPool();toggleBracketCog()">↓ Fill from Pool</button>
+            <button class="bcp-btn" onclick="fillBracketFromTiers();toggleBracketCog()">≡ Seed from Tier Rows</button>
+            <button class="bcp-btn" onclick="exportBracketImage();toggleBracketCog()">↓ Save as Image</button>
             <button class="bcp-btn" onclick="clearBracketSlot();toggleBracketCog()">✕ Clear Slot</button>
             <div class="bcp-divider"></div>
             <button class="bcp-btn bcp-danger" onclick="resetBracket();toggleBracketCog()">↺ Reset Bracket</button>
@@ -4728,6 +4797,26 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
             <span class="aux-judge-chip-lbl">⚖ JUDGE</span>
             <span class="aux-judge-chip-name" id="aux-judge-display">—</span>
           </div>
+        </div>
+        <!-- Pick-phase bar: visible during 'picking' phase only -->
+        <div id="aux-pick-bar" style="display:none;align-items:center;gap:10px;padding:4px 10px;background:var(--panel2);border-top:1px solid var(--border);font-family:var(--mono);font-size:11px;letter-spacing:1px;flex-wrap:wrap;">
+          <span style="color:var(--text-dim);">⏱ PICK PHASE</span>
+          <span id="aux-pick-timer" style="display:none;color:#d4ff00;font-weight:bold;min-width:36px;"></span>
+          <span style="color:var(--text-dim);font-size:10px;">READY:</span>
+          <span style="display:flex;gap:5px;align-items:center;">
+            <span style="width:8px;height:8px;border-radius:50%;background:#444;display:inline-block;" id="aux-ready-dot-a"></span>
+            <span id="aux-ready-lbl-a" style="color:var(--text-dim);font-size:10px;">A</span>
+            <span style="width:8px;height:8px;border-radius:50%;background:#444;display:inline-block;margin-left:6px;" id="aux-ready-dot-b"></span>
+            <span id="aux-ready-lbl-b" style="color:var(--text-dim);font-size:10px;">B</span>
+          </span>
+          <!-- Contestant ready button -->
+          <button id="aux-ready-btn" onclick="auxContestantReady()" style="display:none;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;padding:3px 12px;background:none;border:1px solid var(--accent2);color:var(--accent2);cursor:pointer;">✓ READY</button>
+          <!-- Judge start battle button (enabled when both ready) -->
+          <button id="aux-battle-start-btn" onclick="_auxStartBattle()" style="display:none;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;padding:3px 14px;background:none;border:1px solid #555;color:#555;cursor:not-allowed;" disabled>⌛ WAITING FOR READY</button>
+          <!-- Judge chat toggle for aux -->
+          <button onclick="chatToggle()" style="font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 8px;background:none;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;">💬 CHAT</button>
+          <!-- Contestant leave button (judge sees end session via auxOvr) -->
+          <button id="aux-bar-leave-btn" onclick="auxEnd()" style="display:none;font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:2px 8px;background:none;border:1px solid #f44;color:#f44;cursor:pointer;margin-left:auto;">✕ LEAVE</button>
         </div>
       </div>
 
@@ -4982,7 +5071,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   <div class="modal" style="width:min(580px,100%);max-height:90vh;display:flex;flex-direction:column;">
     <div class="modal-hdr">// SUPPORT &amp; BUG REPORTS</div>
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0 8px;flex-shrink:0;">
-      <span id="ver-badge-modal" style="font-family:var(--mono);font-size:11px;background:rgba(255,200,0,.13);border:1px solid rgba(255,200,0,.35);color:#fc0;padding:3px 8px;letter-spacing:1px;">EA&#8209;1.0.10.3 — EARLY ACCESS</span>
+      <span id="ver-badge-modal" style="font-family:var(--mono);font-size:11px;background:rgba(255,200,0,.13);border:1px solid rgba(255,200,0,.35);color:#fc0;padding:3px 8px;letter-spacing:1px;">EA&#8209;1.1 — EARLY ACCESS</span>
       <span style="font-size:11px;color:var(--text-dim);letter-spacing:1px;">This build is unfinished. Bugs are expected.</span>
     </div>
     <p style="font-size:12px;color:var(--text-dim);letter-spacing:1px;line-height:1.8;flex-shrink:0;margin:0 0 10px;">
@@ -5225,6 +5314,10 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
         <span class="sett-key">GUIDED TOUR</span>
         <button class="ld-btn on" style="pointer-events:all;cursor:pointer;" onclick="closeOverlay('settingsOvr');tutReplay();">⟳ REPLAY TUTORIAL</button>
       </div>
+      <div class="sett-row">
+        <span class="sett-key">WHAT'S NEW</span>
+        <button class="ld-btn on" style="pointer-events:all;cursor:pointer;" onclick="closeOverlay('settingsOvr');_showWhatsNew();">&#9656; VIEW CHANGELOG</button>
+      </div>
     </div>
     <button class="modal-btn cancel" onclick="closeOverlay('settingsOvr')">CLOSE</button>
     <div class="settings-credit" id="settings-credit"></div>
@@ -5455,7 +5548,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
       <div id="collab-room-display" style="display:none;margin-bottom:8px;">
         <div style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--text-dim);margin-bottom:4px;">ROOM CODE — share this with your guest</div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <span id="collab-room-code-display" style="font-family:var(--mono);font-size:16px;letter-spacing:4px;color:var(--accent);background:var(--panel2);padding:6px 12px;border:1px solid var(--border);"></span>
+          <span id="collab-room-code-display" style="font-family:var(--mono);font-size:16px;letter-spacing:4px;color:var(--accent);background:var(--panel2);padding:6px 12px;border:1px solid var(--border);user-select:all;cursor:text;" title="Click to select code"></span>
           <button class="modal-btn" style="width:auto;padding:4px 10px;font-size:12px;" onclick="collabCopyCode()">COPY</button>
         </div>
       </div>
@@ -5495,6 +5588,132 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     </div>
   </div>
 </div>
+
+<!-- ── SAVE / LOAD overlay ──────────────────────────────────────── -->
+<div class="overlay" id="saveloadOvr">
+  <div class="modal" style="width:480px;max-width:96vw;">
+    <div class="modal-hdr">// SAVE_LOAD</div>
+    <div style="font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:4px;">TIER LIST + POOL STATE — 5 SLOTS</div>
+    <div id="sl-slots" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <button class="modal-btn cancel" style="margin-top:6px;" onclick="closeOverlay('saveloadOvr')">CLOSE</button>
+  </div>
+</div>
+
+
+<!-- ── WHAT'S NEW overlay ─────────────────────────────────────────── -->
+<div class="overlay" id="whatsNewOvr" style="z-index:10010;">
+  <div class="modal" style="width:560px;max-width:96vw;max-height:88vh;">
+    <div class="modal-hdr" style="flex-shrink:0;">// WHAT'S NEW IN EA&#8209;1.1</div>
+    <div id="wn-scroll">
+
+      <div class="wn-section-hdr">&#10022; NEW FEATURES</div>
+
+      <div class="wn-entry"><span class="wn-icon">&#x1F4BE;</span><div><div class="wn-title">SAVE / LOAD SLOTS</div><div class="wn-desc">5 named save slots for your full tier list and pool. Each slot shows item count, pool count and timestamp. Rename any slot without overwriting. Access via the &#x1F4BE; SAVE/LOAD button in the toolbar.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x1F50D;</span><div><div class="wn-title">POOL LIVE FILTER</div><div class="wn-desc">New search box at the top of the Staging Pool &#8212; type to instantly narrow items by name. Persists across re-renders.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x2328;</span><div><div class="wn-title">DELETE / BACKSPACE BULK REMOVE</div><div class="wn-desc">Shift+click to select multiple pool items, then press Delete or Backspace to remove them all at once.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x2261;</span><div><div class="wn-title">EXPORT AS TEXT</div><div class="wn-desc">New export option that copies your ranked list to clipboard as plain text &#8212; formatted as <em>S: Album A, Album B / A: Album C</em>.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x2B21;</span><div><div class="wn-title">BRACKET: SEED FROM TIER ROWS</div><div class="wn-desc">New bracket setting &#8212; seeds entrants using your actual tier rankings so S tier gets top seeds, A tier next, and so on.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x2B21;</span><div><div class="wn-title">BRACKET: SAVE AS IMAGE</div><div class="wn-desc">Export your full bracket as a PNG directly from the bracket settings cog.</div></div></div>
+
+      <div class="wn-section-hdr">&#10022; IMPROVEMENTS</div>
+
+      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">AUTO-SAVE DOT</div><div class="wn-desc">A small dot next to the logo flashes on every auto-save so you always know your changes are persisted.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">COLLAB ROOM CODE &#8212; CLICK TO SELECT</div><div class="wn-desc">The room code in the collab panel is now click-to-select-all for faster copying.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">BROADCAST OPTIMISATION</div><div class="wn-desc">Collab now skips broadcasting when tier content hasn't actually changed &#8212; slider moves, theme switches and settings saves no longer generate network traffic.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">FX CANVAS PAUSES ON TAB SWITCH</div><div class="wn-desc">The tier list particle effects canvas now pauses its render loop when you're on another tab, saving CPU.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">BLOB URL MEMORY MANAGEMENT</div><div class="wn-desc">Blob URLs are now revoked immediately when items are removed, preventing memory leaks in long sessions.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">AUX BATTLE: PICK PHASE BAR</div><div class="wn-desc">New persistent bar during the Aux Battle pick phase showing ready states, countdown timer, ready/start buttons, chat toggle and leave button.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">UNDO: TIER ADD / DELETE</div><div class="wn-desc">Ctrl+Z now handles undoing adding a tier row and deleting a tier row &#8212; restoring items to their original positions.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">ONBOARDING TOUR UPDATED</div><div class="wn-desc">Tour expanded with new slides for Pool Filter, Undo, Export, Save/Load Slots. Bracket, Grid, Library and Collab slides all refreshed.</div></div></div>
+
+      <div class="wn-section-hdr">&#10022; BUG FIXES</div>
+
+      <div class="wn-entry"><span class="wn-icon">&#x1F527;</span><div><div class="wn-title">ICE / WEBRTC &#8212; XIRSYS PARSING FIXED</div><div class="wn-desc">Xirsys changed its response shape &#8212; iceServers is now a single object instead of an array. Fixed parsing for all 3 response shapes, plus a real TURN fallback so cross-network sessions work even if the worker is unreachable.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x1F527;</span><div><div class="wn-title">BATTLE: BRACKET REMNANTS AFTER DISCONNECT</div><div class="wn-desc">All battle picks and match state now clear properly for all three roles (Judge, Contestant A, Contestant B) when a session ends or a peer disconnects.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x1F527;</span><div><div class="wn-title">GRID &#8212; LABEL POSITION: SIDE NOT CLEARING BOTTOM LABELS</div><div class="wn-desc">Toggling label position to Side now correctly removes the bottom-cell labels rather than showing both at once.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x1F527;</span><div><div class="wn-title">GRID &#8212; MOBILE DRAG FROM POOL STRIP</div><div class="wn-desc">Pool strip items can now be dragged onto grid cells on mobile via long-press, with a ghost drag preview and haptic feedback on start.</div></div></div>
+
+    </div><!-- #wn-scroll -->
+    <button class="modal-btn primary" style="margin-top:14px;flex-shrink:0;width:100%;" onclick="closeWhatsNew()">GOT IT &#x2665;</button>
+  </div>
+</div>
+
+<style>
+/* ── What's New overlay ─────────────────────────────────── */
+#whatsNewOvr .modal {
+  display: flex;
+  flex-direction: column;
+}
+#wn-scroll {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 4px;
+  /* ensure inner scroll works even when parent modal gets overflow:auto on mobile */
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+}
+.wn-section-hdr {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px;
+  color: var(--accent); margin-bottom: 14px;
+  border-bottom: 1px solid var(--border); padding-bottom: 8px;
+}
+.wn-section-hdr + .wn-section-hdr,
+.wn-entry + .wn-section-hdr {
+  margin-top: 16px;
+}
+.wn-entry {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.045);
+}
+.wn-entry:last-child { border-bottom: none; }
+.wn-icon {
+  font-size: 15px; flex-shrink: 0; width: 22px; text-align: center;
+  margin-top: 2px;
+}
+.wn-title {
+  font-family: var(--mono); font-size: 11px; font-weight: bold;
+  letter-spacing: 1.5px; color: var(--text-hi); margin-bottom: 4px;
+}
+.wn-desc {
+  font-size: 12px; color: var(--text-dim); line-height: 1.6;
+}
+@media (max-width: 768px) {
+  #whatsNewOvr .modal {
+    /* On mobile the base rule sets overflow-y:auto on .modal — override so
+       inner #wn-scroll handles all scrolling instead */
+    overflow-y: hidden !important;
+    max-height: 88vh !important;
+  }
+  #wn-scroll {
+    /* Give the scroll area all available height, leaving room for hdr + btn */
+    max-height: calc(88vh - 120px);
+    padding-right: 2px;
+  }
+  .wn-title {
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  .wn-desc {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .wn-icon {
+    font-size: 17px;
+    width: 24px;
+  }
+  .wn-entry {
+    padding: 10px 0;
+    gap: 12px;
+  }
+  .wn-section-hdr {
+    font-size: 11px;
+  }
+}
+@media (max-width: 420px) {
+  .wn-title { font-size: 11px; }
+  .wn-desc  { font-size: 13px; }
+}
+</style>
 
 <!-- Trystero: serverless WebRTC via BitTorrent DHT — no signaling server needed -->
 <script type="module">
@@ -5636,6 +5855,20 @@ function switchTab(tab) {
   if (pane) pane.classList.add('active');
   if (btn)  btn.classList.add('active');
 
+  // Pause FX canvas RAF when not on tier tab — saves CPU on bracket/grid/library tabs.
+  // Resume when returning to tier (if an animation was running).
+  if (tab !== 'tier') {
+    if (fxRaf && !fxPaused) {
+      fxPaused = true;
+      cancelAnimationFrame(fxRaf); fxRaf = null;
+    }
+  } else if (fxDrawFn && fxPaused) {
+    fxPaused = false;
+    const _fn = fxDrawFn;
+    const tick = () => { if (fxActive !== _fn) return; _fn(); fxRaf = requestAnimationFrame(tick); };
+    fxRaf = requestAnimationFrame(tick);
+  }
+
   // sidebar visibility: tier = respect setting; libview = always hide (it IS the library view); others = show
   if (tab === 'tier') {
     if (sidebarOnTier) showSidebar(); else hideSidebar();
@@ -5691,6 +5924,11 @@ document.addEventListener('keydown', e => {
     document.querySelectorAll('.overlay.open').forEach(o => o.classList.remove('open'));
   }
   if ((e.ctrlKey||e.metaKey) && e.key === 'z' && !isEditing()) { e.preventDefault(); undo(); }
+  // Delete/Backspace removes selected items when focus is not in a text field
+  if ((e.key === 'Delete' || e.key === 'Backspace') && !isEditing() && _selectedItems.size > 0) {
+    e.preventDefault();
+    itemCtxDeleteSelected();
+  }
 });
 function isEditing() {
   const t = document.activeElement?.tagName;
@@ -5844,11 +6082,12 @@ function save() {
   save._timer = setTimeout(_saveNow, 80);
 }
 
+let _lastBcastSig = ''; // lightweight sig of last-broadcast tier state; skip if unchanged
+
 function _saveNow() {
   try {
-    // _snapshotTiers() is the single DOM walk for all tier state needs.
-    const snap      = _snapshotTiers('full');
-    const snapBcast = _snapshotTiers('broadcast');
+    // Single DOM walk covers both localStorage and broadcast needs.
+    const snap = _snapshotTiers('full');
 
     // Compact alt-only form for localStorage
     const tiersForStorage = snap.tiers.map(t => ({
@@ -5862,10 +6101,25 @@ function _saveNow() {
       tileSize: _tileSizePx, labelSize: _labelSizePx,
     }));
 
-    collabBroadcastThrottled({
-      type: 'tier_state',
-      payload: { tiers: snapBcast.tiers },
-    });
+    // Brief autosave indicator flash
+    const dot = document.getElementById('autosave-dot');
+    if (dot) { dot.classList.add('visible'); clearTimeout(dot._t); dot._t = setTimeout(() => dot.classList.remove('visible'), 900); }
+
+    // Derive broadcast form (alt+lbl only, no src) from the snap we already have
+    const bcastTiers = snap.tiers.map(t => ({
+      n: t.n, c: t.c,
+      i: t.i.map(item => ({ alt: item.alt, lbl: item.lbl }))
+    }));
+
+    // Only broadcast if tier content actually changed — skip for slider/theme/settings saves
+    const sig = JSON.stringify(bcastTiers);
+    if (sig !== _lastBcastSig) {
+      _lastBcastSig = sig;
+      collabBroadcastThrottled({
+        type: 'tier_state',
+        payload: { tiers: bcastTiers },
+      });
+    }
   } catch(_) {}
 }
 async function load() {
@@ -6012,6 +6266,10 @@ function makeInsertSlot(insertBeforeIdx, rows) {
   inner.addEventListener('click', () => {
     const refRow = rows[insertBeforeIdx] || null;
     addTier(undefined, undefined, refRow, 'before');
+    // Grab the newly added row for undo tracking
+    const newRow = refRow ? refRow.previousElementSibling : document.getElementById('tiers').lastElementChild;
+    undoStack.push({ type: 'tier_add', row: newRow });
+    if (undoStack.length > UNDO_MAX) undoStack.shift();
     rebuildInsertSlots();
     save();
     toast('New tier added', 'success', 1200);
@@ -6069,7 +6327,20 @@ function addTier(name, color, refRow, pos) {
       while(next && !next.classList.contains('tier-row')) next = next.nextElementSibling;
       if(next){document.getElementById('tiers').insertBefore(next,row);rebuildInsertSlots();updateRowIdx();save();}
     }],
-    ['✕','Delete',() => { [...zone.children].forEach(i=>pool.appendChild(i)); row.remove(); rebuildInsertSlots(); updateRowIdx(); renderCatBar(); updatePoolCount(); save(); }, 'del'],
+    ['✕','Delete',() => {
+      const items = [...zone.children];
+      undoStack.push({
+        type: 'tier_delete',
+        name: lbl.textContent.trim(),
+        color: lbl.style.background,
+        items,
+        nextSibling: row.nextSibling, // position for restore
+      });
+      if (undoStack.length > UNDO_MAX) undoStack.shift();
+      items.forEach(i=>pool.appendChild(i));
+      row.remove();
+      rebuildInsertSlots(); updateRowIdx(); renderCatBar(); updatePoolCount(); save();
+    }, 'del'],
   ].forEach(([tx,tt,fn,cl]) => {
     const b = document.createElement('button'); b.textContent=tx; b.title=tt;
     if(cl) b.className=cl;
@@ -6380,6 +6651,28 @@ function undo() {
     });
     renderCatBar(); updatePoolCount(); save();
     toast(`Pool clear undone — ${entry.items.length} item${entry.items.length > 1 ? 's' : ''} restored ↩`, 'info', 1600);
+  } else if (entry.type === 'tier_add') {
+    // Undo adding a tier — move its items back to pool then remove the row
+    if (entry.row && entry.row.isConnected) {
+      [...entry.row.querySelector('.tier-zone').children].forEach(i => pool.appendChild(i));
+      entry.row.remove();
+      rebuildInsertSlots(); updateRowIdx(); renderCatBar(); updatePoolCount(); save();
+    }
+    toast('Tier add undone ↩', 'info', 1200);
+  } else if (entry.type === 'tier_delete') {
+    // Undo deleting a tier — recreate it with its original items in the right position
+    addTier(entry.name, entry.color,
+      entry.nextSibling?.classList?.contains('tier-row') ? entry.nextSibling : null,
+      'before');
+    const restored = [...document.getElementById('tiers').querySelectorAll('.tier-row')]
+      .find(r => r.querySelector('.tier-label')?.textContent.trim() === entry.name &&
+                 r.querySelector('.tier-label')?.style.background === entry.color);
+    if (restored) {
+      const zone = restored.querySelector('.tier-zone');
+      entry.items.forEach(item => { zone.appendChild(item); landAnim(item); });
+    }
+    rebuildInsertSlots(); updateRowIdx(); renderCatBar(); updatePoolCount(); save();
+    toast('Tier delete undone ↩', 'info', 1400);
   }
 }
 
@@ -6497,6 +6790,9 @@ function _removeItemImmediate(item) {
     if (idx !== -1) { entries.splice(idx, 1); if (!entries.length) catStore.delete(cat); }
   });
   if (item.dataset.genKey) genAddedKeys.delete(item.dataset.genKey);
+  // Revoke any blob URL held for this item so memory is freed immediately,
+  // not deferred until beforeunload.
+  if (urlRegistry.has(item)) { URL.revokeObjectURL(urlRegistry.get(item)); urlRegistry.delete(item); }
   item.remove();
 }
 
@@ -6816,7 +7112,15 @@ function onImagesLoaded(newByCat) {
   if(!activeCategory) { const keys=[...catStore.keys()].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'})); activeCategory=catStore.size===1?'ALL':keys[0]; }
   if(pendingRestore?.size) {
     const rows=[...tiersEl.querySelectorAll('.tier-row')];
-    newByCat.forEach(items=>items.forEach(item=>{ const fn=item.querySelector('img')?.alt||''; const ti=pendingRestore.get(fn); if(ti!==undefined&&rows[ti])rows[ti].querySelector('.tier-zone').appendChild(item); }));
+    newByCat.forEach(items=>items.forEach(item=>{
+      const fn=item.querySelector('img')?.alt||'';
+      const ti=pendingRestore.get(fn);
+      if(ti!==undefined&&rows[ti]) {
+        rows[ti].querySelector('.tier-zone').appendChild(item);
+        pendingRestore.delete(fn); // mark as placed so re-batches skip it
+      }
+    }));
+    if(!pendingRestore.size) pendingRestore = null; // fully consumed
   }
   renderCatBar(); requestAnimationFrame(updateCatFade);
   const frag=document.createDocumentFragment();
@@ -7122,7 +7426,56 @@ function switchCat(cat) {
   else (catStore.get(cat) || []).forEach(e => { if (!e.item.closest('.tier-zone')) frag.appendChild(e.item); });
   pool.appendChild(frag);
   renderCatBar();
+  // Re-apply any active pool search filter after category switch
+  const searchEl = document.getElementById('pool-search');
+  if (searchEl && searchEl.value.trim()) filterPool(searchEl.value);
   requestAnimationFrame(() => { catBar.querySelector('.pool-cat-tab.active')?.scrollIntoView({ inline: 'nearest', block: 'nearest' }); updateCatFade(); });
+}
+
+// Pool item filter: hides items whose alt/label doesn't match the query.
+// Does not remove items from catStore or move them — visual-only.
+let _poolFilterQuery = '';
+function filterPool(query) {
+  _poolFilterQuery = (query || '').trim().toLowerCase();
+  [...pool.querySelectorAll('.item')].forEach(el => {
+    if (!_poolFilterQuery) { el.style.display = ''; return; }
+    const alt = (el.querySelector('img')?.alt || '').toLowerCase();
+    const lbl = (el.querySelector('.item-lbl')?.textContent || '').toLowerCase();
+    el.style.display = (alt.includes(_poolFilterQuery) || lbl.includes(_poolFilterQuery)) ? '' : 'none';
+  });
+}
+
+// Export tier list as plain text ranking: "S: Item A, Item B / A: Item C…"
+// Copies to clipboard and offers a .txt download as fallback.
+function exportTierText() {
+  const rows = [...tiersEl.querySelectorAll('.tier-row')];
+  if (!rows.length) { toast('No tiers to export', 'info', 1500); return; }
+  const lines = [];
+  rows.forEach(row => {
+    const label = row.querySelector('.tier-label')?.textContent.trim() || '?';
+    const items = [...row.querySelectorAll('.item')].map(el => {
+      const lbl = el.querySelector('.item-lbl')?.textContent.trim();
+      const alt = el.querySelector('img')?.alt || '';
+      return lbl || alt || '';
+    }).filter(Boolean);
+    if (items.length) lines.push(label + ': ' + items.join(', '));
+  });
+  if (!lines.length) { toast('No items placed in any tier', 'info', 1800); return; }
+  const text = lines.join('\n');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      toast('Rankings copied to clipboard!', 'success', 2200);
+    }).catch(() => _downloadText(text));
+  } else {
+    _downloadText(text);
+  }
+}
+function _downloadText(text) {
+  const a = document.createElement('a');
+  a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(text);
+  a.download = 'musetier-rankings.txt';
+  a.click();
+  toast('Downloaded rankings.txt', 'info', 2000);
 }
 
 
@@ -7883,26 +8236,27 @@ document.getElementById('scanFolderInput').addEventListener('change', async e=>{
 });
 
 const _SCAN_EASTER_EGGS = [
-  { t: 15,  msg: 'So, nice weather huh?' },
-  { t: 30,  msg: 'How long did it take to get your library this big?' },
-  { t: 45,  msg: 'Watched the game last night?' },
-  { t: 60,  msg: 'Any second now.' },
-  { t: 75,  msg: 'Aaaaany second now.' },
-  { t: 90,  msg: "You should go outside more when you're done with this." },
-  { t: 105, msg: 'Still here. Still scanning. No judgement.' },
-  { t: 120, msg: 'At this point your music library is a personality trait.' },
+  { pct: 10,  msg: 'So, nice weather huh?' },
+  { pct: 25,  msg: 'How long did it take to get your library this big?' },
+  { pct: 40,  msg: 'Watched the game last night?' },
+  { pct: 55,  msg: 'Aaaaany second now.' },
+  { pct: 70,  msg: "You should go outside more when you're done with this." },
+  { pct: 82,  msg: 'Still here. Still scanning. No judgement.' },
+  { pct: 93,  msg: 'At this point your music library is a personality trait.' },
 ];
-let _scanEggTimers = [];
-function _startScanEggs(statEl) {
-  _clearScanEggs();
-  _SCAN_EASTER_EGGS.forEach(({ t, msg }) => {
-    _scanEggTimers.push(setTimeout(() => { statEl.textContent = msg; }, t * 1000));
-  });
+let _scanEggFired = new Set();
+function _startScanEggs() { _scanEggFired = new Set(); }
+function _tickScanEggs(done, total, statEl) {
+  if (!total) return;
+  const pct = (done / total) * 100;
+  for (const egg of _SCAN_EASTER_EGGS) {
+    if (!_scanEggFired.has(egg.pct) && pct >= egg.pct) {
+      _scanEggFired.add(egg.pct);
+      statEl.textContent = egg.msg;
+    }
+  }
 }
-function _clearScanEggs() {
-  _scanEggTimers.forEach(id => clearTimeout(id));
-  _scanEggTimers = [];
-}
+function _clearScanEggs() { _scanEggFired = new Set(); }
 
 async function scanFiles(files) {
   const prog=document.getElementById('scan-prog-wrap'); prog.classList.add('on');
@@ -7911,11 +8265,12 @@ async function scanFiles(files) {
   const bar=document.getElementById('scan-bar'), stat=document.getElementById('scan-status-txt');
   const tempLib=new Map(); const total=files.length; let done=0;
 
-  _startScanEggs(stat);
+  _startScanEggs();
 
   for(const file of files) {
     if(done % 25 === 0) stat.textContent=`Scanning ${done+1}/${total}: ${file.name}`;
     bar.style.width=Math.round(done/total*100)+'%';
+    _tickScanEggs(done, total, stat);
     // Yield to browser every 100 files to keep UI responsive on large libraries
     if(done > 0 && done % 100 === 0) await new Promise(r => setTimeout(r, 0));
     try {
@@ -8598,7 +8953,14 @@ const fxCtx    = fxCanvas.getContext('2d');
 let   fxRaf    = null;
 let   fxActive = null;
 
-function fxResize() { fxCanvas.width = window.innerWidth; fxCanvas.height = window.innerHeight; }
+function fxResize() {
+  // Render at half device resolution — imperceptible at animation speeds,
+  // halves fill-rate cost. CSS width/height keep it fullscreen.
+  fxCanvas.width  = Math.ceil(window.innerWidth  / 2);
+  fxCanvas.height = Math.ceil(window.innerHeight / 2);
+  fxCanvas.style.width  = window.innerWidth  + 'px';
+  fxCanvas.style.height = window.innerHeight + 'px';
+}
 window.addEventListener('resize', fxResize, { passive: true });
 // Stale rect cache on resize (items reflow, stored rects would be wrong)
 window.addEventListener('resize', () => { if (typeof invalidateRectCache === 'function') invalidateRectCache(); }, { passive: true });
@@ -9162,7 +9524,13 @@ async function _urlToDataUrl(url) {
 
 // Strategy: CAA direct URL (1 redirect, no JSON lookup) races iTunes.
 // Whichever resolves first wins; the other is ignored.
+const _mbThumbInFlight = new Map(); // releaseId → Promise<url|null>
+
 async function mbFetchThumb(releaseId, artist, title) {
+  // Deduplicate concurrent fetches for the same release ID
+  const key = (releaseId || '') + '|' + (artist || '') + '|' + (title || '');
+  if (_mbThumbInFlight.has(key)) return _mbThumbInFlight.get(key);
+
   // CAA direct URL: skips the JSON metadata step entirely (was 2 requests, now 1)
   const caaUrl = `${CAA_API}/release/${releaseId}/front-250`;
 
@@ -9175,7 +9543,7 @@ async function mbFetchThumb(releaseId, artist, title) {
     : Promise.resolve(null);
 
   // Race: first non-null value wins
-  return new Promise(resolve => {
+  const p = new Promise(resolve => {
     let settled = false;
     let remaining = 2;
     const tryResolve = (val) => {
@@ -9186,13 +9554,21 @@ async function mbFetchThumb(releaseId, artist, title) {
     };
     caaPromise.then(tryResolve);
     itunesPromise.then(tryResolve);
-  });
+  }).finally(() => _mbThumbInFlight.delete(key));
+
+  _mbThumbInFlight.set(key, p);
+  return p;
 }
 
 // ── Full-resolution cover (selected album panel) ─────────
 // Same race strategy but at higher resolution and converted to data URL
 // so it persists to localStorage with the album.
+const _mbFullInFlight = new Map(); // key → Promise<dataUrl|null>
+
 async function mbFetchCoverFull(releaseId, artist, title) {
+  const key = (releaseId || '') + '|' + (artist || '') + '|' + (title || '');
+  if (_mbFullInFlight.has(key)) return _mbFullInFlight.get(key);
+
   // CAA direct URL at 500px
   const caaUrl = `${CAA_API}/release/${releaseId}/front-500`;
 
@@ -9207,7 +9583,7 @@ async function mbFetchCoverFull(releaseId, artist, title) {
         .catch(() => null)
     : Promise.resolve(null);
 
-  return new Promise(resolve => {
+  const p = new Promise(resolve => {
     let settled = false;
     let remaining = 2;
     const tryResolve = (val) => {
@@ -9218,7 +9594,10 @@ async function mbFetchCoverFull(releaseId, artist, title) {
     };
     caaPromise.then(tryResolve);
     itunesPromise.then(tryResolve);
-  });
+  }).finally(() => _mbFullInFlight.delete(key));
+
+  _mbFullInFlight.set(key, p);
+  return p;
 }
 
 async function mbSelectReleaseGroup(rg, rowEl) {
@@ -10192,6 +10571,7 @@ let _collabSendMsg        = null;   // Trystero send(data) broadcasts to all pee
 let _collabSendCursor     = null;   // Trystero send for cursor position
 let _collabPeers          = new Map(); // peerId -> { color, name }
 let collabConnected       = false;
+let _preCollabSnapshot    = null;   // tier state captured just before joining a room
 let collabRole            = null;   // 'host' | 'guest'
 let _suppressBroadcast    = false;  // echo-loop guard
 let _collabBroadcastTimer = null;
@@ -10215,11 +10595,15 @@ let   _cursorColorIdx = 0;
 // Throttle for cursor send (20fps)
 let _cursorSendTs = 0;
 document.addEventListener('mousemove', function(e) {
-  if (!collabConnected || !_collabSendCursor) return;
   const now = Date.now();
   if (now - _cursorSendTs < 50) return;
   _cursorSendTs = now;
-  try { _collabSendCursor({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight, n: _collabLocalName || _myWriterId.slice(0,4) }); } catch(_) {}
+  if (collabConnected && _collabSendCursor) {
+    try { _collabSendCursor({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight, n: _collabLocalName || _myWriterId.slice(0,4) }); } catch(_) {}
+  }
+  if (auxActive && _auxSendCursor) {
+    try { _auxSendCursor({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight, n: auxLocalName || auxRole || '?' }); } catch(_) {}
+  }
 });
 
 function _renderPeerCursor(peerId, data) {
@@ -10348,12 +10732,10 @@ function _stopHeartbeat() {
 
 // ── Called on any unexpected drop ────────────────────────────────
 function _collabHandleDrop(reason) {
-  _stopHeartbeat();
-  collabConnected = false;
-  collabRole = null;
-  _collabSendMsg = null; _collabSendCursor = null;
-  _collabPeers.clear();
-  _removeAllPeerCursors();
+  // Update UI first, then call _collabTeardown which handles snapshot restore +
+  // full state cleanup. collabDisconnect() nulls _preCollabSnapshot before calling
+  // teardown, so manual disconnects skip the revert — this path (unexpected drops)
+  // does NOT null it, so the snapshot restore fires correctly.
   collabSetStatus('error', reason || 'PEER DISCONNECTED');
   toast('Collab: ' + (reason || 'peer disconnected'), 'error', 4000);
   document.getElementById('collab-connected-panel').style.display = 'none';
@@ -10364,10 +10746,16 @@ function _collabHandleDrop(reason) {
   if (peerList) peerList.innerHTML = '';
   const joinErrEl = document.getElementById('collab-join-err');
   if (joinErrEl) { joinErrEl.style.display = 'none'; }
+  _collabTeardown(); // restores _preCollabSnapshot if set, cleans up all state
 }
 
 // ── Tear down everything cleanly ─────────────────────────────────
 function _collabTeardown() {
+  // Restore pre-collab tier state on unexpected disconnect (peer left / connection lost)
+  if (_preCollabSnapshot && _collabRoom) {
+    try { applyTierState(_preCollabSnapshot); } catch(e) { console.warn('[collab] snapshot restore failed:', e); }
+    _preCollabSnapshot = null;
+  }
   _stopHeartbeat();
   _chatTeardown();
   clearTimeout(_collabBroadcastTimer);
@@ -10384,27 +10772,49 @@ function _collabTeardown() {
 let _iceCache = null;
 async function _getIceServers() {
   if (_iceCache) return _iceCache;
+
+  // Fallback with real TURN for cross-network NAT traversal (used if worker/Xirsys fails)
+  const _iceFallback = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'turn:openrelay.metered.ca:80',              username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443',             username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+  ];
+
   try {
-    const r = await fetch('https://global.xirsys.net/_turn/Mindtier', {
-      method: 'PUT',
-      headers: {
-        'Authorization': 'Basic ' + btoa('Freddytime4:a2e36848-1999-11f1-a727-0242ac130003'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ format: 'urls' }),
-    });
-    if (!r.ok) throw new Error('Xirsys ' + r.status);
+    // Route through Cloudflare worker — avoids Xirsys CORS restriction on direct browser calls
+    const r = await fetch(IGDB_WORKER + '/ice', { method: 'GET' });
+    if (!r.ok) throw new Error('ICE proxy HTTP ' + r.status);
     const data = await r.json();
-    // Xirsys returns either {v:{iceServers:[...]}} or {v:[...]} depending on account config
-    const raw = (data.v && data.v.iceServers) ? data.v.iceServers : data.v;
-    if (!Array.isArray(raw) || !raw.length) throw new Error('Xirsys returned no ICE servers');
+
+    // Log raw response so you can see exactly what Xirsys/worker is returning
+    console.debug('[ice] worker raw response:', JSON.stringify(data));
+
+    // Xirsys wraps servers in data.v.iceServers (v2 API) or data.v (v1 / direct array).
+    // If neither is a populated array, the Xirsys account may have expired or
+    // the worker is returning an error shape like { v: "error", s: "error" }.
+    let raw = null;
+    if (data && data.v && Array.isArray(data.v.iceServers) && data.v.iceServers.length)
+      raw = data.v.iceServers;                                                   // old array format
+    else if (data && data.v && data.v.iceServers && typeof data.v.iceServers === 'object' && data.v.iceServers.urls)
+      raw = [data.v.iceServers];                                                 // current Xirsys format — single object with urls/username/credential
+    else if (data && Array.isArray(data.v) && data.v.length)
+      raw = data.v;
+    else if (data && Array.isArray(data.iceServers) && data.iceServers.length)
+      raw = data.iceServers; // some worker wrappers strip the outer envelope
+
+    if (!raw) {
+      const shape = data ? JSON.stringify(data).slice(0, 120) : 'null';
+      throw new Error('ICE proxy returned no servers — worker response: ' + shape);
+    }
+
     _iceCache = raw;
-    // Cache busts after 4 hours (credentials typically valid for 24h)
     setTimeout(() => { _iceCache = null; }, 4 * 60 * 60 * 1000);
+    console.debug('[ice] using Xirsys servers (' + raw.length + ')');
     return _iceCache;
   } catch(e) {
-    console.warn('[ice] Xirsys fetch failed, using fallback STUN:', e);
-    return [{ urls: 'stun:stun.l.google.com:19302' }];
+    console.warn('[ice] ICE fetch failed, using TURN fallback:', e);
+    return _iceFallback;
   }
 }
 
@@ -10417,9 +10827,11 @@ async function collabCreate() {
   collabSetStatus('waiting', 'CREATING ROOM…');
   document.getElementById('collab-host-btn').disabled = true;
 
-  _collabTeardown();
+  _collabTeardown(); // leave any existing room first; if _preCollabSnapshot was set
+                     // from a prior session it gets restored here and then nulled
+  _preCollabSnapshot = _snapshotTiers('full'); // capture current state for new session
   const _iceServers = await _getIceServers();
-  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1',     relayUrls: ['wss://broker.emqx.io:8084/mqtt'], rtcConfig: { iceServers: _iceServers } }, code);
+  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1',     relayUrls: ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'], rtcConfig: { iceServers: _iceServers } }, code);
   var msgActions    = _collabRoom.makeAction('msg');
   _collabSendMsg    = msgActions[0];
   var receiveMsg    = msgActions[1];
@@ -10505,9 +10917,10 @@ async function collabJoin() {
   collabRole = 'guest';
   collabSetStatus('waiting', 'JOINING…');
 
-  _collabTeardown();
+  _collabTeardown(); // leave any existing room first; prior snapshot restored+nulled here
+  _preCollabSnapshot = _snapshotTiers('full'); // capture current state for this session
   const _iceServers = await _getIceServers();
-  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1',     relayUrls: ['wss://broker.emqx.io:8084/mqtt'], rtcConfig: { iceServers: _iceServers } }, code);
+  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1',     relayUrls: ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'], rtcConfig: { iceServers: _iceServers } }, code);
   var msgActions    = _collabRoom.makeAction('msg');
   _collabSendMsg    = msgActions[0];
   var receiveMsg    = msgActions[1];
@@ -10790,7 +11203,8 @@ function chatSend() {
   var msg = inp.value.trim();
   if (!msg) return;
   inp.value = '';
-  var name = _collabLocalName || _myWriterId.slice(0,4);
+  // Use aux name if in battle mode, collab name if in collab mode, fallback to writer ID
+  var name = (auxActive && auxLocalName) ? auxLocalName : (_collabLocalName || _myWriterId.slice(0,4));
   _chatAddMsg(name, msg, true);
   if (_chatSendFn) {
     try { _chatSendFn({ msg: msg, name: name }); } catch(err) { console.warn('[chat] send failed:', err); }
@@ -10915,6 +11329,7 @@ function _collabUpdateTopbarCode(code) {
 
 function collabDisconnect() {
   const was = collabConnected;
+  _preCollabSnapshot = null; // manual disconnect — keep current state, don't revert
   _collabTeardown();
   collabSetStatus('idle', 'NOT CONNECTED');
   document.getElementById('collab-connected-panel').style.display = 'none';
@@ -11095,7 +11510,7 @@ function _snapshotTiers(mode) {
 
 // Legacy aliases kept so any external calls still work
 function getTierState()          { return _snapshotTiers('full'); }
-function _tierStateForBroadcast(){ return _snapshotTiers('full'); }
+function _tierStateForBroadcast(){ return _snapshotTiers('broadcast'); }
 
 function _srcByAlt(alt) {
   if (!alt) return '';
@@ -11424,7 +11839,16 @@ function _propagateWinner(r, m, si) {
 }
 
 function saveBracket() {
-  try { localStorage.setItem(BRACKET_SK, JSON.stringify({ size: bracketSize, rounds: bracketRounds, pan: bracketPan, scale: bracketScale, seed: _bracketSeed })); } catch(_) {}
+  try {
+    // Strip blob: URLs before persisting — they are session-local and broken on reload.
+    // data: URLs (user-uploaded covers stored as base64) are kept.
+    const safeRounds = bracketRounds.map(round => round.map(match => Object.assign({}, match, {
+      slots: (match.slots || []).map(s => Object.assign({}, s, {
+        src: (s.src && !s.src.startsWith('blob:')) ? s.src : null
+      }))
+    })));
+    localStorage.setItem(BRACKET_SK, JSON.stringify({ size: bracketSize, rounds: safeRounds, pan: bracketPan, scale: bracketScale, seed: _bracketSeed }));
+  } catch(_) {}
   // Don't broadcast — pan/scale are local view state; use saveBracketData() for real changes
 }
 // Broadcast bracket state to collab peer (only call when rounds/size actually changed)
@@ -11566,9 +11990,17 @@ function renderBracket() {
         const nm = document.createElement('div');
         nm.className = 'bm-slot-name';
         nm.style.cssText = 'text-align:center;font-size:14px;white-space:normal;letter-spacing:1px;font-weight:bold;';
-        nm.textContent = slot.name || 'CHAMPION';
+        // In aux battle: show contestant name, not song name
+        let champDisplayName = slot.name || 'CHAMPION';
+        if (auxActive && slot.name) {
+          const aNamesSet2 = new Set();
+          bracketRounds[0].forEach(function(mt2) { if (mt2.slots[0].name) aNamesSet2.add(mt2.slots[0].name); });
+          const champSide2 = aNamesSet2.has(slot.name) ? 'a' : 'b';
+          champDisplayName = auxNames[champSide2] || slot.name;
+        }
+        nm.textContent = champDisplayName;
         s.append(crown, nm);
-        s.addEventListener('click', () => openSlotEditor(r, m, 0));
+        if (!auxActive) s.addEventListener('click', () => openSlotEditor(r, m, 0));
         node.appendChild(s);
       } else {
         match.slots.forEach((slot, si) => {
@@ -11580,6 +12012,7 @@ function renderBracket() {
           s.dataset.r = r; s.dataset.m = m; s.dataset.si = si;
           if (isRight) s.dataset.right = '1';
           if (auxSlotHidden(si)) s.classList.add('aux-hidden');
+          if (auxActive && auxRole !== 'judge' && r > 0 && !auxSlotHidden(si)) s.classList.add('aux-locked');
 
           const seedEl = document.createElement('div');
           seedEl.className = 'bm-seed';
@@ -11618,6 +12051,7 @@ function renderBracket() {
             // Aux battle: contestants cannot touch opponent's slots or pick winners
             if (auxActive && auxRole !== 'judge') {
               if (auxSlotHidden(si)) return; // not your slot
+              if (r > 0) return; // only round 0 is for picking — later rounds are winner-determined
               const match_ = bracketRounds[r][m];
               const other  = match_.slots[1 - si];
               // Contestants can fill their own empty slots only
@@ -11640,8 +12074,8 @@ function renderBracket() {
             s.classList.remove('bm-slot-drop-target');
             e.preventDefault();
             if (isBye) return;
-            // Aux battle: contestants can only fill their own slots
-            if (auxActive && auxRole !== 'judge' && auxSlotHidden(si)) return;
+            // Aux battle: contestants can only fill their own round-0 slots
+            if (auxActive && auxRole !== 'judge' && (auxSlotHidden(si) || r > 0)) return;
             // Track drag from sidebar library
             const _trak = e.dataTransfer.getData('track-artist-key');
             const _tAlK = e.dataTransfer.getData('track-album-key');
@@ -11683,6 +12117,7 @@ function renderBracket() {
 
         node.addEventListener('contextmenu', e => {
           e.preventDefault();
+          if (auxActive) return; // no context menu during battle
           showBracketCtx(e, r, m);
         });
       }
@@ -12137,11 +12572,84 @@ function fillBracketFromPool() {
   toast(`${idx} entrant${idx !== 1 ? 's' : ''} seeded ✓`, 'success');
 }
 
+// Seed bracket from tier rows in tier-rank order (top tier = top seeds).
+// Items in each tier are seeded consecutively; untiered pool items fill remaining slots.
+function fillBracketFromTiers() {
+  const items = [];
+  const seen = new Set();
+  // Walk tier rows top→bottom
+  [...document.getElementById('tiers').querySelectorAll('.tier-row')].forEach(row => {
+    [...row.querySelectorAll('.item')].forEach(item => {
+      if (!seen.has(item)) { seen.add(item); items.push(item); }
+    });
+  });
+  // Append any remaining pool items (unranked) at the end
+  catStore.forEach(entries => entries.forEach(({ item }) => {
+    if (!seen.has(item) && !item.closest('.tier-zone')) { seen.add(item); items.push(item); }
+  }));
+  document.getElementById('pool').querySelectorAll('.item').forEach(item => {
+    if (!seen.has(item) && !item.closest('.tier-zone')) { seen.add(item); items.push(item); }
+  });
+
+  if (!items.length) { toast('No items to seed from', 'error'); return; }
+  let idx = 0;
+  bracketRounds[0].forEach(match => {
+    match.slots.forEach((slot, si) => {
+      if (idx >= items.length) return;
+      const img = items[idx].querySelector('img');
+      if (img) {
+        const src = items[idx].dataset.dataUrl || (img.src.startsWith('data:') ? img.src : img.src) || '';
+        bracketRounds[0][bracketRounds[0].indexOf(match)].slots[si] = {
+          name: img.alt || `Entrant ${idx + 1}`, src, seed: slot.seed
+        };
+        idx++;
+      }
+    });
+  });
+  saveBracketData(); renderBracket();
+  toast(`${idx} entrant${idx !== 1 ? 's' : ''} seeded from tier rows ✓`, 'success');
+}
+
+// Export bracket DOM as a PNG image via html2canvas.
+function exportBracketImage() {
+  const wrap = document.getElementById('bracket-canvas-wrap');
+  if (!wrap) { toast('Bracket canvas not found', 'error'); return; }
+  toast('Rendering bracket image…', 'info', 2500);
+  // Temporarily reset transform so html2canvas captures full content
+  const origTransform = wrap.style.transform;
+  wrap.style.transform = 'none';
+  const _loadH2C = () => {
+    if (typeof html2canvas !== 'undefined') return Promise.resolve();
+    return new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  };
+  import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js')
+    .catch(() => null)
+    .then(_loadH2C)
+    .then(() => html2canvas(wrap, { useCORS: true, allowTaint: true, backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#080808', scale: 1 }))
+    .then(c => {
+      const a = document.createElement('a');
+      const name = (document.getElementById('bracket-name-input')?.value || 'bracket').replace(/[^a-z0-9_\-]/gi, '_');
+      a.download = `musetier-${name}.png`;
+      a.href = c.toDataURL('image/png');
+      a.click();
+      toast('Bracket saved as image ✓', 'success', 2000);
+    })
+    .catch(() => toast('Export failed — try a different browser', 'error', 3000))
+    .finally(() => { wrap.style.transform = origTransform; });
+}
+
 function clearBracketSlot() {
+  if (auxActive) { toast('Cannot modify bracket during a battle session', 'error', 2500); return; }
   toast('Right-click any match node to clear it', 'info', 2000);
 }
 
 function resetBracket() {
+  if (auxActive) { toast('Cannot reset bracket during a battle session', 'error', 2500); return; }
   if (!confirm('Reset entire bracket?')) return;
   _mysterySkipReshuffle = false; // re-enable shuffle prompts for new tournament
   document.getElementById('mystery-no-ask-again').checked = false;
@@ -12516,6 +13024,13 @@ function showMatchup({ r, m }) {
   document.getElementById('matchup-round-lbl').textContent =
     roundName(r, rounds - 1) + ' · MATCH ' + (m + 1);
 
+  // Always clear stale winner/loser state before populating new content
+  const sideA = document.getElementById('matchup-a');
+  const sideB = document.getElementById('matchup-b');
+  if (sideA) sideA.classList.remove('picked', 'lost');
+  if (sideB) sideB.classList.remove('picked', 'lost');
+  document.getElementById('matchup-round-lbl').classList.remove('fading');
+
   function setSide(prefix, slot) {
     const ph  = document.getElementById(`matchup-${prefix}-ph`);
     const img = document.getElementById(`matchup-${prefix}-img`);
@@ -12579,9 +13094,6 @@ function matchupPick(si) {
 
   if (nextMatchup && !(auxActive && auxRole === 'judge')) {
     // Normal (non-aux-judge) flow: smooth exit → enter transition.
-    // In aux mode the judge manually triggers each matchup via auxJudgeReveal,
-    // so we must NOT auto-advance here — just let matchupClose happen via the
-    // aux_winner path instead.
     setTimeout(() => {
       const ov = document.getElementById('matchup-overlay');
       ov.classList.add('exiting');
@@ -12601,9 +13113,14 @@ function matchupPick(si) {
       }, 260);
     }, 480);
   } else {
-    // All done — close matchup, then pan+zoom to champion and play entrance
+    // All done OR aux judge (who manually advances) — close matchup
     setTimeout(() => {
       matchupClose();
+      // In aux judge mode: auto-advance to next available match instead of champion reveal
+      if (auxActive && auxRole === 'judge') {
+        _auxAutoAdvanceJudge();
+        return;
+      }
       const champRound = bracketRounds[bracketRounds.length - 1];
       if (champRound[0]?.slots[0]?.name) {
         const champName = champRound[0].slots[0].name;
@@ -12611,21 +13128,7 @@ function matchupPick(si) {
         _panAndRevealChampion();
         setTimeout(() => {
           toast(`🏆 CHAMPION: ${champName}`, 'success', 4000);
-          if (auxActive) {
-            if (auxWinMode === 'bracket' || auxWinMode === 'fusion') {
-              const aNames = bracketRounds[0].map(m => m.slots[0].name).filter(Boolean);
-              const champSide = aNames.includes(champName) ? 'a' : 'b';
-              if (auxWinMode === 'fusion') {
-                setTimeout(() => toast(`⚡ FUSION FINAL — ${auxNames.a}: ${auxScores.a}pts · ${auxNames.b}: ${auxScores.b}pts`, 'success', 5500), 900);
-              } else {
-                setTimeout(() => toast(`🏆 BRACKET WINNER: ${auxNames[champSide]} (${champName})`, 'success', 5000), 900);
-              }
-            } else {
-              const scoreWinner = auxScores.a >= auxScores.b ? auxNames.a : auxNames.b;
-              setTimeout(() => toast(`🥇 SCORE WINNER: ${scoreWinner}  (${auxNames.a} ${auxScores.a}pts · ${auxNames.b} ${auxScores.b}pts)`, 'success', 5500), 900);
-            }
-          }
-        }, 1800); // after pan+suspense settle
+        }, 1800);
       } else {
         toast('Round complete! Fill in next round entrants.', 'info', 2400);
       }
@@ -12655,6 +13158,7 @@ document.addEventListener('keydown', e => {
 
 
 function openBattleModePicker() {
+  if (auxActive) { toast('A battle session is already in progress', 'error', 2500); return; }
   _tbCloseAll();
   // Reset to root step
   ['root','regular','multi','ruleset'].forEach(s => {
@@ -13013,6 +13517,11 @@ let auxScores      = { a:0, b:0 };
 let auxWinMode     = 'score'; // 'score' | 'bracket' | 'fusion'
 let auxVotes       = {};
 let auxVotedFor    = null;
+let _auxReadyA     = false;   // contestant A signalled ready
+let _auxReadyB     = false;   // contestant B signalled ready
+let _auxPickTimer  = null;    // setInterval countdown
+let _auxPickSecs   = 0;       // seconds remaining
+let _auxPhase      = 'idle';  // 'idle' | 'picking' | 'battle'
 
 let _auxRoom        = null;    // Trystero room
 let _auxSendFn      = null;    // Trystero send action function
@@ -13024,6 +13533,8 @@ let _auxConnB       = null;
 let _auxConnJudge   = null;
 let _auxRoomCode    = '';
 let _auxActivating  = false;
+let _auxIdentified  = false;  // guard: only send __aux_identify once per session join
+let _auxSendCursor  = null;   // cursor send action for aux battle
 const _auxMyUid     = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).slice(2, 10);
 let _auxJudgeIdleTimer = null;
 
@@ -13108,7 +13619,7 @@ async function auxJudgeCreate() {
 
   if (_auxRoom) { try { _auxRoom.leave(); } catch(_) {} }
   const _iceServers = await _getIceServers();
-  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', relayUrls: ['wss://broker.emqx.io:8084/mqtt'], rtcConfig: { iceServers: _iceServers } }, code);
+  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', relayUrls: ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'], rtcConfig: { iceServers: _iceServers } }, code);
   var auxActions = _auxRoom.makeAction('aux');
   _auxSendFn = auxActions[0];
   var receiveAux = auxActions[1];
@@ -13145,7 +13656,9 @@ async function auxJudgeCreate() {
       }
       if (_auxPeerIdA && _auxPeerIdB && !auxActive) {
         clearTimeout(_auxActivateTimer);
-        _auxActivateTimer = setTimeout(_auxActivate, 300);
+        var startBtn = document.getElementById('aux-start-btn');
+        if (startBtn) { startBtn.disabled = false; startBtn.textContent = '▶ START BATTLE'; startBtn.style.background = 'var(--accent)'; startBtn.style.color = '#000'; startBtn.style.opacity = '1'; startBtn.style.cursor = 'pointer'; }
+        toast('Both contestants connected — ready to start!', 'success', 3000);
       }
       return;
     }
@@ -13162,6 +13675,12 @@ async function auxJudgeCreate() {
     } else {
       // Send judge meta so contestant knows win mode + judge name
       try { _auxSendFn({ __aux_meta: true, judgeName: auxNames.judge, winMode: auxWinMode, uid: _auxMyUid }, peerId); } catch(_) {}
+      // Ask them to (re-)send their identity — catches cases where identify was sent before channel was open
+      setTimeout(function() {
+        if (!auxActive) {
+          try { _auxSendFn({ __aux_req_identify: true }, peerId); } catch(_) {}
+        }
+      }, 800);
     }
   });
 
@@ -13208,10 +13727,11 @@ async function auxContestantJoin() {
   auxRole       = selectedCard;
   auxNames[auxRole] = name;
   _auxRoomCode  = code;
+  _auxIdentified = false; // reset so every fresh join attempt re-sends identify
 
   if (_auxRoom) { try { _auxRoom.leave(); } catch(_) {} }
   const _iceServers = await _getIceServers();
-  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', relayUrls: ['wss://broker.emqx.io:8084/mqtt'], rtcConfig: { iceServers: _iceServers } }, code);
+  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', relayUrls: ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'], rtcConfig: { iceServers: _iceServers } }, code);
   var auxActions = _auxRoom.makeAction('aux');
   _auxSendFn = auxActions[0];
   var receiveAux = auxActions[1];
@@ -13234,26 +13754,51 @@ async function auxContestantJoin() {
       if (!_auxPeerIdJudge) _auxPeerIdJudge = peerId;
       return;
     }
+    if (msg.__aux_req_identify) {
+      // Judge is requesting we re-send our identity (handles dropped identifies)
+      if (auxRole && auxLocalName && !auxActive) {
+        try { _auxSendFn({ __aux_identify: true, role: auxRole, name: auxLocalName, uid: _auxMyUid }); } catch(_) {}
+      }
+      return;
+    }
+    if (msg.__aux_identify || msg.__aux_rejected) return; // not meant for contestants to process
     try { _auxOnMsg(msg, msg._from || 'unknown'); } catch(err) { console.warn('[aux] msg error:', err); }
   });
 
   _auxRoom.onPeerJoin(function(peerId) {
     if (!_auxPeerIdJudge) _auxPeerIdJudge = peerId;
-    // Identify ourselves to the room (judge + other contestant will receive)
-    try { _auxSendFn({ __aux_identify: true, role: auxRole, name: auxLocalName, uid: _auxMyUid }); } catch(_) {}
-    const statusEl = document.getElementById('aux-join-status');
-    if (statusEl) { statusEl.textContent = '⌛ CONNECTED — waiting for judge to start…'; statusEl.style.display = ''; }
-    if (joinBtn) { joinBtn.disabled = false; joinBtn.textContent = '→ JOIN'; }
-    // Show leave button as soon as we're in the room
-    var endBtn = document.getElementById('aux-end-btn');
-    if (endBtn) { endBtn.style.display = ''; endBtn.textContent = '✕ LEAVE SESSION'; }
-    toast('Joined room ' + code + ' as Contestant ' + auxRole.toUpperCase(), 'success', 2500);
+    // Trystero fires onPeerJoin once per existing peer in the room.
+    // In a 3-peer mesh this fires twice for a late joiner — only identify once.
+    if (!_auxIdentified) {
+      _auxIdentified = true;
+      try { _auxSendFn({ __aux_identify: true, role: auxRole, name: auxLocalName, uid: _auxMyUid }); } catch(_) {}
+      // Retry after 1.5s in case first broadcast was dropped during ICE negotiation
+      setTimeout(function() {
+        if (auxActive) return; // already activated, no need
+        try { _auxSendFn({ __aux_identify: true, role: auxRole, name: auxLocalName, uid: _auxMyUid }); } catch(_) {}
+      }, 1500);
+      const statusEl = document.getElementById('aux-join-status');
+      if (statusEl) { statusEl.textContent = '⌛ CONNECTED — waiting for judge to start…'; statusEl.style.display = ''; }
+      if (joinBtn) { joinBtn.disabled = false; joinBtn.textContent = '→ JOIN'; }
+      var endBtn = document.getElementById('aux-end-btn');
+      if (endBtn) { endBtn.style.display = ''; endBtn.textContent = '✕ LEAVE SESSION'; }
+      toast('Joined room ' + code + ' as Contestant ' + auxRole.toUpperCase(), 'success', 2500);
+    }
   });
 
-  _auxRoom.onPeerLeave(function() {
-    if (auxActive) {
-      toast('Disconnected from session', 'error', 3000);
-      _auxCleanup();
+  _auxRoom.onPeerLeave(function(peerId) {
+    // In a 3-peer mesh, A↔B direct channel can drop without losing the session.
+    // Only treat it as a real disconnect if we lose the judge specifically.
+    const lostJudge = (_auxPeerIdJudge && peerId === _auxPeerIdJudge);
+    if (lostJudge || auxActive) {
+      if (lostJudge && auxActive) {
+        toast('Judge disconnected from session', 'error', 4000);
+        _auxCleanup();
+      } else if (lostJudge && !auxActive) {
+        toast('Lost connection to room', 'error', 3000);
+        _auxCleanup();
+      }
+      // If it's the other contestant dropping (not judge), ignore silently pre-battle
     }
   });
 }
@@ -13282,7 +13827,9 @@ function _auxOnMsg(msg, from) {
       auxScores  = { a: Number(msg.scores.a)||0, b: Number(msg.scores.b)||0 };
       auxWinMode = msg.winMode || 'score';
       auxActive  = true;
+      _auxPhase  = 'picking';
       _auxActivateUI();
+      if (msg.secsTotal) _auxStartPickTimer(msg.secsTotal);
       break;
 
     case 'aux_slot':
@@ -13303,6 +13850,8 @@ function _auxOnMsg(msg, from) {
       if (msg.winMode) { auxWinMode = msg.winMode; _auxUpdateWinModeChip(); }
       _suppressBroadcast = true;
       try { saveBracket(); } finally { _suppressBroadcast = false; }
+      // If we missed aux_activate (race on channel open), activate now
+      if (!auxActive) { auxActive = true; _auxActivateUI(); }
       if (activeTab === 'bracket') renderBracket();
       _auxUpdateUI();
       break;
@@ -13347,6 +13896,8 @@ function _auxOnMsg(msg, from) {
       if (typeof msg.a !== 'number' || typeof msg.b !== 'number') break;
       auxScores = { a: msg.a, b: msg.b };
       _auxUpdateUI();
+      // Show score float on contestant side too
+      if (typeof msg.si === 'number' && typeof msg.pts === 'number') _auxShowScoreFloat(msg.si, msg.pts);
       break;
 
     case 'aux_vote_open':
@@ -13388,6 +13939,31 @@ function _auxOnMsg(msg, from) {
       toast((msg.name || 'A peer') + ' disconnected from the session', 'error', 4000);
       break;
 
+    case 'aux_ready':
+      if (msg.role === 'a' || msg.role === 'b') _auxOnReady(msg.role);
+      break;
+
+    case 'aux_battle_begin':
+      _auxOnBattleBegin();
+      break;
+
+    case 'aux_end_results': {
+      if (!msg.champSide || !msg.scores) break;
+      const cName = auxNames[msg.champSide] || msg.champSide;
+      if (msg.winMode === 'bracket') {
+        toast('🏆 BRACKET WINNER: ' + cName + (msg.champSong ? ' — ' + msg.champSong : ''), 'success', 6000);
+      } else if (msg.winMode === 'fusion') {
+        toast('🏆 CHAMPION: ' + cName + (msg.champSong ? ' — ' + msg.champSong : ''), 'success', 5000);
+        setTimeout(function() { toast('⚡ FUSION — ' + auxNames.a + ': ' + msg.scores.a + 'pts · ' + auxNames.b + ': ' + msg.scores.b + 'pts', 'success', 5500); }, 900);
+      } else {
+        const sw = msg.scores.a >= msg.scores.b ? auxNames.a : auxNames.b;
+        toast('🏆 CHAMPION: ' + cName + (msg.champSong ? ' — ' + msg.champSong : ''), 'success', 5000);
+        setTimeout(function() { toast('🥇 SCORE WINNER: ' + sw + ' (' + auxNames.a + ' ' + msg.scores.a + 'pts · ' + auxNames.b + ' ' + msg.scores.b + 'pts)', 'success', 5500); }, 900);
+      }
+      if (activeTab === 'bracket') renderBracket();
+      break;
+    }
+
     case 'aux_end':
       toast('Battle session ended by judge', 'info', 2500);
       _auxCleanup();
@@ -13403,17 +13979,29 @@ function _auxActivate() {
   if (auxActive || _auxActivating) return;
   _auxActivating = true;
   auxActive = true;
-  _auxPushEvent({ type:'aux_activate', names: auxNames, scores: auxScores, winMode: auxWinMode });
+  _auxPhase = 'picking';
+  _auxReadyA = false; _auxReadyB = false;
+  const secsTotal = _auxPickSecsForSize(bracketSize || 8);
+  _auxPushEvent({ type:'aux_activate', names: auxNames, scores: auxScores, winMode: auxWinMode, secsTotal: secsTotal });
   _auxPushEvent({ type:'aux_full_state', rounds: _bracketRoundsForBroadcast(), size: bracketSize, scores: auxScores, winMode: auxWinMode });
   _auxActivateUI();
-  toast('🎵 Battle started!', 'success', 2800);
+  _auxStartPickTimer(secsTotal);
+  toast('🎵 Battle session started — contestants pick their songs!', 'success', 3500);
   closeOverlay('auxOvr');
   if (activeTab !== 'bracket') switchTab('bracket');
+  // Safety re-broadcast
+  setTimeout(function() {
+    if (auxActive && auxRole === 'judge') {
+      _auxPushEvent({ type:'aux_activate', names: auxNames, scores: auxScores, winMode: auxWinMode, secsTotal: secsTotal });
+      _auxPushEvent({ type:'aux_full_state', rounds: _bracketRoundsForBroadcast(), size: bracketSize, scores: auxScores, winMode: auxWinMode });
+    }
+  }, 2000);
 }
 
 function _auxActivateUI() {
   auxActive = true;
-  _auxActivating = false; // BUG FIX: clear the guard so future re-activation after cleanup works
+  _auxActivating = false;
+  closeOverlay('auxOvr');
   document.getElementById('aux-bar').classList.add('vis');
   const pill = document.getElementById('aux-role-pill');
   pill.classList.add('vis', 'role-' + auxRole);
@@ -13424,6 +14012,35 @@ function _auxActivateUI() {
   if (waitLbl) waitLbl.style.display = 'none';
   _auxUpdateWinModeChip();
   _auxUpdateUI();
+  // Show pick-phase bar
+  var pickBar = document.getElementById('aux-pick-bar');
+  if (pickBar) {
+    pickBar.style.display = 'flex';
+    var readyBtn = document.getElementById('aux-ready-btn');
+    var battleStartBtn = document.getElementById('aux-battle-start-btn');
+    if (auxRole === 'judge') {
+      if (readyBtn) readyBtn.style.display = 'none';
+      if (battleStartBtn) { battleStartBtn.style.display = ''; battleStartBtn.disabled = true; }
+    } else {
+      if (readyBtn) readyBtn.style.display = '';
+      if (battleStartBtn) battleStartBtn.style.display = 'none';
+    }
+    _auxUpdateReadyUI();
+    _auxRenderTimerUI();
+    // Show leave button for contestants in the bar, not judge
+    var leaveBtn = document.getElementById('aux-bar-leave-btn');
+    if (leaveBtn) leaveBtn.style.display = (auxRole !== 'judge') ? '' : 'none';
+  }
+  // Init chat for aux battle (reuse collab chat UI)
+  if (_auxRoom && typeof _auxRoom.makeAction === 'function' && !_chatSendFn) {
+    _chatInit(_auxRoom);
+  }
+  // Init cursor if not already done
+  if (_auxRoom && typeof _auxRoom.makeAction === 'function' && !_auxSendCursor) {
+    var _auxCursorActions = _auxRoom.makeAction('cursor');
+    _auxSendCursor = _auxCursorActions[0];
+    _auxCursorActions[1](function(data, peerId) { _renderPeerCursor(peerId, data); });
+  }
   if (activeTab !== 'bracket') switchTab('bracket');
   if (activeTab === 'bracket') renderBracket();
 }
@@ -13439,10 +14056,118 @@ function _auxUpdateUI() {
   document.getElementById('aux-pts-a').textContent   = auxScores.a;
   document.getElementById('aux-pts-b').textContent   = auxScores.b;
   document.getElementById('aux-judge-display').textContent = auxNames.judge;
+  var lblA = document.getElementById('aux-ready-lbl-a');
+  var lblB = document.getElementById('aux-ready-lbl-b');
+  if (lblA) lblA.textContent = auxNames.a || 'A';
+  if (lblB) lblB.textContent = auxNames.b || 'B';
 }
 
 // ── Slot visibility ────────────────────────────────────
 // si=0 belongs to Contestant A, si=1 to Contestant B
+// ── Pick-phase helpers ────────────────────────────────
+function _auxPickSecsForSize(sz) {
+  if (sz <= 8)  return 3 * 60;
+  if (sz <= 16) return 5 * 60;
+  if (sz <= 32) return 8 * 60;
+  return 10 * 60;
+}
+
+function _auxStartPickTimer(secsTotal) {
+  _auxPickSecs = secsTotal;
+  _auxStopPickTimer();
+  _auxRenderTimerUI();
+  _auxPickTimer = setInterval(function() {
+    _auxPickSecs--;
+    _auxRenderTimerUI();
+    if (_auxPickSecs <= 0) {
+      _auxStopPickTimer();
+      if (auxRole === 'judge') {
+        toast('⏰ Pick time expired — starting battle!', 'info', 3000);
+        _auxStartBattle();
+      } else {
+        toast('⏰ Time\'s up! Judge is starting the battle.', 'info', 3000);
+      }
+    }
+  }, 1000);
+}
+
+function _auxStopPickTimer() {
+  if (_auxPickTimer) { clearInterval(_auxPickTimer); _auxPickTimer = null; }
+}
+
+function _auxRenderTimerUI() {
+  var el = document.getElementById('aux-pick-timer');
+  if (!el) return;
+  if (_auxPhase !== 'picking' || _auxPickSecs <= 0) { el.style.display = 'none'; return; }
+  var m = Math.floor(_auxPickSecs / 60), s = _auxPickSecs % 60;
+  el.textContent = m + ':' + String(s).padStart(2,'0');
+  el.style.display = '';
+  el.style.color = _auxPickSecs <= 30 ? '#f44' : _auxPickSecs <= 60 ? '#f80' : '#d4ff00';
+}
+
+function auxContestantReady() {
+  if (!auxActive || auxRole === 'judge' || _auxPhase !== 'picking') return;
+  var btn = document.getElementById('aux-ready-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '✓ READY'; btn.style.borderColor = '#0f9'; btn.style.color = '#0f9'; }
+  _auxPushEvent({ type: 'aux_ready', role: auxRole });
+  toast('Marked as ready! Waiting for judge…', 'success', 2000);
+}
+
+function _auxOnReady(role) {
+  if (role === 'a') { _auxReadyA = true; }
+  if (role === 'b') { _auxReadyB = true; }
+  _auxUpdateReadyUI();
+  if (auxRole === 'judge') {
+    toast((role === 'a' ? auxNames.a : auxNames.b) + ' is ready!', 'success', 2000);
+    if (_auxReadyA && _auxReadyB) {
+      var startBtn = document.getElementById('aux-battle-start-btn');
+      if (startBtn) { startBtn.disabled = false; startBtn.textContent = '▶ START BATTLE'; startBtn.style.background = '#d4ff00'; startBtn.style.color = '#000'; }
+      toast('Both contestants ready — you can start the battle!', 'success', 3000);
+    }
+  }
+}
+
+function _auxUpdateReadyUI() {
+  var dotA = document.getElementById('aux-ready-dot-a');
+  var dotB = document.getElementById('aux-ready-dot-b');
+  if (dotA) dotA.style.background = _auxReadyA ? '#0f9' : '#444';
+  if (dotB) dotB.style.background = _auxReadyB ? '#0f9' : '#444';
+}
+
+function _auxStartBattle() {
+  if (auxRole !== 'judge') return;
+  _auxStopPickTimer();
+  _auxPhase = 'battle';
+  _auxPushEvent({ type: 'aux_battle_begin' });
+  _auxOnBattleBegin();
+}
+
+function _auxOnBattleBegin() {
+  _auxPhase = 'battle';
+  _auxStopPickTimer();
+  // Hide pick-phase UI
+  var pickBar = document.getElementById('aux-pick-bar');
+  if (pickBar) pickBar.style.display = 'none';
+  if (auxRole !== 'judge') {
+    toast('⚔ Battle begins!', 'success', 3000);
+    return;
+  }
+  // Judge: open first matchup
+  renderBracket();
+  var firstMatch = null;
+  for (var ri = 0; ri < bracketRounds.length - 1; ri++) {
+    for (var mi = 0; mi < bracketRounds[ri].length; mi++) {
+      var mt = bracketRounds[ri][mi];
+      if (!mt.removed && mt.slots[0].name && mt.slots[1].name && mt.winner === null) {
+        firstMatch = { r: ri, m: mi }; break;
+      }
+    }
+    if (firstMatch) break;
+  }
+  if (firstMatch) { auxJudgeReveal(firstMatch.r, firstMatch.m); }
+  toast('⚔ Battle begins — revealing first matchup!', 'success', 3000);
+}
+
 function auxSlotHidden(si) {
   if (!auxActive || auxRole === 'judge') return false;
   return (si === 0 ? 'a' : 'b') !== auxRole;
@@ -13461,6 +14186,54 @@ function auxBroadcast(msg) {
 }
 
 // ── Judge reveals a matchup ───────────────────────────
+// ── Auto-advance judge to next match after picking ───────────────────
+function _auxAutoAdvanceJudge() {
+  if (!auxActive || auxRole !== 'judge') return;
+  renderBracket();
+  // Check if bracket is fully complete (champion slot filled)
+  const champRound = bracketRounds[bracketRounds.length - 1];
+  if (champRound && champRound[0] && champRound[0].slots[0].name) {
+    // Battle is over — determine winner by mode and reveal champion
+    const champSongName = champRound[0].slots[0].name;
+    // Figure out which contestant owns the champion song
+    const aNamesSet = new Set();
+    bracketRounds[0].forEach(function(mt) { if (mt.slots[0].name) aNamesSet.add(mt.slots[0].name); });
+    const champSide = aNamesSet.has(champSongName) ? 'a' : 'b';
+    const champContestant = auxNames[champSide];
+    _panAndRevealChampion();
+    setTimeout(function() {
+      if (auxWinMode === 'bracket') {
+        toast('🏆 BRACKET WINNER: ' + champContestant + ' — ' + champSongName, 'success', 6000);
+      } else if (auxWinMode === 'fusion') {
+        toast('🏆 CHAMPION: ' + champContestant + ' — ' + champSongName, 'success', 5000);
+        setTimeout(function() { toast('⚡ FUSION — ' + auxNames.a + ': ' + auxScores.a + 'pts · ' + auxNames.b + ': ' + auxScores.b + 'pts', 'success', 5500); }, 900);
+      } else {
+        const scoreWinner = auxScores.a >= auxScores.b ? auxNames.a : auxNames.b;
+        toast('🏆 CHAMPION: ' + champContestant + ' — ' + champSongName, 'success', 5000);
+        setTimeout(function() { toast('🥇 SCORE WINNER: ' + scoreWinner + ' (' + auxNames.a + ' ' + auxScores.a + 'pts · ' + auxNames.b + ' ' + auxScores.b + 'pts)', 'success', 5500); }, 900);
+      }
+      _auxPushEvent({ type: 'aux_end_results', champSide: champSide, champSong: champSongName, scores: auxScores, winMode: auxWinMode });
+    }, 1800);
+    return;
+  }
+  // Find next match that's ready (both slots filled, no winner yet)
+  var next = null;
+  for (var rr = 0; rr < bracketRounds.length - 1; rr++) {
+    for (var mm = 0; mm < bracketRounds[rr].length; mm++) {
+      var mt = bracketRounds[rr][mm];
+      if (!mt.removed && !mt.isChampion && mt.winner === null && mt.slots[0].name && mt.slots[1].name) {
+        next = { r: rr, m: mm }; break;
+      }
+    }
+    if (next) break;
+  }
+  if (next) {
+    setTimeout(function() { auxJudgeReveal(next.r, next.m); }, 800);
+  } else {
+    toast('⏳ Waiting for next round slots to fill…', 'info', 2500);
+  }
+}
+
 function auxJudgeReveal(r, m) {
   if (auxRole !== 'judge') return;
   _auxPushEvent({ type:'aux_reveal', r, m });
@@ -13517,7 +14290,7 @@ function auxJudgePick(si) {
   }
   _auxUpdateUI();
   _auxPushEvent({ type:'aux_winner', r, m, si });
-  _auxPushEvent({ type:'aux_score', a:auxScores.a, b:auxScores.b });
+  _auxPushEvent({ type:'aux_score', a:auxScores.a, b:auxScores.b, si, pts });
   setTimeout(() => {
     _auxPushEvent({ type:'aux_full_state', rounds:_bracketRoundsForBroadcast(), size:bracketSize, scores:auxScores, winMode:auxWinMode });
   }, 500);
@@ -13531,14 +14304,24 @@ function auxJudgePick(si) {
 
 function _auxShowScoreFloat(winSi, pts) {
   if (pts <= 0) return;
-  [document.getElementById('matchup-a'), document.getElementById('matchup-b')].forEach((side, i) => {
-    if (!side) return;
+  // Append floats to body so they survive matchup overlay closing
+  const names = [auxNames.a, auxNames.b];
+  [0, 1].forEach(function(i) {
     const isWin = i === winSi;
-    const el = document.createElement('div');
-    el.className   = 'score-float ' + (isWin ? 'win' : 'loss');
-    el.textContent = isWin ? '+' + pts : '-' + pts;
-    side.appendChild(el);
-    setTimeout(() => el.remove(), 1200);
+    // Find the matchup side element or fall back to a fixed body-level float
+    var side = document.getElementById(i === 0 ? 'matchup-a' : 'matchup-b');
+    var el = document.createElement('div');
+    el.className = 'score-float ' + (isWin ? 'win' : 'loss');
+    el.textContent = isWin ? '+' + pts : '';
+    if (side) {
+      side.appendChild(el);
+    } else {
+      // Fallback: fixed position float near the score bar
+      el.style.cssText = 'position:fixed;' + (i === 0 ? 'left:30%' : 'left:60%') + ';top:60px;z-index:9999;';
+      el.style.transform = 'translateX(-50%)';
+      document.body.appendChild(el);
+    }
+    setTimeout(function() { el.remove(); }, 1500);
   });
 }
 
@@ -13646,26 +14429,39 @@ function auxEnd() {
 
 function _auxCleanup() {
   _auxClearJudgeIdleTimer();
+  _auxStopPickTimer();
   clearTimeout(_auxActivateTimer); _auxActivateTimer = null;
   if (_auxRoom) { try { _auxRoom.leave(); } catch(_) {} _auxRoom = null; }
-  _auxSendFn = null;
+  _auxSendFn = null; _auxSendCursor = null;
   _auxPeerIdA = null; _auxPeerIdB = null; _auxPeerIdJudge = null;
   _auxConnA = null; _auxConnB = null; _auxConnJudge = null; // legacy shims
   _auxRoomCode = '';
   auxRole = null; auxActive = false; auxLocalName = '';
   auxNames = { a:'CONTESTANT A', b:'CONTESTANT B', judge:'JUDGE' };
   auxScores = { a:0, b:0 }; auxWinMode = 'score';
-  auxVotes = {}; auxVotedFor = null; _auxActivating = false;
+  auxVotes = {}; auxVotedFor = null; _auxActivating = false; _auxIdentified = false;
+  _auxReadyA = false; _auxReadyB = false; _auxPhase = 'idle';
+  _chatTeardown(); _removeAllPeerCursors();
 
   const bar = document.getElementById('aux-bar');
   const pill = document.getElementById('aux-role-pill');
   if (bar)  bar.classList.remove('vis');
   if (pill) pill.classList.remove('vis','role-a','role-b','role-judge');
   document.getElementById('aux-end-btn').style.display = 'none';
+  var startBtn = document.getElementById('aux-start-btn');
+  if (startBtn) { startBtn.disabled = true; startBtn.textContent = '⌛ WAITING FOR CONTESTANTS…'; startBtn.style.background = ''; startBtn.style.color = ''; startBtn.style.opacity = '0.4'; startBtn.style.cursor = ''; }
+  var leaveBarBtn = document.getElementById('aux-bar-leave-btn');
+  if (leaveBarBtn) leaveBarBtn.style.display = 'none';
   const codeEl = document.getElementById('aux-fb-room-code');
   if (codeEl) codeEl.textContent = '';
   const fbWrap = document.getElementById('aux-room-fb-wrap');
   if (fbWrap) fbWrap.style.display = 'none';
+  var pickBar = document.getElementById('aux-pick-bar');
+  if (pickBar) { pickBar.style.display = 'none'; }
+  var readyBtn = document.getElementById('aux-ready-btn');
+  if (readyBtn) { readyBtn.disabled = false; readyBtn.textContent = '✓ READY'; readyBtn.style.borderColor = ''; readyBtn.style.color = ''; }
+  var battleStartBtn2 = document.getElementById('aux-battle-start-btn');
+  if (battleStartBtn2) { battleStartBtn2.disabled = true; battleStartBtn2.textContent = '⌛ WAITING FOR READY'; battleStartBtn2.style.background = ''; battleStartBtn2.style.color = '#555'; battleStartBtn2.style.borderColor = '#555'; battleStartBtn2.style.cursor = 'not-allowed'; }
 
   // ── FIX: reset all modal sections to initial state ──────────────
   // Role cards — deselect all
@@ -13701,6 +14497,10 @@ function _auxCleanup() {
   if (dotB) dotB.className = 'aux-peer-dot wait';
   if (lblA) lblA.textContent = 'Waiting\u2026';
   if (lblB) lblB.textContent = 'Waiting\u2026';
+  // Wipe battle data from the bracket so remnants don't persist after disconnect.
+  // Safe to call regardless of role — initBracket just reinitialises bracketRounds
+  // to empty seeds at the current size without touching pool or tier state.
+  if (typeof initBracket === 'function') initBracket(bracketSize);
   if (activeTab === 'bracket') renderBracket();
 }
 
@@ -14114,7 +14914,7 @@ function _gridMakeWrap(i, entry) {
 
   var labelEl = document.createElement('div');
   labelEl.className = 'grid-cell-label';
-  if (entry) {
+  if (entry && !gridLabelSide) {
     if (gridShowArtist) { var a = document.createElement('div'); a.className = 'gcl-artist'; a.textContent = entry.artist || ''; labelEl.appendChild(a); }
     if (gridShowTitleLabel) { var t = document.createElement('div'); t.className = 'gcl-title'; t.textContent = entry.name || ''; labelEl.appendChild(t); }
   }
@@ -14155,7 +14955,7 @@ function gridRender() {
       var labelEl = existing.querySelector('.grid-cell-label');
       if (labelEl) {
         labelEl.innerHTML = '';
-        if (entry) {
+        if (entry && !gridLabelSide) {
           if (gridShowArtist) { var a2 = document.createElement('div'); a2.className = 'gcl-artist'; a2.textContent = entry.artist || ''; labelEl.appendChild(a2); }
           if (gridShowTitleLabel) { var t2 = document.createElement('div'); t2.className = 'gcl-title'; t2.textContent = entry.name || ''; labelEl.appendChild(t2); }
         }
@@ -14462,6 +15262,91 @@ function gridRenderPoolStrip() {
       requestAnimationFrame(() => ghost.remove());
     });
     proxy.addEventListener('dragend', () => { window.dragged = null; });
+
+    // ── Mobile touch drag: pool strip → grid cell ────────────────────────────
+    var _gpTouchTimer = null, _gpTouchActive = false, _gpTouchGhost = null, _gpLastCell = null;
+    var _gpStartX = 0, _gpStartY = 0;
+    proxy.addEventListener('touchstart', function(e) {
+      var touch = e.touches[0];
+      _gpStartX = touch.clientX; _gpStartY = touch.clientY;
+      _gpTouchTimer = setTimeout(function() {
+        _gpTouchTimer = null; _gpTouchActive = true;
+        var rect = proxy.getBoundingClientRect();
+        _gpTouchGhost = proxy.cloneNode(true);
+        _gpTouchGhost.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;opacity:0.88;'+
+          'box-shadow:0 8px 28px rgba(0,0,0,0.75);transform:scale(1.08);border:2px solid var(--accent);'+
+          'left:'+(touch.clientX-rect.width/2)+'px;top:'+(touch.clientY-rect.height/2)+'px;'+
+          'width:'+rect.width+'px;height:'+rect.height+'px;transition:none;';
+        document.body.appendChild(_gpTouchGhost);
+        proxy.style.opacity = '0.3';
+        window.dragged = en.item;
+        if (navigator.vibrate) navigator.vibrate(18);
+      }, 380);
+    }, { passive: true });
+    proxy.addEventListener('touchmove', function(e) {
+      var touch = e.touches[0];
+      if (_gpTouchTimer) {
+        if (Math.abs(touch.clientX-_gpStartX)>10 || Math.abs(touch.clientY-_gpStartY)>10) {
+          clearTimeout(_gpTouchTimer); _gpTouchTimer = null;
+        }
+        return;
+      }
+      if (!_gpTouchActive) return;
+      e.preventDefault();
+      _gpTouchGhost.style.left = (touch.clientX - parseInt(_gpTouchGhost.style.width)/2) + 'px';
+      _gpTouchGhost.style.top  = (touch.clientY - parseInt(_gpTouchGhost.style.height)/2) + 'px';
+      // Find grid cell under finger
+      _gpTouchGhost.style.display = 'none';
+      var el = document.elementFromPoint(touch.clientX, touch.clientY);
+      _gpTouchGhost.style.display = '';
+      var cell = el && el.closest('.grid-cell');
+      if (cell !== _gpLastCell) {
+        if (_gpLastCell) _gpLastCell.classList.remove('grid-drop-target');
+        if (cell) cell.classList.add('grid-drop-target');
+        _gpLastCell = cell;
+      }
+    }, { passive: false });
+    proxy.addEventListener('touchend', function(e) {
+      if (_gpTouchTimer) { clearTimeout(_gpTouchTimer); _gpTouchTimer = null; }
+      if (!_gpTouchActive) return;
+      _gpTouchActive = false;
+      if (_gpTouchGhost) { _gpTouchGhost.remove(); _gpTouchGhost = null; }
+      if (_gpLastCell) _gpLastCell.classList.remove('grid-drop-target');
+      proxy.style.opacity = '';
+      var touch = e.changedTouches[0];
+      // Find cell under finger at release
+      var el = document.elementFromPoint(touch.clientX, touch.clientY);
+      var cell = el && el.closest('.grid-cell');
+      if (cell && window.dragged) {
+        var idx = parseInt(cell.dataset.idx);
+        if (!isNaN(idx)) {
+          var poolImg = window.dragged.querySelector('img');
+          if (poolImg) {
+            var src = window.dragged.dataset.dataUrl || (!poolImg.src.startsWith('blob:') ? poolImg.src : '') || '';
+            var name = (window.dragged.querySelector('.item-lbl') || {}).textContent || poolImg.alt || '';
+            var artist = '';
+            catStore.forEach(function(entries, catKey) {
+              entries.forEach(function(en2) { if (en2.item === window.dragged) artist = _catArtist(catKey) || catKey; });
+            });
+            if (src) {
+              gridData[idx] = { src: src, name: name, artist: artist };
+              gridRenderCell(idx); gridSave();
+              var dropped = document.querySelector('.grid-cell[data-idx="' + idx + '"]');
+              if (dropped) dropped.classList.add('just-dropped');
+              if (typeof gridRenderPoolStrip === 'function') setTimeout(gridRenderPoolStrip, 0);
+            }
+          }
+        }
+      }
+      window.dragged = null;
+      _gpLastCell = null;
+    }, { passive: true });
+    proxy.addEventListener('touchcancel', function() {
+      if (_gpTouchTimer) { clearTimeout(_gpTouchTimer); _gpTouchTimer = null; }
+      if (_gpTouchGhost) { _gpTouchGhost.remove(); _gpTouchGhost = null; }
+      if (_gpLastCell) { _gpLastCell.classList.remove('grid-drop-target'); _gpLastCell = null; }
+      proxy.style.opacity = ''; _gpTouchActive = false; window.dragged = null;
+    }, { passive: true });
     frag.appendChild(proxy);
     count++;
   }
@@ -14835,7 +15720,8 @@ document.addEventListener('DOMContentLoaded', function() {
           <span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:#f80;min-width:14px;">B</span>
           <span id="aux-dot-b-lbl" style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">Waiting&hellip;</span>
         </div>
-        <div style="font-family:var(--mono);font-size:6.5px;color:var(--text-dim);margin-top:8px;letter-spacing:.5px;line-height:1.7;border-left:2px solid var(--border);padding-left:7px;">Session starts automatically when both contestants join.</div>
+        <div style="font-family:var(--mono);font-size:6.5px;color:var(--text-dim);margin-top:8px;letter-spacing:.5px;line-height:1.7;border-left:2px solid var(--border);padding-left:7px;">Waiting for both contestants to connect before you can start.</div>
+        <button class="modal-btn primary" id="aux-start-btn" onclick="_auxActivate()" disabled style="width:100%;margin-top:12px;opacity:0.4;">⌛ WAITING FOR CONTESTANTS…</button>
       </div>
     </div>
 
@@ -15077,60 +15963,101 @@ document.addEventListener('DOMContentLoaded', function() {
     {
       tab: null,
       title: '\u2605  WELCOME TO MUSETIER',
-      body: 'An everything-in-one website where you can rank, compare, discuss, argue and make the most outrageous musical claims you can have! (now supporting video games and movies/TV!)<br><br>Before we argue on why The Beach Boys are better than The Beatles, let me guide you through everything!',
+      body: 'An everything-in-one website where you can rank, compare, discuss, argue and make the most outrageous musical claims you can have! (now supporting video games and movies/TV!)<br><br>Before we argue on why The Beach Boys are better than The Beatles, let me guide you through everything! You can drag this panel out of the way if it gets in the way.',
       targets: []
     },
     {
       tab: 'tier',
       title: '\u229e  TIER LIST',
-      body: 'The main feature of this site! You can import your own images or search through your library under <strong>\u2726 MEDIA</strong>. To generate custom track artwork, click the <strong>✦ GEN</strong> button in the toolbar to open the generation settings panel, where you can preview fonts, configure layout, and export options.',
       onEnter: function() { if (window.expandPool) window.expandPool(); },
+      body: 'The main feature of this site! Import your own images or search through your library under <strong>\u2726 MEDIA</strong>. Everything lands in the <strong>Staging Pool</strong> below, ready to drag up into any tier row.<br><br>Click <strong>\u270e EDIT</strong> in the toolbar to add, delete, reorder and recolour tier rows. Deleting a tier sends its items straight back to the pool. And yes, you can undo that with <strong>Ctrl+Z</strong>.',
       targets: [
-        { sel: '#btn-media', lbl: '\u2726 MEDIA \u2014 search & import', pos: 'below' },
-        { sel: '#pool-hdr', lbl: 'Staging Pool \u2014 drag from here', pos: 'above' },
+        { sel: '#btn-media',     lbl: '\u2726 MEDIA: search & import', pos: 'below' },
+        { sel: '#pool-hdr',      lbl: 'Staging Pool: drag items from here', pos: 'above' },
+        { sel: '#edit-mode-btn', lbl: 'Edit Mode: add / remove / reorder tiers', pos: 'below' },
+      ]
+    },
+    {
+      tab: 'tier',
+      title: '\u{1f50d}  POOL FILTER + MULTI-SELECT',
+      onEnter: function() { if (window.expandPool) window.expandPool(); },
+      body: 'Got a massive pool and can\'t find anything? Use the <strong>filter box</strong> to search by name in real time.<br><br>You can also <strong>Shift+click</strong> to select multiple items at once, then drag the whole group into a tier or press <strong>Delete / Backspace</strong> to remove them all in one shot. Right-clicking a selected group lets you remove them via the context menu too.',
+      targets: [
+        { sel: '#pool-search', lbl: 'Type to filter pool items live', pos: 'above' },
+      ]
+    },
+    {
+      tab: 'tier',
+      title: '\u21a9  UNDO',
+      body: 'In case you made a mistake or whatnot, <strong>Ctrl+Z</strong> (Cmd+Z on Mac) undoes most things:<br><br><ul style="margin:6px 0 0 16px;padding:0;line-height:2;"><li>Moving items between tiers or the pool</li><li>Renaming or recolouring a tier label</li><li>Deleting items (single or the whole selection)</li><li>Clearing the pool</li><li>Adding a new tier row</li><li>Deleting a tier row (restores items too!)</li></ul>',
+      targets: []
+    },
+    {
+      tab: 'tier',
+      title: '\u2193  EXPORT',
+      body: 'The <strong>\u2193 EXPORT</strong> menu has two options now:<br><br><strong>Save as Image</strong> renders your full tier list to a PNG you can share anywhere.<br><br><strong>Export as Text</strong> copies a plain ranked list to your clipboard, formatted like <em>S: Album A, Album B / A: Album C</em> and so on. I don\'t know why you would do that out of every feature we have but oh well, your choice.',
+      targets: [
+        { sel: '#dd-export', lbl: 'Export: image or ranked text list', pos: 'below' },
+      ]
+    },
+    {
+      tab: 'tier',
+      title: '\u{1f4be}  SAVE / LOAD SLOTS',
+      body: 'The <strong>SAVE/LOAD</strong> button gives you 5 named save slots to snapshot your entire tier layout and pool whenever you want.<br><br>Each slot has a <strong>rename button (✎)</strong> so you can label them without overwriting your actual save. Slot data stores item references rather than full images, so even a library with hundreds of album covers won\'t blow up your browser storage. There\'s also a little dot next to the logo that flashes every time the app auto-saves.',
+      targets: [
+        { sel: '#saveload-btn',  lbl: '💾 SAVE/LOAD: 5 named slots', pos: 'below' },
+        { sel: '#autosave-dot',  lbl: 'Flashes on every auto-save', pos: 'below' },
       ]
     },
     {
       tab: 'tier',
       title: '\u2726  IMAGE GEN',
-      body: 'Click <strong>✦ GEN</strong> in the toolbar to open the generation panel. Select an album from your library, tweak fonts and layout in the settings, then use <strong>ALL TO POOL</strong> to send generated artwork straight to the staging pool, or <strong>GENERATE ALL</strong> to download everything as a zip.',
+      body: 'Click <strong>\u2726 GEN</strong> in the toolbar to open the generation panel. Select an album from your library, tweak fonts and layout in the settings, then use <strong>ALL TO POOL</strong> to send generated artwork straight to the staging pool, or <strong>GENERATE ALL</strong> to download everything as a zip.',
       targets: [
-        { sel: '#gen-settings-btn', lbl: '\u2726 GEN \u2014 open settings panel', pos: 'below' },
+        { sel: '#gen-settings-btn', lbl: '\u2726 GEN: custom track artwork', pos: 'below' },
       ]
     },
     {
       tab: 'bracket',
-      title: '⬡  BRACKET',
-      body: 'The biggest feature of this site! You can import all images from the pool into this bracket for a madness bracket brawl on anything you can think of! To start, press <strong>START</strong> and you can pick regular mode or multiplayer to go on bouts and arguments with your friends about whose music taste is better!',
+      title: '\u2b21  BRACKET',
+      body: 'The biggest feature of this site! Import everything from the pool and run a full bracket brawl on anything you can think of. Press <strong>START</strong> to pick regular mode or multiplayer and let the arguments begin.<br><br>In <strong>SETTINGS</strong> you can now choose how to seed entrants: <strong>Fill from Pool</strong> uses pool order, while <strong>Seed from Tier Rows</strong> uses your actual tier rankings (S tier = top seeds, A tier next, and so on). When you\'re done, <strong>Save as Image</strong> exports the whole bracket as a PNG for sharing.',
       targets: [
-        { sel: '.btn-bracket', lbl: 'START here', pos: 'below' },
-        { sel: '#bracket-toolbar',  lbl: 'Drag items into bracket slots', pos: 'above' },
+        { sel: '.btn-bracket', lbl: 'START: pick your mode here', pos: 'below' },
+        { sel: '#bk-cog-btn',  lbl: 'Settings: size, seeding, image export', pos: 'below' },
       ]
     },
     {
       tab: 'grid',
-      title: '⊟  GRID',
-      body: 'Here you can create an image collage of everything! You can import your own images or take music straight from the pool. The grid currently supports up to <strong>250 × 250 slots</strong> of collage!',
+      title: '\u229f  GRID',
+      body: 'Here you can create an image collage of everything! You can import your own images or take music straight from the pool. The grid currently supports up to <strong>250 x 250 slots</strong> of collage!<br><br>Use the toolbar to change cell size, grid dimensions, background colour and corner rounding. Hit the <strong>floppy disk icon</strong> to export the whole thing as a PNG.',
       targets: [
-        { sel: '#grid-pool-items',    lbl: 'Pool — drag items to the grid ↓', pos: 'above' },
-        { sel: '#grid-canvas',        lbl: 'Drop covers onto cells', pos: 'right' },
+        { sel: '#grid-pool-items', lbl: 'Pool strip: drag items to the grid', pos: 'above' },
+        { sel: '#grid-canvas',     lbl: 'Drop covers onto cells', pos: 'right' },
       ]
     },
     {
       tab: 'libview',
-      title: '♫  LIBRARY',
-      body: 'You can view everything imported from the Import menu here! Albums once indexed should stay in your library so you won\'t have to search through it again!<br><br>Items stored in the library can also be accessed from the <strong>sidebar</strong>! You can drag every item in the sidebar into any of the features!',
+      title: '\u266b  LIBRARY',
+      body: 'You can view everything imported from the Import menu here! Albums once indexed stay in your library so you won\'t have to search through it again.<br><br>Use the toolbar to filter by type, era or genre, change sort order, and switch between grid and list views. Items stored in the library can also be accessed from the <strong>sidebar</strong> and dragged into any of the features!',
       targets: [
-        { sel: '#lv-toolbar',  lbl: 'Filter & sort your library', pos: 'below' },
-        { sel: '#lv-grid-wrap',    lbl: 'Your full library — click to expand', pos: 'above' },
+        { sel: '#lv-toolbar',   lbl: 'Filter, sort and view options', pos: 'below' },
+        { sel: '#lv-grid-wrap', lbl: 'Your full library', pos: 'above' },
+      ]
+    },
+    {
+      tab: 'tier',
+      title: '\u21c4  COLLAB',
+      body: 'An unique feature to this site alone is <strong>&#x21c4; COLLAB</strong>, real-time interaction sharing across all of your 3 friends! To start, open the menu, create a room, share the code and pray to god the STUN server doesn\'t fail.<br><br>A couple of things worth knowing: if you get unexpectedly disconnected (timeout, host drops, peer leaves), your tier list automatically reverts to whatever it was before you joined. Clicking the Disconnect button manually keeps your current state instead. The room code is also click-to-select so you can copy it quickly.',
+      targets: [
+        { sel: '#collab-btn', lbl: '\u21c4 COLLAB: real-time multiplayer', pos: 'below' },
       ]
     },
     {
       tab: null,
-      title: '♥  ONE LAST THING',
-      body: 'If you feel generous and find this site to your liking, consider donating a quick buck or so to help keep it running! I plan to implement ranked seasons, which requires paying for server hosting and potentially a domain name. Any support you can throw my way goes a long way towards that! Otherwise, I won\'t keep you any longer. I hope you have a great time using Musetier! ♥',
+      title: '\u2665  ONE LAST THING',
+      body: 'If you feel generous and find this site to your liking, consider donating a quick buck or so to help keep it running! I plan to implement ranked seasons, which requires paying for server hosting and potentially a domain name. Any support you can throw my way goes a long way towards that! Otherwise, I won\'t keep you any longer. I hope you have a great time using Musetier! ♥<br><br><em>You can replay this tour any time from the Settings panel.</em>',
       targets: [
-        { sel: '.btn-donate', lbl: '♥ DONATE — buymeacoffee', pos: 'below' },
+        { sel: '.btn-donate', lbl: '\u2665 DONATE: buymeacoffee', pos: 'below' },
       ]
     }
   ];
@@ -15280,6 +16207,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('tut-wrap').classList.remove('open');
     _clear();
     try { localStorage.setItem(TOUR_KEY, '1'); } catch(e) {}
+    // Show What's New after the tour completes (new users see it immediately after)
+    try { if (!localStorage.getItem(WN_KEY) && typeof _showWhatsNew === 'function') setTimeout(_showWhatsNew, 300); } catch(e) {}
   }
 
   window.tutNext = function() {
@@ -15364,7 +16293,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     };
     // Start tour if not seen before
-    try { if (localStorage.getItem(TOUR_KEY)) return; } catch(e) {}
+    try { if (localStorage.getItem(TOUR_KEY)) {
+      // Returning user — show What's New if not yet seen for this version
+      try { if (!localStorage.getItem(WN_KEY) && typeof _showWhatsNew === 'function') setTimeout(_showWhatsNew, 500); } catch(e) {}
+      return;
+    } } catch(e) {}
     setTimeout(function() { _showStep(0); }, 500);
   });
 
@@ -15540,6 +16473,163 @@ function mobileLibClose() {
 
   document.addEventListener('touchcancel', _cancel, { passive: true });
 })();
+
+// ── WHAT'S NEW ────────────────────────────────────────────────────────────────
+const WN_KEY = 'musetier_wn_11';
+function _showWhatsNew() {
+  try { localStorage.setItem(WN_KEY, '1'); } catch(e) {}
+  openOverlay('whatsNewOvr');
+}
+function closeWhatsNew() { closeOverlay('whatsNewOvr'); }
+
+// ── SAVE / LOAD ───────────────────────────────────────────────────────────────
+const SL_KEY   = 'mst_saveload_v1';
+const SL_SLOTS = 5;
+
+function _slLoad() {
+  try { return JSON.parse(localStorage.getItem(SL_KEY)) || {}; } catch(_) { return {}; }
+}
+function _slSave(data) { localStorage.setItem(SL_KEY, JSON.stringify(data)); }
+
+function _snapshotPool() {
+  return [...document.getElementById('pool').querySelectorAll('.item')].map(el => {
+    const img = el.querySelector('img');
+    return {
+      alt: img?.alt || '',
+      src: el.dataset.dataUrl || (img?.src?.startsWith('data:') ? img.src : img?.src || ''),
+      lbl: el.querySelector('.item-lbl')?.textContent || '',
+    };
+  });
+}
+
+function _restorePool(poolSnap) {
+  if (!Array.isArray(poolSnap)) return;
+  const poolEl = document.getElementById('pool');
+  const getAlt = el => el.querySelector('img')?.alt || '';
+  const allItems = new Map();
+  document.querySelectorAll('#pool .item, .tier-row .item').forEach(el => {
+    const a = getAlt(el);
+    if (a && !allItems.has(a)) allItems.set(a, el);
+  });
+  const frag = document.createDocumentFragment();
+  poolSnap.forEach(({ alt, src, lbl }) => {
+    if (!alt) return;
+    const existing = allItems.get(alt);
+    if (existing) {
+      frag.appendChild(existing);
+    } else if (src) {
+      const item = createItem(src, alt, lbl);
+      setupDraggable(item);
+      frag.appendChild(item);
+    }
+  });
+  poolEl.appendChild(frag);
+  updatePoolCount();
+}
+
+function openSaveLoad() { _slRenderSlots(); openOverlay('saveloadOvr'); }
+
+function _slRenderSlots() {
+  const data = _slLoad();
+  const container = document.getElementById('sl-slots');
+  container.innerHTML = '';
+  for (let i = 1; i <= SL_SLOTS; i++) {
+    const slot    = data[i];
+    const isEmpty = !slot;
+    const div     = document.createElement('div');
+    div.className = 'sl-slot' + (isEmpty ? ' empty' : '');
+    const ts = slot ? new Date(slot.ts).toLocaleString(undefined, {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    }) : '';
+    const metaTxt = slot
+      ? (slot.tiers?.tiers?.length || 0) + ' tiers \u00b7 ' + (slot.pool?.length || 0) + ' in pool \u00b7 ' + ts
+      : 'empty';
+    const nameTxt = slot?.name || (isEmpty ? '\u2014 EMPTY \u2014' : 'SAVE ' + i);
+    div.innerHTML = `
+      <div class="sl-slot-num">${i}</div>
+      <div class="sl-slot-info">
+        <div class="sl-slot-name">${esc(nameTxt)}</div>
+        <div class="sl-slot-meta">${esc(metaTxt)}</div>
+      </div>
+      <div class="sl-slot-btns">
+        <button class="btn sl-save-btn" onclick="slSaveSlot(${i})">\u{1f4be} SAVE</button>
+        <button class="btn sl-load-btn" onclick="slLoadSlot(${i})">\u25b6 LOAD</button>
+        ${slot ? `<button class="btn sl-ren-btn" onclick="slRenameSlot(${i})" title="Rename slot">\u270e</button>` : ''}
+        <button class="btn sl-del-btn"  onclick="slDeleteSlot(${i})" title="Delete slot">\u2715</button>
+      </div>`;
+    container.appendChild(div);
+  }
+}
+
+function slSaveSlot(i) {
+  const existing = (_slLoad()[i] || {}).name || '';
+  const name = prompt('Name this save (slot ' + i + '):', existing || _slDefaultName());
+  if (name === null) return;
+  const data = _slLoad();
+  // Store alt+lbl references only — no base64 src — to stay well within
+  // localStorage's 5MB quota. Images are resolved from the live catStore on load.
+  const snap = _snapshotTiers('full');
+  const poolSnap = _snapshotPool();
+  data[i] = {
+    name:  name.trim().slice(0, 40) || ('SAVE ' + i),
+    ts:    Date.now(),
+    tiers: { tiers: snap.tiers.map(t => ({ n: t.n, c: t.c, i: t.i.map(item => ({ alt: item.alt, lbl: item.lbl })) })) },
+    pool:  poolSnap.map(({ alt, lbl }) => ({ alt, lbl })),
+  };
+  try {
+    _slSave(data);
+    _slRenderSlots();
+    toast('Saved to slot ' + i, 'info', 1800);
+  } catch(e) {
+    toast('Save failed — localStorage may be full', 'error', 3500);
+    console.warn('[sl] save failed:', e);
+  }
+}
+
+function slLoadSlot(i) {
+  const data = _slLoad();
+  const slot = data[i];
+  if (!slot) return;
+  // Warn if a collab session is active — loading will overwrite shared state for all peers
+  if (typeof collabConnected !== 'undefined' && collabConnected) {
+    if (!confirm('⚠ You are in an active collab room.\nLoading a save slot will overwrite the shared state for all connected peers.\n\nLoad "' + slot.name + '" anyway?')) return;
+  } else {
+    if (!confirm('Load "' + slot.name + '"? Current tier and pool will be replaced.')) return;
+  }
+  if (slot.tiers) { try { applyTierState(slot.tiers); } catch(e) { console.warn('[sl] tier restore:', e); } }
+  if (slot.pool)  { try { _restorePool(slot.pool);    } catch(e) { console.warn('[sl] pool restore:', e); } }
+  save();
+  closeOverlay('saveloadOvr');
+  toast('Loaded: ' + slot.name, 'info', 2000);
+}
+
+function slDeleteSlot(i) {
+  const data = _slLoad();
+  const slot = data[i];
+  if (!slot) return;
+  if (!confirm('Delete slot ' + i + ' ("' + slot.name + '")?')) return;
+  delete data[i];
+  _slSave(data);
+  _slRenderSlots();
+}
+
+function slRenameSlot(i) {
+  const data = _slLoad();
+  const slot = data[i];
+  if (!slot) return;
+  const newName = prompt('Rename slot ' + i + ':', slot.name);
+  if (newName === null) return;
+  slot.name = newName.trim().slice(0, 40) || slot.name;
+  _slSave(data);
+  _slRenderSlots();
+}
+
+function _slDefaultName() {
+  const labels = [...document.querySelectorAll('.tier-label')]
+    .map(l => l.textContent.trim()).filter(Boolean).slice(0, 3);
+  return labels.join('/') || 'MY TIER';
+}
+
 </script>
 
 
