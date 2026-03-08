@@ -10395,7 +10395,10 @@ async function _getIceServers() {
     });
     if (!r.ok) throw new Error('Xirsys ' + r.status);
     const data = await r.json();
-    _iceCache = data.v.iceServers;
+    // Xirsys returns either {v:{iceServers:[...]}} or {v:[...]} depending on account config
+    const raw = (data.v && data.v.iceServers) ? data.v.iceServers : data.v;
+    if (!Array.isArray(raw) || !raw.length) throw new Error('Xirsys returned no ICE servers');
+    _iceCache = raw;
     // Cache busts after 4 hours (credentials typically valid for 24h)
     setTimeout(() => { _iceCache = null; }, 4 * 60 * 60 * 1000);
     return _iceCache;
