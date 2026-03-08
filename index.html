@@ -4446,7 +4446,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   ║           Covers via wsrv.nl proxy (CORS). Sort by relevance. ║
   ║           Load more (20/page). Last.fm icon + floppy SVG.     ║
   ║           Grid toolbar: sliders for size/gap. Drop overlay.   ║
-  ║           Version: EA 1.0.10.2                                ║
+  ║           Version: EA 1.0.10.3                                ║
   ╚══════════════════════════════════════════════════════════════╝
 -->
 <canvas id="fx-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity 0.9s ease"></canvas>
@@ -4456,7 +4456,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 ═══════════════════════════════════════════ -->
 <div id="topbar">
   <div id="logo">MUSE<span>_</span>TIER</div>
-  <button id="ver-badge" onclick="openOverlay('supportOvr')" title="Early Access — click to report bugs &amp; join support server"><span id="ver-badge-ea">EA</span><span id="ver-badge-num">1.0.10.2</span><span id="ver-badge-icon">?</span></button>
+  <button id="ver-badge" onclick="openOverlay('supportOvr')" title="Early Access — click to report bugs &amp; join support server"><span id="ver-badge-ea">EA</span><span id="ver-badge-num">1.0.10.3</span><span id="ver-badge-icon">?</span></button>
   <div id="logo-credit"></div>
   <!-- Mobile-only: full-width lib button + action icons in same row -->
   <div id="mobile-lib-row">
@@ -4980,7 +4980,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   <div class="modal" style="width:min(580px,100%);max-height:90vh;display:flex;flex-direction:column;">
     <div class="modal-hdr">// SUPPORT &amp; BUG REPORTS</div>
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0 8px;flex-shrink:0;">
-      <span id="ver-badge-modal" style="font-family:var(--mono);font-size:11px;background:rgba(255,200,0,.13);border:1px solid rgba(255,200,0,.35);color:#fc0;padding:3px 8px;letter-spacing:1px;">EA&#8209;1.0.10.2 — EARLY ACCESS</span>
+      <span id="ver-badge-modal" style="font-family:var(--mono);font-size:11px;background:rgba(255,200,0,.13);border:1px solid rgba(255,200,0,.35);color:#fc0;padding:3px 8px;letter-spacing:1px;">EA&#8209;1.0.10.3 — EARLY ACCESS</span>
       <span style="font-size:11px;color:var(--text-dim);letter-spacing:1px;">This build is unfinished. Bugs are expected.</span>
     </div>
     <p style="font-size:12px;color:var(--text-dim);letter-spacing:1px;line-height:1.8;flex-shrink:0;margin:0 0 10px;">
@@ -9323,72 +9323,83 @@ function mbImport() {
   closeOverlay('mbOvr');
 }
 
-// ── GAMES SEARCH — Giant Bomb API ────────────────────────────────────────────
+// ── GAMES SEARCH — IGDB ───────────────────────────────────────────────────────
 
 async function msSearchGames() {
   const q = document.getElementById('mb-search-input').value.trim();
   if (!q) return;
-  _ocOffset = 0;
-  _ocLastQuery = q;
-  _ocAllResults = [];
+  _igdbOffset = 0;
+  _igdbLastQuery = q;
+  _igdbAllResults = [];
   document.getElementById('mb-search-btn').disabled = true;
   document.getElementById('mb-results-wrap').innerHTML = '';
   document.getElementById('mb-selected-detail').classList.remove('visible');
   _msSelected = null;
-  await _ocFetchAndRender(q, 0, true);
+  await _igdbFetchAndRender(q, 0, true);
   document.getElementById('mb-search-btn').disabled = false;
 }
 
-// ── OpenCritic game search ────────────────────────────────────────────────────
-const _OC_KEY  = '0edc6b2dc4mshc5539c51de193cbp11f90cjsn51a916b311ac';
-const _OC_HOST = 'opencritic-api.p.rapidapi.com';
-const _OC_PAGE = 20;
-let _ocOffset = 0, _ocLastQuery = '', _ocAllResults = [];
+// ── IGDB game search ─────────────────────────────────────────────────────────
 
-async function _ocFetchAndRender(q, offset, clear) {
+const IGDB_WORKER = 'https://round-glitter-17d8.godnessprob.workers.dev';
+const IGDB_IMG    = 'https://images.igdb.com/igdb/image/upload/';
+const _IGDB_PAGE  = 20;
+
+let _igdbOffset = 0, _igdbLastQuery = '', _igdbAllResults = [];
+
+async function _igdbPost(endpoint, query) {
+  const r = await fetch(IGDB_WORKER + endpoint, {
+    method:  'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body:    query,
+  });
+  if (!r.ok) throw new Error('IGDB error ' + r.status);
+  return r.json();
+}
+
+async function _igdbFetchAndRender(q, offset, clear) {
   mbSetStatus('<span class="mb-spinner"></span> ' + (clear ? 'Searching games…' : 'Loading more…'));
   try {
-    // Only fetch from API on a fresh search, not on "load more"
     if (clear) {
-      const r = await fetch('https://opencritic-api.p.rapidapi.com/game/search?criteria=' + encodeURIComponent(q), {
-        headers: { 'x-rapidapi-host': _OC_HOST, 'x-rapidapi-key': _OC_KEY }
-      });
-      if (!r.ok) throw new Error('OpenCritic error ' + r.status);
-      const results = await r.json();
-      // Sort: exact > prefix > substring > rest
+      const results = await _igdbPost('/games',
+        `search "${q.replace(/"/g, '')}";` +
+        `fields id,name,cover.image_id,first_release_date,` +
+               `involved_companies.company.name,summary,genres.name;` +
+        `where version_parent = null;` +
+        `limit 50;`
+      );
       const lq = q.trim().toLowerCase();
       results.sort((a, b) => {
         function score(n) {
           n = (n || '').toLowerCase();
           if (n === lq) return 0;
-          if (n.startsWith(lq + ' ') || n.startsWith(lq + ':') || n.startsWith(lq + ',') || n === lq) return 1;
+          if (n.startsWith(lq + ' ') || n.startsWith(lq + ':') || n.startsWith(lq + ',')) return 1;
           if (n.includes(lq)) return 2;
           return 3;
         }
         return score(a.name) - score(b.name);
       });
-      _ocAllResults = results;
+      _igdbAllResults = results;
       document.getElementById('mb-results-wrap').innerHTML = '';
     }
 
-    const slice = _ocAllResults.slice(offset, offset + _OC_PAGE);
+    const slice = _igdbAllResults.slice(offset, offset + _IGDB_PAGE);
     if (!slice.length) { mbSetStatus('No results found.'); return; }
-    mbSetStatus(slice.length + ' of ' + _ocAllResults.length + ' results');
-    _ocOffset = offset + slice.length;
+    mbSetStatus(slice.length + ' of ' + _igdbAllResults.length + ' results');
+    _igdbOffset = offset + slice.length;
 
-    _msRenderGameResults(slice, offset > 0);
+    _igdbRenderResults(slice, offset > 0);
 
-    // "Load more" button if there are more results
-    const wrap = document.getElementById('mb-results-wrap');
-    const existing = document.getElementById('oc-load-more');
+    const wrap     = document.getElementById('mb-results-wrap');
+    const existing = document.getElementById('igdb-load-more');
     if (existing) existing.remove();
-    if (_ocOffset < _ocAllResults.length) {
+    if (_igdbOffset < _igdbAllResults.length) {
       const btn = document.createElement('button');
-      btn.id = 'oc-load-more';
-      btn.className = 'btn';
+      btn.id            = 'igdb-load-more';
+      btn.className     = 'btn';
       btn.style.cssText = 'display:block;width:100%;margin-top:8px;padding:6px;font-size:12px;letter-spacing:2px;';
-      btn.textContent = 'LOAD MORE (' + (_ocAllResults.length - _ocOffset) + ' remaining)';
-      btn.onclick = () => _ocFetchAndRender(_ocLastQuery, _ocOffset, false);
+      btn.textContent   = 'LOAD MORE (' + (_igdbAllResults.length - _igdbOffset) + ' remaining)';
+      btn.onclick = () => _igdbFetchAndRender(_igdbLastQuery, _igdbOffset, false);
       wrap.appendChild(btn);
     }
   } catch(e) {
@@ -9396,102 +9407,70 @@ async function _ocFetchAndRender(q, offset, clear) {
   }
 }
 
-function _msRenderGameResults(results, append) {
+function _igdbRenderResults(results, append) {
   const wrap = document.getElementById('mb-results-wrap');
   if (!append) {
-    // Remove load more btn if present before clearing
-    const lm = document.getElementById('oc-load-more');
+    const lm = document.getElementById('igdb-load-more');
     if (lm) lm.remove();
   }
   const frag = document.createDocumentFragment();
+
   results.forEach(g => {
-    const uid = 'oc-' + g.id;
-    const row = document.createElement('div');
+    const row  = document.createElement('div');
     row.className = 'mb-result-row';
+
+    const year = g.first_release_date
+      ? new Date(g.first_release_date * 1000).getFullYear()
+      : '';
+    const dev  = (g.involved_companies || [])
+      .map(ic => ic.company && ic.company.name).filter(Boolean).join(', ') || '';
+
     row.innerHTML = `
-      <div class="mb-thumb-ph" id="ms-gthumb-${uid}" style="min-width:40px;">⚙</div>
+      <div class="mb-thumb-ph" id="igdb-thumb-${g.id}" style="min-width:40px;">⚙</div>
       <div style="flex:1;overflow:hidden;">
         <div style="font-size:13px;color:var(--text-hi);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(g.name)}</div>
-        <div style="font-size:11px;color:var(--text-dim);">${g.firstReleaseDate ? new Date(g.firstReleaseDate).getFullYear() : ''}</div>
+        <div style="font-size:11px;color:var(--text-dim);">${[year, dev].filter(Boolean).join(' · ')}</div>
       </div>`;
 
-    // Use wsrv.nl proxy for thumbnails — serves with CORS headers, resizes to 80px
-    // Also batch-fetch detail for the first 20 so _msSelectGame has image data ready
-    const ph = row.querySelector('#ms-gthumb-' + uid);
-    const _loadThumb = (imgPath) => {
-      const src = 'https://wsrv.nl/?url=' + encodeURIComponent('img.opencritic.com/' + imgPath) + '&w=80&h=80&fit=cover&output=jpg';
+    if (g.cover && g.cover.image_id) {
+      const ph  = row.querySelector('#igdb-thumb-' + g.id);
+      const src = IGDB_IMG + 't_thumb/' + g.cover.image_id + '.jpg';
       const img = document.createElement('img');
       img.className = 'mb-thumb';
-      img.src = src;
-      img.onload = () => ph && ph.isConnected && ph.replaceWith(img);
-    };
-    // If images already merged (re-render after load more), use immediately
-    const _existingPath = (g.images && g.images.box && g.images.box.og) ? g.images.box.og
-                        : (g.images && g.images.banner && g.images.banner.og) ? g.images.banner.og : '';
-    if (_existingPath) {
-      _loadThumb(_existingPath);
-    } else {
-      // Lazy-fetch detail only when row enters viewport
-      const obs = new IntersectionObserver((entries, o) => {
-        if (!entries[0].isIntersecting) return;
-        o.disconnect();
-        fetch('https://opencritic-api.p.rapidapi.com/game/' + g.id, {
-          headers: { 'x-rapidapi-host': _OC_HOST, 'x-rapidapi-key': _OC_KEY }
-        })
-        .then(r => r.ok ? r.json() : null)
-        .then(detail => {
-          if (!detail) return;
-          Object.assign(g, detail);
-          const imgPath = (detail.images && detail.images.box && detail.images.box.og)
-            ? detail.images.box.og
-            : (detail.images && detail.images.banner && detail.images.banner.og)
-            ? detail.images.banner.og : '';
-          if (imgPath) _loadThumb(imgPath);
-        })
-        .catch(() => {});
-      }, { threshold: 0.1 });
-      obs.observe(row);
+      img.src       = src;
+      img.onload    = () => ph && ph.isConnected && ph.replaceWith(img);
     }
 
-    row.addEventListener('click', () => _msSelectGame(g, row));
+    row.addEventListener('click', () => _igdbSelectGame(g, row));
     frag.appendChild(row);
   });
-  // Insert before load-more button if it exists
-  const lm = document.getElementById('oc-load-more');
+
+  const lm = document.getElementById('igdb-load-more');
   if (lm) wrap.insertBefore(frag, lm);
   else wrap.appendChild(frag);
 }
-async function _msSelectGame(g, rowEl) {
+
+async function _igdbSelectGame(g, rowEl) {
   document.querySelectorAll('.mb-result-row').forEach(r => r.classList.remove('selected'));
   rowEl.classList.add('selected');
   mbSetStatus('<span class="mb-spinner"></span> Loading cover…');
   document.getElementById('mb-selected-detail').classList.remove('visible');
 
-  const title  = g.name || '—';
-  const year   = g.firstReleaseDate ? String(new Date(g.firstReleaseDate).getFullYear()) : '';
-  const dev    = (g.Companies || []).map(c => c.name).join(', ') || 'Game';
-  const desc   = g.description ? g.description.slice(0, 140) + (g.description.length > 140 ? '…' : '') : '';
+  const title = g.name || '—';
+  const year  = g.first_release_date
+    ? String(new Date(g.first_release_date * 1000).getFullYear())
+    : '';
+  const dev   = (g.involved_companies || [])
+    .map(ic => ic.company && ic.company.name).filter(Boolean).join(', ') || 'Game';
+  const desc  = g.summary
+    ? g.summary.slice(0, 140) + (g.summary.length > 140 ? '…' : '')
+    : '';
 
-  // Get image path — may already be on g from IntersectionObserver, otherwise fetch detail
-  let _imgPath = (g.images && g.images.box && g.images.box.og) ? g.images.box.og
-               : (g.images && g.images.banner && g.images.banner.og) ? g.images.banner.og : '';
-  if (!_imgPath) {
-    try {
-      const _detail = await fetch('https://opencritic-api.p.rapidapi.com/game/' + g.id, {
-        headers: { 'x-rapidapi-host': _OC_HOST, 'x-rapidapi-key': _OC_KEY }
-      }).then(r => r.ok ? r.json() : null);
-      if (_detail) {
-        Object.assign(g, _detail);
-        _imgPath = (_detail.images && _detail.images.box && _detail.images.box.og) ? _detail.images.box.og
-                 : (_detail.images && _detail.images.banner && _detail.images.banner.og) ? _detail.images.banner.og : '';
-      }
-    } catch(_) {}
-  }
-
-  // wsrv.nl proxies any image with correct CORS headers — works for fetch/canvas
   let coverDataUrl = null;
-  if (_imgPath) {
-    const proxied = 'https://wsrv.nl/?url=' + encodeURIComponent('img.opencritic.com/' + _imgPath) + '&w=600&output=jpg';
+  if (g.cover && g.cover.image_id) {
+    const proxied = 'https://wsrv.nl/?url=' +
+      encodeURIComponent('images.igdb.com/igdb/image/upload/t_cover_big/' + g.cover.image_id + '.jpg') +
+      '&w=600&output=jpg';
     try { coverDataUrl = await _urlToDataUrl(proxied); } catch(_) {}
   }
 
@@ -9507,7 +9486,7 @@ async function _msSelectGame(g, rowEl) {
     img.src = coverDataUrl; img.style.display = '';
     document.getElementById('mb-sel-cover-ph').style.display = 'none';
   } else {
-    document.getElementById('mb-sel-cover').style.display = 'none';
+    document.getElementById('mb-sel-cover').style.display    = 'none';
     document.getElementById('mb-sel-cover-ph').style.display = 'flex';
   }
 
