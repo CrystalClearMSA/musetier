@@ -4446,6 +4446,8 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   ║           Covers via wsrv.nl proxy (CORS). Sort by relevance. ║
   ║           Load more (20/page). Last.fm icon + floppy SVG.     ║
   ║           Grid toolbar: sliders for size/gap. Drop overlay.   ║
+  ║  1.5   → IGDB via Cloudflare Worker; dynamic Xirsys ICE;     ║
+  ║           EMQX broker; MB 429 retry; easter egg timing fix     ║
   ║           Version: EA 1.0.10.3                                ║
   ╚══════════════════════════════════════════════════════════════╝
 -->
@@ -7881,14 +7883,14 @@ document.getElementById('scanFolderInput').addEventListener('change', async e=>{
 });
 
 const _SCAN_EASTER_EGGS = [
-  { t: 60,  msg: 'So, nice weather huh?' },
-  { t: 90,  msg: 'How long did it take to get your library this big?' },
-  { t: 120, msg: 'Watched the game last night?' },
-  { t: 150, msg: 'Any second now.' },
-  { t: 180, msg: 'Aaaaany second now.' },
-  { t: 240, msg: "You should go outside more when you're done with this." },
-  { t: 300, msg: 'Still here. Still scanning. No judgement.' },
-  { t: 420, msg: 'At this point your music library is a personality trait.' },
+  { t: 15,  msg: 'So, nice weather huh?' },
+  { t: 30,  msg: 'How long did it take to get your library this big?' },
+  { t: 45,  msg: 'Watched the game last night?' },
+  { t: 60,  msg: 'Any second now.' },
+  { t: 75,  msg: 'Aaaaany second now.' },
+  { t: 90,  msg: "You should go outside more when you're done with this." },
+  { t: 105, msg: 'Still here. Still scanning. No judgement.' },
+  { t: 120, msg: 'At this point your music library is a personality trait.' },
 ];
 let _scanEggTimers = [];
 function _startScanEggs(statEl) {
@@ -8957,9 +8959,15 @@ function msImport() {
   if (_msSelected)         { msImportMedia(); return; }
 }
 
-async function mbFetch(url) {
+async function mbFetch(url, _retry = 0) {
   // Note: User-Agent is a forbidden header in browser fetch — MB API accepts browser UA fine
   const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+  if (r.status === 429) {
+    if (_retry >= 3) throw new Error('MusicBrainz rate limit — please wait a moment and try again');
+    const wait = (1.5 ** _retry) * 1500; // 1.5s, 2.25s, 3.375s
+    await new Promise(res => setTimeout(res, wait));
+    return mbFetch(url, _retry + 1);
+  }
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 }
@@ -10372,7 +10380,32 @@ function _collabTeardown() {
   _suppressBroadcast = false;
 }
 
-function collabCreate() {
+// ── Xirsys dynamic ICE fetch — always-fresh TURN credentials ─────────────────
+let _iceCache = null;
+async function _getIceServers() {
+  if (_iceCache) return _iceCache;
+  try {
+    const r = await fetch('https://global.xirsys.net/_turn/Mindtier', {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'Basic ' + btoa('Freddytime4:a2e36848-1999-11f1-a727-0242ac130003'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ format: 'urls' }),
+    });
+    if (!r.ok) throw new Error('Xirsys ' + r.status);
+    const data = await r.json();
+    _iceCache = data.v.iceServers;
+    // Cache busts after 4 hours (credentials typically valid for 24h)
+    setTimeout(() => { _iceCache = null; }, 4 * 60 * 60 * 1000);
+    return _iceCache;
+  } catch(e) {
+    console.warn('[ice] Xirsys fetch failed, using fallback STUN:', e);
+    return [{ urls: 'stun:stun.l.google.com:19302' }];
+  }
+}
+
+async function collabCreate() {
   if (typeof window.__trysteroJoinRoom !== 'function') {
     toast('Collab still loading — please try again in a moment', 'info', 3000); return;
   }
@@ -10382,7 +10415,8 @@ function collabCreate() {
   document.getElementById('collab-host-btn').disabled = true;
 
   _collabTeardown();
-  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }] } }, code);
+  const _iceServers = await _getIceServers();
+  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1',     relayUrls: ['wss://broker.emqx.io:8084/mqtt'], rtcConfig: { iceServers: _iceServers } }, code);
   var msgActions    = _collabRoom.makeAction('msg');
   _collabSendMsg    = msgActions[0];
   var receiveMsg    = msgActions[1];
@@ -10455,7 +10489,7 @@ function collabCreate() {
 }
 
 
-function collabJoin() {
+async function collabJoin() {
   if (typeof window.__trysteroJoinRoom !== 'function') {
     toast('Collab still loading — please try again in a moment', 'info', 3000); return;
   }
@@ -10469,7 +10503,8 @@ function collabJoin() {
   collabSetStatus('waiting', 'JOINING…');
 
   _collabTeardown();
-  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }] } }, code);
+  const _iceServers = await _getIceServers();
+  _collabRoom = window.__trysteroJoinRoom({ appId: 'musetier-v1',     relayUrls: ['wss://broker.emqx.io:8084/mqtt'], rtcConfig: { iceServers: _iceServers } }, code);
   var msgActions    = _collabRoom.makeAction('msg');
   _collabSendMsg    = msgActions[0];
   var receiveMsg    = msgActions[1];
@@ -13050,7 +13085,7 @@ function _auxPushEvent(msg) {
 }
 
 // ── Judge: create room ────────────────────────────────
-function auxJudgeCreate() {
+async function auxJudgeCreate() {
   const name = _sanitizeStr((document.getElementById('aux-uname').value || '').trim().toUpperCase(), 32);
   if (!name) { toast('Enter a username first', 'error'); return; }
   if (typeof window.__trysteroJoinRoom !== 'function') {
@@ -13069,7 +13104,8 @@ function auxJudgeCreate() {
   _auxRoomCode = code;
 
   if (_auxRoom) { try { _auxRoom.leave(); } catch(_) {} }
-  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }] } }, code);
+  const _iceServers = await _getIceServers();
+  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', relayUrls: ['wss://broker.emqx.io:8084/mqtt'], rtcConfig: { iceServers: _iceServers } }, code);
   var auxActions = _auxRoom.makeAction('aux');
   _auxSendFn = auxActions[0];
   var receiveAux = auxActions[1];
@@ -13148,7 +13184,7 @@ function auxJudgeCreate() {
 }
 
 // ── Contestant: join ──────────────────────────────────
-function auxContestantJoin() {
+async function auxContestantJoin() {
   const name = _sanitizeStr((document.getElementById('aux-uname').value || '').trim().toUpperCase(), 32);
   if (!name) { toast('Enter a username first', 'error'); return; }
   if (typeof window.__trysteroJoinRoom !== 'function') {
@@ -13171,7 +13207,8 @@ function auxContestantJoin() {
   _auxRoomCode  = code;
 
   if (_auxRoom) { try { _auxRoom.leave(); } catch(_) {} }
-  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { username: '3oWq-4s7X1KsjX7lQe7P6yv7j2wJBodjxF50ynKRVwgp1VhkhSdTzlyFtP0hDvJ0AAAAAGmrNPhDcnlzdGFsQ2xlYXJNU0E=', credential: 'add12778-1998-11f1-a250-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }, { username: '7hrKbaap-XrinhDtaQq-QsdAf9-Jc9iyB5VNcByHBs8Y9rgC27CgIjw6xmE16To2AAAAAGmrNsNGcmVkZHl0aW1lNA==', credential: 'bf5ba350-1999-11f1-9dd0-b63a6f7f3f1f', urls: ['turn:hk-turn1.xirsys.com:3478?transport=udp', 'turn:hk-turn1.xirsys.com:3478?transport=tcp'] }] } }, code);
+  const _iceServers = await _getIceServers();
+  _auxRoom = window.__trysteroJoinRoom({ appId: 'musetier-aux-v1', relayUrls: ['wss://broker.emqx.io:8084/mqtt'], rtcConfig: { iceServers: _iceServers } }, code);
   var auxActions = _auxRoom.makeAction('aux');
   _auxSendFn = auxActions[0];
   var receiveAux = auxActions[1];
