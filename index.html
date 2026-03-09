@@ -1302,6 +1302,64 @@ label.btn { cursor: pointer; }
   font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
   color: var(--text-dim); padding: 5px 12px 3px; flex-shrink: 0;
 }
+/* Pool header buttons (dedup, clear, sort) */
+#pool-dedup-btn, #pool-clear-btn, #pool-sort-btn {
+  background: none; border: 1px solid var(--border); color: var(--text-dim);
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
+  padding: 1px 6px; cursor: pointer; margin-left: 6px;
+  transition: color 0.12s, border-color 0.12s;
+}
+#pool-dedup-btn:hover, #pool-clear-btn:hover { color: var(--accent2); border-color: var(--accent2); }
+#pool-sort-btn:hover, #pool-sort-btn.active { color: var(--accent); border-color: var(--accent); }
+
+/* Pool sort dropdown */
+#pool-sort-menu {
+  position: fixed; z-index: 9100;
+  background: var(--panel2); border: 1px solid var(--border-hi);
+  display: none; flex-direction: column; min-width: 170px;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+  animation: modal-pop 0.14s cubic-bezier(.34,1.3,.64,1) both;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.6);
+}
+#pool-sort-menu.open { display: flex; }
+.psm-item {
+  background: none; border: none; border-bottom: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono); font-size: 12px;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 7px 12px; cursor: pointer; text-align: left;
+  transition: background 0.1s, color 0.1s;
+}
+.psm-item:last-child { border-bottom: none; }
+.psm-item:hover { background: var(--panel3); color: var(--accent); }
+.psm-item.active { color: var(--accent); }
+.psm-item.active::before { content: '✓ '; }
+
+/* Assign-category overlay */
+.acat-info {
+  font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+  letter-spacing: 1px; margin-bottom: 10px;
+}
+.acat-input-row { margin-bottom: 6px; }
+#acat-input {
+  width: 100%; box-sizing: border-box;
+  background: var(--panel2); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono); font-size: 13px;
+  letter-spacing: 1px; padding: 6px 10px; outline: none;
+  transition: border-color 0.15s;
+}
+#acat-input:focus { border-color: var(--accent); }
+.acat-suggestions {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  max-height: 120px; overflow-y: auto;
+  margin-bottom: 10px;
+}
+.acat-sug-btn {
+  background: var(--panel2); border: 1px solid var(--border);
+  color: var(--text-dim); font-family: var(--mono); font-size: 11px;
+  letter-spacing: 1px; padding: 3px 8px; cursor: pointer;
+  transition: all 0.1s; text-transform: uppercase;
+}
+.acat-sug-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--panel3); }
 #pool-search-wrap { padding: 3px 10px 2px; flex-shrink: 0; }
 #pool-search {
   width: 100%; box-sizing: border-box;
@@ -2034,6 +2092,10 @@ label.btn { cursor: pointer; }
   color: var(--accent); border-bottom: 1px solid var(--border);
   padding-bottom: 8px; flex-shrink: 0;
 }
+.modal-title {
+  font-family: var(--mono); font-size: 13px; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--accent); font-weight: 700;
+}
 .modal-btn {
   background: transparent; border: 1px solid var(--border-hi);
   color: var(--text); font-family: var(--mono); font-size: 13px;
@@ -2318,7 +2380,7 @@ body.edit-mode .item { cursor: default; pointer-events: none; }
 body.edit-mode .item-rm { display: none !important; }
 body.edit-mode .tier-zone { pointer-events: none; }
 body.edit-mode #pool { pointer-events: none; opacity: 0.5; }
-body.edit-mode #pool-hdr::after { content: ' — LOCKED IN EDIT MODE'; color: var(--accent2); font-size: 11px; opacity: 0.7; }
+body.edit-mode #pool-hdr::after { content: ' - LOCKED IN EDIT MODE'; color: var(--accent2); font-size: 11px; opacity: 0.7; }
 
 
 body.edit-mode .tier-row {
@@ -2778,7 +2840,7 @@ html { transition: background-color 0.25s, color 0.25s; }
 
 
 
-  #mbOvr .modal { width: min(560px, 100%); max-height: 88vh; display: flex; flex-direction: column; }
+  #mbOvr .modal { width: min(560px, 100%); max-height: 88dvh; display: flex; flex-direction: column; }
   #mb-search-row { display: flex; gap: 6px; margin-bottom: 8px; }
   #mb-search-input {
     flex: 1; background: var(--panel2); border: 1px solid var(--border);
@@ -2815,6 +2877,12 @@ html { transition: background-color 0.25s, color 0.25s; }
   #mb-status { font-size: 12px; color: var(--text-dim); letter-spacing: 1px; padding: 4px 0; min-height: 16px; }
   .mb-selected-detail { border: 1px solid var(--accent-lib); padding: 8px; margin-bottom: 8px; display: none; }
   .mb-selected-detail.visible { display: block; }
+  .mb-rel-picker { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .mb-rel-btn { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; padding: 2px 7px;
+    border: 1px solid var(--border); background: none; color: var(--text-dim); cursor: pointer;
+    transition: all .12s; white-space: nowrap; }
+  .mb-rel-btn:hover { border-color: var(--border-hi); color: var(--text); }
+  .mb-rel-btn.active { border-color: var(--accent-lib); color: var(--accent-lib); background: rgba(0,229,160,0.07); }
   .mb-selected-header { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 6px; }
   .mb-selected-cover { width: 56px; height: 56px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
   .mb-selected-cover-ph { width: 56px; height: 56px; background: var(--panel2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--text-dim); flex-shrink: 0; }
@@ -2830,6 +2898,27 @@ html { transition: background-color 0.25s, color 0.25s; }
   .mb-type-btn { background: none; border: 1px solid var(--border); color: var(--text-dim); font-family: var(--mono); font-size: 11px; letter-spacing: 1px; padding: 2px 6px; cursor: pointer; transition: all .12s; }
   .mb-type-btn.active { border-color: var(--accent-lib); color: var(--accent-lib); }
   .mb-type-btn:hover { border-color: var(--border-hi); color: var(--text); }
+  /* Variant grouping */
+  .mb-group { display: flex; flex-direction: column; gap: 0; }
+  .mb-group-hdr { display: flex; align-items: center; gap: 8px; padding: 5px 6px;
+    border: 1px solid var(--border); cursor: pointer; transition: background .12s, border-color .12s; }
+  .mb-group-hdr:hover { background: var(--panel2); border-color: var(--accent-lib); }
+  .mb-group-hdr.selected { background: var(--panel2); border-color: var(--accent-lib); }
+  .mb-variant-badge { font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
+    color: var(--accent-lib); border: 1px solid var(--accent-lib); padding: 1px 5px;
+    flex-shrink: 0; white-space: nowrap; }
+  .mb-expand-arrow { font-size: 10px; color: var(--text-dim); flex-shrink: 0;
+    transition: transform .15s; user-select: none; margin-left: auto; padding-left: 4px; }
+  .mb-expand-arrow.open { transform: rotate(180deg); }
+  .mb-variants-list { display: none; flex-direction: column; gap: 0; margin-left: 14px;
+    border-left: 1px solid var(--border); }
+  .mb-variants-list.open { display: flex; }
+  .mb-variant-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px;
+    border: 1px solid transparent; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background .12s, border-color .12s; }
+  .mb-variant-row:last-child { border-bottom: none; }
+  .mb-variant-row:hover { background: var(--panel2); border-color: var(--accent-lib); }
+  .mb-variant-row.selected { background: var(--panel2); border-color: var(--accent-lib); }
 
 
 @keyframes edit-banner-in {
@@ -3565,12 +3654,14 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   max-width: min(320px, 48vw);
   position: relative;
 }
-.matchup-side:hover {
+.matchup-side:hover,
+.matchup-side.highlighted {
   background: rgba(255,0,170,.1);
   border-color: #f0a;
   transform: scale(1.03);
 }
-.matchup-side:hover .matchup-pick-hint { opacity: 1; }
+.matchup-side:hover .matchup-pick-hint,
+.matchup-side.highlighted .matchup-pick-hint { opacity: 1; }
 .matchup-cover {
   width: 180px; height: 180px;
   object-fit: cover;
@@ -3895,7 +3986,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 #aux-judge-watching-lbl.vis { display: block; }
 
 
-#auxOvr .modal { width:480px; max-height:90vh; overflow-y:auto; }
+#auxOvr .modal { width:480px; max-height:90dvh; overflow-y:auto; }
 .aux-modal-section { margin-bottom:12px; }
 .aux-modal-title {
   font-family: var(--mono);
@@ -4352,7 +4443,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   .modal {
     width: 100vw !important;
     max-width: 100vw !important;
-    max-height: 88vh !important;
+    max-height: 88dvh !important;
     border-radius: 0 !important;
     clip-path: none !important;
     border-left: none !important;
@@ -4409,7 +4500,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   #grid-toolbar .btn { flex-shrink: 0; }
 
   /* ── Bracket name input: shrink ── */
-  #bracket-name-input { min-width: 0; width: 120px !important; font-size: 12px !important; }
+  #bracket-name-input { min-width: 0; width: 120px !important; }
 
   /* ── Matchup overlay: stack vertically on mobile ── */
   #matchup-arena { flex-direction: column; gap: 0; }
@@ -4437,6 +4528,18 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 
   /* ── Items ── */
   .item-rm { opacity: 1 !important; }
+
+  /* ── Collab: stack join row vertically ── */
+  #collab-setup-ui .collab-join-row { flex-direction: column; gap: 6px; }
+  #collab-setup-ui .collab-join-row input { width: 100% !important; }
+  #collab-setup-ui .collab-join-row button { width: 100% !important; }
+
+  /* ── Input zoom: cover date inputs and bracket name not caught by modal rule ── */
+  .modal input[type=date] { font-size: 16px !important; }
+  #bracket-name-input { font-size: 16px !important; min-width: 0; width: 120px !important; }
+
+  /* ── Export preview: compress on mobile ── */
+  #export-preview { max-height: 160px; }
 }
 
 /* ── Very small phones (≤ 420px) ── */
@@ -4446,6 +4549,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   #logo { font-size: 14px; letter-spacing: 2px; }
   .app-tab { font-size: 11px; padding: 6px 10px; }
   .btn { font-size: 11px; padding: 7px 10px; }
+  /* ── Matchup overlay: smaller covers at 420px ── */
   .matchup-cover, .matchup-cover-ph { width: 100px; height: 100px; }
   .matchup-side { padding: 14px 12px 22px; }
   #gen-config-col { max-height: 40vh; }
@@ -4485,7 +4589,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 <!--
   ╔═══════════════════════════════════════════════════════════════╗
   ║  MUSETIER BUILD LOG — continuity across sessions           ║
-  ║  Current build: 1.4  |  Updated: 2026-03-08                   ║
+  ║  Current build: 1.5  |  Updated: 2026-03-09                   ║
   ║  CHANGELOG (increment build # each session that makes edits)  ║
   ║  1.0.9 → baseline build as received                           ║
   ║  1.1   → mobile dvh fix, touch drag, sidebar tap-to-add,      ║
@@ -4509,7 +4613,18 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   ║           EMQX broker; MB 429 retry; easter egg timing fix    ║
   ║  1.6   → Save/Load slots (5 DOOM-style slots); Xirsys ICE     ║
   ║           via Cloudflare worker (/ice route)                  ║
-  ║           Version: EA 1.1 - Early Acess                       ║
+  ║           Version: EA 1.1 - Early Access                      ║
+  ║  1.7   → Pool sort menu (A-Z, Z-A, Reverse, Shuffle, Manual); ║
+  ║           Assign Category overlay; Export modal (Plain Text,  ║
+  ║           JSON Rankings, Bracket Results tabs); Last.fm Import ║
+  ║           shortcut; MB release picker + variant grouping;     ║
+  ║           bracket session persistence (resume after reload);  ║
+  ║           match log; matchup keyboard nav (arrow+1/2+Enter);  ║
+  ║           _suppressDepth counter replaces _suppressBroadcast; ║
+  ║           mobile: dvh modal fix, collab join row stacking,    ║
+  ║           input zoom prevention; modal-title CSS added;       ║
+  ║           all em-dashes replaced in user-facing text.         ║
+  ║           Version: EA 1.2a - Early Access                     ║
   ╚═══════════════════════════════════════════════════════════════╝
 -->
 <canvas id="fx-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity 0.9s ease"></canvas>
@@ -4520,7 +4635,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 <div id="topbar">
   <div id="logo">MUSE<span>_</span>TIER</div>
   <span id="autosave-dot" title="Auto-saved"></span>
-  <button id="ver-badge" onclick="openOverlay('supportOvr')" title="Early Access — click to report bugs &amp; join support server"><span id="ver-badge-ea">EA</span><span id="ver-badge-num">1.1</span><span id="ver-badge-icon">?</span></button>
+  <button id="ver-badge" onclick="openOverlay('supportOvr')" title="Early Access - click to report bugs &amp; join support server"><span id="ver-badge-ea">EA</span><span id="ver-badge-num">1.2a</span><span id="ver-badge-icon">?</span></button>
   <div id="logo-credit"></div>
   <!-- Mobile-only: full-width lib button + action icons in same row -->
   <div id="mobile-lib-row">
@@ -4533,7 +4648,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
         <button class="btn mob-icon-btn" onclick="tbToggle('dd-mob-export')" title="Export">↓</button>
         <div class="tb-drop-menu tb-drop-menu-left" id="dd-mob-export-menu">
           <button class="tb-drop-item" onclick="exportTierImage();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">↓</span>Save as Image</button>
-          <button class="tb-drop-item" onclick="exportTierText();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">≡</span>Export as Text</button>
+          <button class="tb-drop-item" onclick="openExportModal();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">≡</span>Export...</button>
           <button class="tb-drop-item" onclick="openSaveLoad();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">💾</span>Save / Load</button>
           <div class="tb-drop-sep"></div>
           <button class="tb-drop-item tb-drop-danger" onclick="clearTier();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">✕</span>Clear Tier</button>
@@ -4569,6 +4684,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     <button class="tb-dropdown-btn" id="btn-media" onclick="tbToggle('dd-import')">✦ MEDIA <span class="dd-arrow">▾</span></button>
     <div class="tb-drop-menu" id="dd-import-menu">
       <button class="tb-drop-item" onclick="openMBSearch();tbClose('dd-import')"><span class="tb-drop-item-icon">✦</span>Search</button>
+      <button class="tb-drop-item" onclick="openMBSearch();setTimeout(()=>{msSetTab('music',document.getElementById('ms-tab-music'));msShowLfmImport();},80);tbClose('dd-import')"><span class="tb-drop-item-icon">♫</span>Last.fm Import</button>
       <div class="tb-drop-sep"></div>
       <button class="tb-drop-item" onclick="openScanModal();tbClose('dd-import')"><span class="tb-drop-item-icon">⟳</span>Scan Library</button>
       <label class="tb-drop-item"><span class="tb-drop-item-icon">↑</span>Upload Files<input type="file" id="fileInput" multiple accept="image/*" style="display:none"></label>
@@ -4578,13 +4694,13 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   <button class="btn" id="collab-btn" onclick="openCollab()" title="Real-time collaboration"><span class="collab-btn-icon">⇄</span><span class="collab-btn-txt"> COLLAB</span></button>
   <button class="btn" id="chat-toggle-btn" onclick="chatToggle()" title="Room chat" style="display:none;">&#x1F4AC; <span id="chat-toggle-lbl">CHAT</span><span id="chat-unread" class="chat-unread-badge" style="display:none;">0</span></button>
   <button class="btn" id="gen-settings-btn" onclick="openGenSettings()" title="Track image generation settings">✦ GEN</button>
-  <button class="btn" id="edit-mode-btn" onclick="toggleEditMode()" title="Edit Mode — rearrange tiers, add new rows (Ctrl+E)">✎ EDIT</button>
+  <button class="btn" id="edit-mode-btn" onclick="toggleEditMode()" title="Edit Mode - rearrange tiers, add new rows (Ctrl+E)">✎ EDIT</button>
   <!-- Export dropdown — export image + clear -->
   <div class="tb-dropdown" id="dd-export">
     <button class="tb-dropdown-btn" onclick="tbToggle('dd-export')">↓ EXPORT <span class="dd-arrow">▾</span></button>
     <div class="tb-drop-menu" id="dd-export-menu">
       <button class="tb-drop-item" onclick="exportTierImage();tbClose('dd-export')"><span class="tb-drop-item-icon">↓</span>Save as Image</button>
-      <button class="tb-drop-item" onclick="exportTierText();tbClose('dd-export')"><span class="tb-drop-item-icon">≡</span>Export as Text</button>
+      <button class="tb-drop-item" onclick="openExportModal();tbClose('dd-export')"><span class="tb-drop-item-icon">≡</span>Export...</button>
       <div class="tb-drop-sep"></div>
       <button class="tb-drop-item tb-drop-danger" onclick="clearTier();tbClose('dd-export')"><span class="tb-drop-item-icon">✕</span>Clear Tier</button>
       <button class="tb-drop-item tb-drop-danger" onclick="clearAllItems();tbClose('dd-export')"><span class="tb-drop-item-icon">⊘</span>Clear All Items</button>
@@ -4709,7 +4825,14 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
       <div id="pool-wrap">
         <button id="pool-popdown-btn" onclick="collapsePool()" title="Collapse pool">▾ COLLAPSE POOL</button>
         <div id="pool-resize-handle" title="Drag to resize pool"></div>
-        <div id="pool-hdr">STAGING POOL <button id="pool-dedup-btn" onclick="openDedupModal()" title="Find & merge duplicates">⧉ DUPES</button><button id="pool-clear-btn" onclick="clearPool()" title="Remove all items from pool">✕ CLEAR</button></div>
+        <div id="pool-hdr"><span id="pool-hdr-label">STAGING POOL</span> <button id="pool-dedup-btn" onclick="openDedupModal()" title="Find &amp; merge duplicates">⧉ DUPES</button><button id="pool-clear-btn" onclick="clearPool()" title="Remove all items from pool">✕ CLEAR</button><button id="pool-sort-btn" onclick="openPoolSortMenu(event)" title="Sort pool items">⇅ SORT</button></div>
+        <div id="pool-sort-menu">
+          <button class="psm-item" id="psm-az"      onclick="applyPoolSort('az')">A → Z</button>
+          <button class="psm-item" id="psm-za"      onclick="applyPoolSort('za')">Z → A</button>
+          <button class="psm-item" id="psm-rev"     onclick="applyPoolSort('rev')">↩ Reverse Import</button>
+          <button class="psm-item" id="psm-shuffle" onclick="applyPoolSort('shuffle')">⚄ Random Shuffle</button>
+          <button class="psm-item" id="psm-manual"  onclick="applyPoolSort('manual')">↕ Manual Order</button>
+        </div>
         <div id="pool-search-wrap"><input id="pool-search" type="text" placeholder="🔍 filter pool…" oninput="filterPool(this.value)" autocomplete="off"></div>
         <div id="cat-bar-wrap"><div id="cat-bar"></div></div>
         <div id="pool"></div>
@@ -4795,7 +4918,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
           <span id="aux-winmode-chip">SCORE</span>
           <div class="aux-judge-chip">
             <span class="aux-judge-chip-lbl">⚖ JUDGE</span>
-            <span class="aux-judge-chip-name" id="aux-judge-display">—</span>
+            <span class="aux-judge-chip-name" id="aux-judge-display">-</span>
           </div>
         </div>
         <!-- Pick-phase bar: visible during 'picking' phase only -->
@@ -5062,7 +5185,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     <div id="loading-title">LOADING<span>_</span></div>
     <div id="loading-bar-track"><div id="loading-bar"></div></div>
     <div id="loading-stats"><span><b id="ld-done">0</b> / <b id="ld-total">0</b></span><span><b id="ld-pct">0</b>%</span></div>
-    <div id="loading-file">—</div>
+    <div id="loading-file">-</div>
   </div>
 </div>
 
@@ -5071,7 +5194,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   <div class="modal" style="width:min(580px,100%);max-height:90vh;display:flex;flex-direction:column;">
     <div class="modal-hdr">// SUPPORT &amp; BUG REPORTS</div>
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0 8px;flex-shrink:0;">
-      <span id="ver-badge-modal" style="font-family:var(--mono);font-size:11px;background:rgba(255,200,0,.13);border:1px solid rgba(255,200,0,.35);color:#fc0;padding:3px 8px;letter-spacing:1px;">EA&#8209;1.1 — EARLY ACCESS</span>
+      <span id="ver-badge-modal" style="font-family:var(--mono);font-size:11px;background:rgba(255,200,0,.13);border:1px solid rgba(255,200,0,.35);color:#fc0;padding:3px 8px;letter-spacing:1px;">EA&#8209;1.2a - EARLY ACCESS</span>
       <span style="font-size:11px;color:var(--text-dim);letter-spacing:1px;">This build is unfinished. Bugs are expected.</span>
     </div>
     <p style="font-size:12px;color:var(--text-dim);letter-spacing:1px;line-height:1.8;flex-shrink:0;margin:0 0 10px;">
@@ -5134,7 +5257,6 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
       <button class="mb-type-btn active" id="ms-tab-music"  onclick="msSetTab('music',this)">♪ MUSIC</button>
       <button class="mb-type-btn"        id="ms-tab-games"  onclick="msSetTab('games',this)">⚙ GAMES</button>
       <button class="mb-type-btn"        id="ms-tab-movies" onclick="msSetTab('movies',this)">▶ MOVIES / TV</button>
-      <button class="mb-type-btn"        id="ms-tab-lastfm" onclick="msSetTab('lastfm',this)">♫ LAST.FM</button>
     </div>
 
     <!-- Last.fm panel — shown only when lastfm tab is active -->
@@ -5202,6 +5324,27 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
       <button class="mb-type-btn active" data-type="ep"          onclick="mbToggleType('ep',this)">EP</button>
       <button class="mb-type-btn active" data-type="compilation" onclick="mbToggleType('compilation',this)">COMPILATION</button>
       <button class="mb-type-btn" data-type="live"        onclick="mbToggleType('live',this)">LIVE</button>
+      <span style="flex:1;"></span>
+      <button class="mb-type-btn" id="ms-lfm-toggle" onclick="msToggleLfm(this)" title="Search via Last.fm instead of MusicBrainz">♫ LAST.FM</button>
+    </div>
+
+    <!-- Games category filters (hidden for other tabs) -->
+    <div id="mb-games-filter" style="display:none;flex-wrap:wrap;gap:4px;margin-bottom:6px;">
+      <button class="mb-type-btn active" data-gcat="0"  onclick="igdbToggleCat(0,this)">MAIN</button>
+      <button class="mb-type-btn active" data-gcat="1"  onclick="igdbToggleCat(1,this)">DLC</button>
+      <button class="mb-type-btn active" data-gcat="2"  onclick="igdbToggleCat(2,this)">EXPANSION</button>
+      <button class="mb-type-btn active" data-gcat="4"  onclick="igdbToggleCat(4,this)">STANDALONE DLC</button>
+      <button class="mb-type-btn active" data-gcat="8"  onclick="igdbToggleCat(8,this)">REMAKE</button>
+      <button class="mb-type-btn active" data-gcat="9"  onclick="igdbToggleCat(9,this)">REMASTER</button>
+      <button class="mb-type-btn active" data-gcat="10" onclick="igdbToggleCat(10,this)">EXPANDED</button>
+      <button class="mb-type-btn active" data-gcat="11" onclick="igdbToggleCat(11,this)">PORT</button>
+      <button class="mb-type-btn" data-gcat="3"  onclick="igdbToggleCat(3,this)">BUNDLE</button>
+      <button class="mb-type-btn" data-gcat="5"  onclick="igdbToggleCat(5,this)">MOD</button>
+      <button class="mb-type-btn" data-gcat="6"  onclick="igdbToggleCat(6,this)">EPISODE</button>
+      <button class="mb-type-btn" data-gcat="7"  onclick="igdbToggleCat(7,this)">SEASON</button>
+      <button class="mb-type-btn" data-gcat="12" onclick="igdbToggleCat(12,this)">FORK</button>
+      <button class="mb-type-btn" data-gcat="13" onclick="igdbToggleCat(13,this)">PACK</button>
+      <button class="mb-type-btn" data-gcat="14" onclick="igdbToggleCat(14,this)">UPDATE</button>
     </div>
 
     <div id="mb-search-row">
@@ -5220,6 +5363,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
           <div id="mb-sel-meta" style="font-size:12px;color:var(--text-dim);"></div>
         </div>
       </div>
+      <div id="mb-rel-picker" class="mb-rel-picker" style="display:none;"></div>
       <div id="mb-track-list" class="mb-track-list"></div>
       <button class="modal-btn primary" id="mb-import-btn" onclick="msImport()">↓ ADD TO LIBRARY</button>
     </div>
@@ -5333,11 +5477,29 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 
 <!-- Pool item context menu -->
 <div id="item-ctx-menu">
+  <button class="ctx-item" id="ictx-assign-cat" onclick="itemCtxAssignCat()">⊞ Assign Category</button>
   <button class="ctx-item" id="ictx-select-all" onclick="itemCtxSelectAll()">⊡ Select All in Pool</button>
   <button class="ctx-item" id="ictx-deselect" onclick="itemCtxDeselect()">○ Deselect All</button>
   <div id="item-ctx-sep"></div>
   <button class="ctx-item danger" id="ictx-delete-one" onclick="itemCtxDeleteOne()">✕ Remove This Item</button>
   <button class="ctx-item danger" id="ictx-delete-sel" onclick="itemCtxDeleteSelected()">✕✕ Remove Selected (<span id="ictx-sel-count">0</span>)</button>
+</div>
+
+<!-- Assign Category overlay -->
+<div class="overlay" id="assignCatOvr">
+  <div class="modal" style="width:min(360px,96%);padding:20px 20px 16px;">
+    <div class="modal-title" style="margin-bottom:12px;">⊞ ASSIGN CATEGORY</div>
+    <div class="acat-info" id="acat-info">Moving <span id="acat-count">1</span> item(s)</div>
+    <div class="acat-input-row">
+      <input id="acat-input" type="text" placeholder="Category name…" autocomplete="off"
+             oninput="acatFilter(this.value)" onkeydown="acatKeydown(event)">
+    </div>
+    <div class="acat-suggestions" id="acat-suggestions"></div>
+    <div class="modal-row" style="border-top:1px solid var(--border);padding-top:10px;margin-top:0;">
+      <button class="modal-btn primary" style="flex:1;" onclick="acatConfirm()">✓ ASSIGN</button>
+      <button class="modal-btn cancel"  style="flex:1;" onclick="closeOverlay('assignCatOvr')">CANCEL</button>
+    </div>
+  </div>
 </div>
 
 <!-- Gen Settings modal -->
@@ -5350,7 +5512,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     <!-- Album header -->
     <div id="gen-modal-album-hdr" style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--panel2);border:1px solid var(--border);margin-bottom:12px;min-height:52px;">
       <div style="width:36px;height:36px;background:var(--panel3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-dim);flex-shrink:0;">♪</div>
-      <div style="color:var(--text-dim);font-size:12px;">No album selected — click an album in the library to load it here</div>
+      <div style="color:var(--text-dim);font-size:12px;">No album selected. Click an album in the library to load it here</div>
     </div>
 
     <!-- Body: preview left, config right -->
@@ -5365,7 +5527,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
         <div id="gen-progress-wrap" style="display:none;">
           <div style="height:3px;background:var(--border);overflow:hidden;"><div id="gen-bar" style="height:100%;background:var(--accent-gen);width:0%;transition:width 0.2s;"></div></div>
           <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:2px;color:var(--text-dim);">
-            <span id="gen-stat-txt">—</span><span id="gen-stat-pct">0%</span>
+            <span id="gen-stat-txt">-</span><span id="gen-stat-pct">0%</span>
           </div>
         </div>
         <button class="btn btn-gen" onclick="sendToPool()" style="font-size:11px;padding:5px 4px;">→ SEND TRACK</button>
@@ -5410,19 +5572,19 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
               <select class="gc-select" id="gc-font" onchange="updatePreview()">
                 <optgroup label="── SANS SERIF ──">
                   <option value="bold">Barlow Condensed (Default)</option>
-                  <option value="anton">Anton — Heavy Impact</option>
-                  <option value="russo">Russo One — Rounded Bold</option>
-                  <option value="bebas">Bebas Neue — Tall &amp; Narrow</option>
-                  <option value="teko">Teko — Geometric Compressed</option>
-                  <option value="saira">Saira Condensed — Dense</option>
-                  <option value="fjalla">Fjalla One — Clean &amp; Strong</option>
+                  <option value="anton">Anton - Heavy Impact</option>
+                  <option value="russo">Russo One - Rounded Bold</option>
+                  <option value="bebas">Bebas Neue - Tall &amp; Narrow</option>
+                  <option value="teko">Teko - Geometric Compressed</option>
+                  <option value="saira">Saira Condensed - Dense</option>
+                  <option value="fjalla">Fjalla One - Clean &amp; Strong</option>
                   <option value="bsdisp">Big Shoulders Display</option>
-                  <option value="righteous">Righteous — Rounded</option>
+                  <option value="righteous">Righteous - Rounded</option>
                 </optgroup>
                 <optgroup label="── DISPLAY / POSTER ──">
-                  <option value="staatlich">Staatliches — Stretched</option>
-                  <option value="bungee">Bungee — Urban Sign</option>
-                  <option value="bangers">Bangers — Comic Book</option>
+                  <option value="staatlich">Staatliches - Stretched</option>
+                  <option value="bungee">Bungee - Urban Sign</option>
+                  <option value="bangers">Bangers - Comic Book</option>
                   <option value="ultra">Ultra — Heavy Roman</option>
                   <option value="alfaslab">Alfa Slab One — Slab Poster</option>
                   <option value="abril">Abril Fatface — Editorial</option>
@@ -5570,7 +5732,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
       <div style="border-top:1px solid var(--border);margin:10px 0;"></div>
 
       <div class="gc-title" style="margin-bottom:6px;">JOIN A SESSION</div>
-      <div style="display:flex;gap:6px;">
+      <div class="collab-join-row" style="display:flex;gap:6px;">
         <input id="collab-join-code" class="gc-input" placeholder="Enter room code…" maxlength="8"
           style="flex:1;font-size:15px;letter-spacing:3px;text-transform:uppercase;"
           oninput="this.value=this.value.toUpperCase()"
@@ -5600,43 +5762,76 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 </div>
 
 
+<!-- ── EXPORT overlay ──────────────────────────────────────────────── -->
+<div class="overlay" id="exportOvr">
+  <div class="modal">
+    <div class="modal-hdr">// EXPORT</div>
+    <div id="export-tab-bar">
+      <button class="exp-tab active" id="exp-tab-text"     onclick="_exportSwitchTab('text')">PLAIN TEXT</button>
+      <button class="exp-tab"        id="exp-tab-json"     onclick="_exportSwitchTab('json')">JSON RANKINGS</button>
+      <button class="exp-tab"        id="exp-tab-bracket"  onclick="_exportSwitchTab('bracket')">BRACKET RESULTS</button>
+    </div>
+    <div id="export-bracket-note">Match log recorded during this session. Timestamps are Unix ms (UTC).</div>
+    <div id="export-preview"></div>
+    <div class="modal-row">
+      <button class="modal-btn primary" style="flex:1;" onclick="_exportCopy()">COPY</button>
+      <button class="modal-btn"         style="flex:1;" onclick="_exportDownload()">DOWNLOAD</button>
+      <button class="modal-btn cancel"  style="flex:1;" onclick="closeOverlay('exportOvr')">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+
 <!-- ── WHAT'S NEW overlay ─────────────────────────────────────────── -->
 <div class="overlay" id="whatsNewOvr" style="z-index:10010;">
   <div class="modal" style="width:560px;max-width:96vw;max-height:88vh;">
-    <div class="modal-hdr" style="flex-shrink:0;">// WHAT'S NEW IN EA&#8209;1.1</div>
+    <div class="modal-hdr" style="flex-shrink:0;">// WHAT'S NEW IN EA&#8209;1.2a</div>
     <div id="wn-scroll">
 
       <div class="wn-section-hdr">&#10022; NEW FEATURES</div>
 
-      <div class="wn-entry"><span class="wn-icon">&#x1F4BE;</span><div><div class="wn-title">SAVE / LOAD SLOTS</div><div class="wn-desc">5 named save slots for your full tier list and pool. Each slot shows item count, pool count and timestamp. Rename any slot without overwriting. Access via the &#x1F4BE; SAVE/LOAD button in the toolbar.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#x1F50D;</span><div><div class="wn-title">POOL LIVE FILTER</div><div class="wn-desc">New search box at the top of the Staging Pool &#8212; type to instantly narrow items by name. Persists across re-renders.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#x2328;</span><div><div class="wn-title">DELETE / BACKSPACE BULK REMOVE</div><div class="wn-desc">Shift+click to select multiple pool items, then press Delete or Backspace to remove them all at once.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#x2261;</span><div><div class="wn-title">EXPORT AS TEXT</div><div class="wn-desc">New export option that copies your ranked list to clipboard as plain text &#8212; formatted as <em>S: Album A, Album B / A: Album C</em>.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#x2B21;</span><div><div class="wn-title">BRACKET: SEED FROM TIER ROWS</div><div class="wn-desc">New bracket setting &#8212; seeds entrants using your actual tier rankings so S tier gets top seeds, A tier next, and so on.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#x2B21;</span><div><div class="wn-title">BRACKET: SAVE AS IMAGE</div><div class="wn-desc">Export your full bracket as a PNG directly from the bracket settings cog.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x2A1E;</span><div><div class="wn-title">POOL SORT MENU</div><div class="wn-desc">New <strong>&#x21C5; SORT</strong> button on the Staging Pool header. Choose from A to Z, Z to A, Reverse Import order, Random Shuffle, or Manual drag order. Active sort persists across re-renders.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x229E;</span><div><div class="wn-title">ASSIGN CATEGORY</div><div class="wn-desc">Right-click any pool item (or multi-select then right-click) to open the Assign Category overlay. Type a category name or pick from existing ones to tag items in bulk. Categories feed into library filters.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x2261;</span><div><div class="wn-title">EXPORT MODAL</div><div class="wn-desc">The Export menu now opens a full modal with three tabs: <em>Plain Text</em> (ranked list you can paste anywhere), <em>JSON Rankings</em> (structured re-importable data), and <em>Bracket Results</em> (full match log from your tournament).</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x266B;</span><div><div class="wn-title">LAST.FM IMPORT SHORTCUT</div><div class="wn-desc">A dedicated <strong>Last.fm Import</strong> button is now in the &#x2726; MEDIA import dropdown so you can jump straight to the import profile tab without navigating through the search modal manually.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x1F50D;</span><div><div class="wn-title">MUSICBRAINZ: RELEASE PICKER + VARIANT GROUPING</div><div class="wn-desc">MusicBrainz search results now group releases by title with an expandable variant list. A release type filter bar lets you narrow by Album, Single, EP, Compilation, and more before selecting.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x2B21;</span><div><div class="wn-title">BRACKET SESSION PERSISTENCE</div><div class="wn-desc">An in-progress tournament is now saved to sessionStorage after every pick. If you accidentally reload mid-tournament, the app offers to resume exactly where you left off. Session clears automatically on clean completion.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x2B21;</span><div><div class="wn-title">BRACKET MATCH LOG</div><div class="wn-desc">Every matchup result is now recorded internally (round, match, winner, loser, seed, timestamp). The new Bracket Results tab in the Export modal lets you copy the full log as JSON.</div></div></div>
 
       <div class="wn-section-hdr">&#10022; IMPROVEMENTS</div>
 
-      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">AUTO-SAVE DOT</div><div class="wn-desc">A small dot next to the logo flashes on every auto-save so you always know your changes are persisted.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">COLLAB ROOM CODE &#8212; CLICK TO SELECT</div><div class="wn-desc">The room code in the collab panel is now click-to-select-all for faster copying.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">BROADCAST OPTIMISATION</div><div class="wn-desc">Collab now skips broadcasting when tier content hasn't actually changed &#8212; slider moves, theme switches and settings saves no longer generate network traffic.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">FX CANVAS PAUSES ON TAB SWITCH</div><div class="wn-desc">The tier list particle effects canvas now pauses its render loop when you're on another tab, saving CPU.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">BLOB URL MEMORY MANAGEMENT</div><div class="wn-desc">Blob URLs are now revoked immediately when items are removed, preventing memory leaks in long sessions.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">AUX BATTLE: PICK PHASE BAR</div><div class="wn-desc">New persistent bar during the Aux Battle pick phase showing ready states, countdown timer, ready/start buttons, chat toggle and leave button.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">UNDO: TIER ADD / DELETE</div><div class="wn-desc">Ctrl+Z now handles undoing adding a tier row and deleting a tier row &#8212; restoring items to their original positions.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">ONBOARDING TOUR UPDATED</div><div class="wn-desc">Tour expanded with new slides for Pool Filter, Undo, Export, Save/Load Slots. Bracket, Grid, Library and Collab slides all refreshed.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">MATCHUP KEYBOARD NAVIGATION</div><div class="wn-desc">You can now drive matchups entirely from the keyboard. Left/Right arrow keys highlight a side, Enter or Space confirms the highlighted pick, and the 1 and 2 keys pick directly without needing to highlight first.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">BROADCAST RE-ENTRANCY FIX</div><div class="wn-desc">The single <code>_suppressBroadcast</code> boolean flag has been replaced with a reference-counted <code>_suppressDepth</code> counter, preventing nested collab suppression calls from prematurely re-enabling broadcasts.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">MOBILE: DVH MODAL FIX</div><div class="wn-desc">Modal max-height values now use <code>dvh</code> instead of <code>vh</code> so overlays size correctly on mobile browsers where the address bar changes viewport height dynamically.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">MOBILE: COLLAB JOIN ROW STACKING</div><div class="wn-desc">The room code input and join button in the collab panel now stack vertically on narrow screens so they don't overflow or get clipped on small devices.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#183;</span><div><div class="wn-title">MOBILE: INPUT ZOOM PREVENTION</div><div class="wn-desc">Date inputs, bracket name field, and other modal inputs are now forced to <code>font-size: 16px</code> on mobile, which stops iOS Safari from zooming the page when you tap them.</div></div></div>
 
       <div class="wn-section-hdr">&#10022; BUG FIXES</div>
 
-      <div class="wn-entry"><span class="wn-icon">&#x1F527;</span><div><div class="wn-title">ICE / WEBRTC &#8212; XIRSYS PARSING FIXED</div><div class="wn-desc">Xirsys changed its response shape &#8212; iceServers is now a single object instead of an array. Fixed parsing for all 3 response shapes, plus a real TURN fallback so cross-network sessions work even if the worker is unreachable.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#x1F527;</span><div><div class="wn-title">BATTLE: BRACKET REMNANTS AFTER DISCONNECT</div><div class="wn-desc">All battle picks and match state now clear properly for all three roles (Judge, Contestant A, Contestant B) when a session ends or a peer disconnects.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#x1F527;</span><div><div class="wn-title">GRID &#8212; LABEL POSITION: SIDE NOT CLEARING BOTTOM LABELS</div><div class="wn-desc">Toggling label position to Side now correctly removes the bottom-cell labels rather than showing both at once.</div></div></div>
-      <div class="wn-entry"><span class="wn-icon">&#x1F527;</span><div><div class="wn-title">GRID &#8212; MOBILE DRAG FROM POOL STRIP</div><div class="wn-desc">Pool strip items can now be dragged onto grid cells on mobile via long-press, with a ghost drag preview and haptic feedback on start.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x1F527;</span><div><div class="wn-title">MODAL-TITLE CLASS UNDEFINED</div><div class="wn-desc">The Assign Category and Gen Settings overlays used a <code>.modal-title</code> CSS class that was never defined, leaving their headings unstyled. The class is now properly declared.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x1F527;</span><div><div class="wn-title">MATCHUP HIGHLIGHT NOT CLEARED ON CLOSE</div><div class="wn-desc">Pressing Escape to close the matchup overlay left a lingering <code>highlighted</code> class on whichever side was last arrow-keyed. Escape now calls <code>_matchupClearHighlight</code> before closing.</div></div></div>
+      <div class="wn-entry"><span class="wn-icon">&#x1F527;</span><div><div class="wn-title">BRACKET SESSION RESTORE: QUEUE CLAMP</div><div class="wn-desc">If a session snapshot had a stale <code>matchupIdx</code> pointing past the end of the restored queue (due to partial consumption before reload), the index is now clamped to 0 to prevent an empty matchup screen.</div></div></div>
 
     </div><!-- #wn-scroll -->
     <button class="modal-btn primary" style="margin-top:14px;flex-shrink:0;width:100%;" onclick="closeWhatsNew()">GOT IT &#x2665;</button>
   </div>
 </div>
+
+<style>
+/* ── Export overlay ──────────────────────────────────────── */
+#exportOvr .modal { width: min(480px, 96vw); display: flex; flex-direction: column; }
+#export-tab-bar { display: flex; gap: 6px; margin-bottom: 12px; }
+.exp-tab { flex: 1; background: none; border: 1px solid var(--border); color: var(--text-dim);
+  font-family: var(--mono); font-size: 11px; letter-spacing: 1px; padding: 6px 8px;
+  cursor: pointer; transition: color .12s, border-color .12s, background .12s; }
+.exp-tab:hover { color: var(--text); border-color: var(--border-hi); }
+.exp-tab.active { color: var(--accent); border-color: var(--accent); background: rgba(0,255,200,.06); }
+#export-preview { font-family: var(--mono); font-size: 11px; color: var(--text);
+  background: var(--panel2); border: 1px solid var(--border); padding: 10px 12px;
+  min-height: 80px; max-height: 260px; overflow-y: auto; white-space: pre-wrap;
+  word-break: break-all; line-height: 1.55; margin-bottom: 10px; }
+#export-bracket-note { font-size: 11px; color: var(--text-dim); margin-bottom: 8px; display: none; }
+</style>
 
 <style>
 /* ── What's New overlay ─────────────────────────────────── */
@@ -5682,11 +5877,11 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
     /* On mobile the base rule sets overflow-y:auto on .modal — override so
        inner #wn-scroll handles all scrolling instead */
     overflow-y: hidden !important;
-    max-height: 88vh !important;
+    max-height: 88dvh !important;
   }
   #wn-scroll {
     /* Give the scroll area all available height, leaving room for hdr + btn */
-    max-height: calc(88vh - 120px);
+    max-height: calc(88dvh - 120px);
     padding-right: 2px;
   }
   .wn-title {
@@ -5801,6 +5996,7 @@ const THEMES = [
   {id:'midnight', label:'MIDNIGHT',    bg:'#050712', accent:'#7f5cff'},
   {id:'pastel',   label:'PASTEL',      bg:'#30283a', accent:'#f8c2ff'},
   {id:'original', label:'ARCHIVE',     bg:'#0c0c0c', accent:'#d4ff00'},
+  {id:'vinyl',    label:'VINYL',       bg:'#0d0810', accent:'#c8a0b0'},
 ];
 
 // also add cinema if present - keep it for backward compat
@@ -6099,6 +6295,7 @@ function _saveNow() {
       tiers: tiersForStorage, catOrder, activeCategory,
       theme: currentTheme, light: currentLight, labelText: globalLabelText,
       tileSize: _tileSizePx, labelSize: _labelSizePx,
+      poolSortMode: _poolSortMode, poolSortSeed: _poolSortSeed,
     }));
 
     // Brief autosave indicator flash
@@ -6138,6 +6335,13 @@ async function load() {
     pendingRestore = m.size ? m : null;
     if (s.catOrder) catOrder = s.catOrder;
     if (s.activeCategory) activeCategory = s.activeCategory;
+    if (s.poolSortMode) _poolSortMode = s.poolSortMode;
+    if (s.poolSortSeed) _poolSortSeed = s.poolSortSeed;
+    // Sync sort button active state after restoring sort mode
+    requestAnimationFrame(() => {
+      const sortBtn = document.getElementById('pool-sort-btn');
+      if (sortBtn) sortBtn.classList.toggle('active', _poolSortMode !== 'manual');
+    });
   } catch(_) {}
 }
 
@@ -6398,8 +6602,12 @@ function setupRowDrag(row) {
     row.classList.remove('row-drag-over-top','row-drag-over-bottom');
     const {before} = rowDragOver || {before: true};
     const container = document.getElementById('tiers');
+    // Snapshot the full row order before the move so undo can restore it exactly
+    const prevOrder = [...container.querySelectorAll('.tier-row')];
     if (before) container.insertBefore(rowDragged, row);
     else container.insertBefore(rowDragged, row.nextSibling);
+    undoStack.push({ type: 'tier_reorder', order: prevOrder });
+    if (undoStack.length > UNDO_MAX) undoStack.shift();
     rebuildInsertSlots();
     updateRowIdx(); save();
   });
@@ -6499,6 +6707,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) endDr
 function setupDraggable(item) {
   item.draggable = true;
   _attachItemInteraction(item);
+  _attachPoolReorder(item);
 
   item.addEventListener('dragstart', e => {
     e.stopPropagation();
@@ -6673,6 +6882,12 @@ function undo() {
     }
     rebuildInsertSlots(); updateRowIdx(); renderCatBar(); updatePoolCount(); save();
     toast('Tier delete undone ↩', 'info', 1400);
+  } else if (entry.type === 'tier_reorder') {
+    // Restore the previous DOM order of all tier rows in one pass
+    const container = document.getElementById('tiers');
+    entry.order.forEach(r => { if (r.isConnected) container.appendChild(r); });
+    rebuildInsertSlots(); updateRowIdx(); save();
+    toast('Row reorder undone ↩', 'info', 1200);
   }
 }
 
@@ -6815,7 +7030,7 @@ function updatePoolCount() {
   let badge = document.getElementById('pool-count');
   if (!badge) {
     badge = document.createElement('span'); badge.id = 'pool-count';
-    document.getElementById('pool-hdr').appendChild(badge);
+    document.getElementById('pool-hdr-label').after(badge);
   }
   const n = document.getElementById('pool').querySelectorAll('.item').length;
   const prev = badge._prev ?? -1;
@@ -6823,6 +7038,242 @@ function updatePoolCount() {
   if (n !== prev) { badge.classList.remove('changed'); void badge.offsetWidth; badge.classList.add('changed'); }
   badge._prev = n;
 }
+
+// ── Assign Category ───────────────────────────────────────────────────────────
+// Moves one or more items into a named category in catStore.
+// If the category doesn't exist yet it is created; if the item was the only
+// member of its old category that slot is pruned.
+
+let _acatTargetItems = []; // items being re-categorised
+
+function itemCtxAssignCat() {
+  closeItemCtxMenu();
+  // Operate on all selected items, or just the right-clicked one
+  _acatTargetItems = _selectedItems.size > 0 ? [..._selectedItems] : (_ictxTargetItem ? [_ictxTargetItem] : []);
+  if (!_acatTargetItems.length) return;
+  document.getElementById('acat-count').textContent = _acatTargetItems.length;
+  // Pre-fill with current category if all targets share one
+  const currentCats = new Set(_acatTargetItems.map(item => {
+    let found = null;
+    catStore.forEach((entries, cat) => { if (entries.some(e => e.item === item)) found = cat; });
+    return found;
+  }));
+  const input = document.getElementById('acat-input');
+  input.value = currentCats.size === 1 && currentCats.has(null) === false ? [...currentCats][0] : '';
+  acatFilter(input.value);
+  openOverlay('assignCatOvr');
+  setTimeout(() => input.focus(), 60);
+}
+
+function acatFilter(q) {
+  const wrap = document.getElementById('acat-suggestions');
+  wrap.innerHTML = '';
+  const existing = [...catStore.keys()].sort((a, b) => a.localeCompare(b));
+  const lower = (q || '').trim().toLowerCase();
+  const matches = lower ? existing.filter(k => k.toLowerCase().includes(lower)) : existing;
+  matches.slice(0, 10).forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'acat-sug-btn';
+    btn.textContent = cat;
+    btn.onclick = () => { document.getElementById('acat-input').value = cat; acatFilter(cat); };
+    wrap.appendChild(btn);
+  });
+}
+
+function acatKeydown(e) {
+  if (e.key === 'Enter') { e.preventDefault(); acatConfirm(); }
+}
+
+function acatConfirm() {
+  const newCat = document.getElementById('acat-input').value.trim().toUpperCase();
+  if (!newCat) { toast('Enter a category name', 'error', 1400); return; }
+  closeOverlay('assignCatOvr');
+
+  _acatTargetItems.forEach(item => {
+    // Remove from current catStore slot
+    catStore.forEach((entries, cat) => {
+      const idx = entries.findIndex(e => e.item === item);
+      if (idx !== -1) {
+        entries.splice(idx, 1);
+        if (!entries.length) catStore.delete(cat);
+      }
+    });
+    // Insert into new category, preserving bitmap ref if available
+    if (!catStore.has(newCat)) catStore.set(newCat, []);
+    const bitmap = bitmapCache.get(item) || null;
+    catStore.get(newCat).push({ item, bitmap });
+  });
+
+  // Ensure new cat is in catOrder
+  if (!catOrder.includes(newCat)) catOrder.push(newCat);
+
+  // Refresh pool view — stay on current cat or switch to new one
+  if (activeCategory !== 'ALL' && activeCategory !== newCat) {
+    switchCat(newCat);
+  } else {
+    switchCat(activeCategory || 'ALL');
+  }
+  renderCatBar(); updatePoolCount(); save();
+  toast(`Assigned to "${newCat}"`, 'info', 1600);
+  _clearSelection();
+}
+
+// ── Pool Sort ─────────────────────────────────────────────────────────────────
+// Sorts catStore entries for the active category (or all categories when ALL).
+// 'manual' restores import order. Sort state persists in localStorage.
+
+let _poolSortMode = 'manual'; // 'az' | 'za' | 'rev' | 'shuffle' | 'manual'
+let _poolSortSeed = (Math.random() * 0xFFFFFFFF) >>> 0;
+
+// Import order is the original catStore insertion order — we stamp each entry
+// on first add so sort-and-restore is always available.
+function _stampImportOrder(entries) {
+  entries.forEach((e, i) => { if (e.importIdx == null) e.importIdx = i; });
+}
+
+const _poolSortMenu = document.getElementById('pool-sort-menu');
+
+function openPoolSortMenu(ev) {
+  ev.stopPropagation();
+  _poolSortMenu.style.left = '0px'; _poolSortMenu.style.top = '0px';
+  _poolSortMenu.classList.add('open');
+  const mw = _poolSortMenu.offsetWidth, mh = _poolSortMenu.offsetHeight;
+  const r  = document.getElementById('pool-sort-btn').getBoundingClientRect();
+  _poolSortMenu.style.left = Math.min(r.right - mw, window.innerWidth - mw - 8) + 'px';
+  _poolSortMenu.style.top  = Math.min(r.bottom + 2, window.innerHeight - mh - 8) + 'px';
+  // Mark active sort
+  ['az','za','rev','shuffle','manual'].forEach(m => {
+    const el = document.getElementById('psm-' + m);
+    if (el) el.classList.toggle('active', m === _poolSortMode);
+  });
+}
+
+function _closePoolSortMenu() { _poolSortMenu.classList.remove('open'); }
+document.addEventListener('click', e => { if (!_poolSortMenu.contains(e.target) && e.target.id !== 'pool-sort-btn') _closePoolSortMenu(); });
+
+function applyPoolSort(mode) {
+  _closePoolSortMenu();
+  if (mode === 'shuffle') _poolSortSeed = (Date.now() ^ Math.random() * 0xFFFFFFFF) >>> 0;
+  _poolSortMode = mode;
+  _applyPoolSortToStore();
+  // Reflect in active view immediately without full save cycle
+  switchCat(activeCategory || 'ALL');
+  updatePoolCount();
+  // Mark sort button active when not in manual order
+  const sortBtn = document.getElementById('pool-sort-btn');
+  if (sortBtn) sortBtn.classList.toggle('active', mode !== 'manual');
+  // Persist sort preference
+  try {
+    const raw = localStorage.getItem(SK);
+    const obj = raw ? JSON.parse(raw) : {};
+    obj.poolSortMode = _poolSortMode;
+    obj.poolSortSeed = _poolSortSeed;
+    localStorage.setItem(SK, JSON.stringify(obj));
+  } catch(_) {}
+  const labels = { az: 'A → Z', za: 'Z → A', rev: 'Reversed', shuffle: 'Shuffled', manual: 'Manual order' };
+  toast(labels[mode] || mode, 'info', 1000);
+}
+
+function _itemSortKey(item) {
+  const lbl = item.querySelector('.item-lbl')?.textContent?.trim() || '';
+  const alt = item.querySelector('img')?.alt || '';
+  return (lbl || alt).toLowerCase();
+}
+
+function _applyPoolSortToStore() {
+  const sortCat = (entries) => {
+    // Stamp import order on first sort so we can restore it
+    entries.forEach((e, i) => { if (e.importIdx == null) e.importIdx = i; });
+    if (_poolSortMode === 'manual') {
+      entries.sort((a, b) => (a.importIdx ?? 0) - (b.importIdx ?? 0));
+    } else if (_poolSortMode === 'az') {
+      entries.sort((a, b) => _itemSortKey(a.item).localeCompare(_itemSortKey(b.item)));
+    } else if (_poolSortMode === 'za') {
+      entries.sort((a, b) => _itemSortKey(b.item).localeCompare(_itemSortKey(a.item)));
+    } else if (_poolSortMode === 'rev') {
+      entries.sort((a, b) => (b.importIdx ?? 0) - (a.importIdx ?? 0));
+    } else if (_poolSortMode === 'shuffle') {
+      const rng = _mulberry32(_poolSortSeed);
+      for (let i = entries.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [entries[i], entries[j]] = [entries[j], entries[i]];
+      }
+    }
+  };
+  if (activeCategory === 'ALL') {
+    catStore.forEach(sortCat);
+  } else {
+    const entries = catStore.get(activeCategory);
+    if (entries) sortCat(entries);
+  }
+}
+
+// ── Pool manual drag-to-reorder ───────────────────────────────────────────────
+// When sort mode is 'manual', dragging items within the pool reorders catStore
+// so the new position persists across category switches and saves.
+
+let _poolDragItem = null;
+let _poolDragOriginCat = null;
+
+function _getItemCat(item) {
+  let found = null;
+  catStore.forEach((entries, cat) => { if (entries.some(e => e.item === item)) found = cat; });
+  return found;
+}
+
+function _attachPoolReorder(item) {
+  // Pool reorder uses the standard HTML5 drag events already wired in setupDraggable;
+  // we layer on drop/dragover to reorder catStore when in manual mode.
+  item.addEventListener('dragover', function(e) {
+    if (_poolSortMode !== 'manual') return;
+    if (!dragged || dragged === item) return;
+    if (item.closest('.tier-zone')) return; // only pool items
+    e.preventDefault();
+    e.stopPropagation();
+    const r = item.getBoundingClientRect();
+    const before = e.clientY < r.top + r.height / 2;
+    item.classList.toggle('pool-reorder-before', before);
+    item.classList.toggle('pool-reorder-after',  !before);
+  });
+  item.addEventListener('dragleave', function() {
+    item.classList.remove('pool-reorder-before', 'pool-reorder-after');
+  });
+  item.addEventListener('drop', function(e) {
+    item.classList.remove('pool-reorder-before', 'pool-reorder-after');
+    if (_poolSortMode !== 'manual') return;
+    if (!dragged || dragged === item) return;
+    if (item.closest('.tier-zone')) return;
+    const cat = _getItemCat(dragged);
+    if (!cat) return;
+    const entries = catStore.get(cat);
+    if (!entries) return;
+    const fromIdx = entries.findIndex(en => en.item === dragged);
+    const toIdx   = entries.findIndex(en => en.item === item);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const r = item.getBoundingClientRect();
+    const before = e.clientY < r.top + r.height / 2;
+    const [moved] = entries.splice(fromIdx, 1);
+    const insertAt = before ? toIdx : toIdx + 1;
+    entries.splice(fromIdx < toIdx ? insertAt - 1 : insertAt, 0, moved);
+    // Re-stamp importIdx to match new canonical order
+    entries.forEach((en, i) => { en.importIdx = i; });
+    // DOM: move dragged element next to target
+    if (before) item.parentNode.insertBefore(dragged, item);
+    else item.parentNode.insertBefore(dragged, item.nextSibling);
+    updatePoolCount();
+    save();
+  });
+}
+
+// Pool reorder indicator CSS (injected into head)
+(function() {
+  const s = document.createElement('style');
+  s.textContent = `
+    .pool-reorder-before { box-shadow: inset 0 2px 0 0 var(--accent) !important; }
+    .pool-reorder-after  { box-shadow: inset 0 -2px 0 0 var(--accent) !important; }
+  `;
+  document.head.appendChild(s);
+})();
 
 // ── Duplicate detection & merge ───────────────────────────────
 function _getDedupGroups() {
@@ -7123,9 +7574,23 @@ function onImagesLoaded(newByCat) {
     if(!pendingRestore.size) pendingRestore = null; // fully consumed
   }
   renderCatBar(); requestAnimationFrame(updateCatFade);
+  // Stamp import order on newly added entries so sort/restore always works
+  newByCat.forEach((items, cat) => {
+    const entries = catStore.get(cat) || [];
+    const base = entries.filter(e => e.importIdx != null).length;
+    entries.forEach((e, i) => { if (e.importIdx == null) e.importIdx = base + i; });
+  });
+  // Apply active sort mode before rendering the pool
+  if (_poolSortMode !== 'manual') _applyPoolSortToStore();
   const frag=document.createDocumentFragment();
   newByCat.forEach((items,cat)=>{ if(activeCategory==='ALL'||activeCategory===cat) items.forEach(item=>{if(!item.closest('.tier-zone'))frag.appendChild(item);}); });
   pool.appendChild(frag); updatePoolCount(); save();
+  // After the final batch, any entries still in pendingRestore had no matching item
+  // loaded — log them and discard so the Map doesn't persist as a dangling reference.
+  if(pendingRestore?.size) {
+    console.warn('[musetier] pendingRestore: %d item(s) never matched after all batches — discarding:', pendingRestore.size, [...pendingRestore.keys()]);
+    pendingRestore = null;
+  }
   if (typeof gridRenderPoolStrip === 'function' && activeTab === 'grid') gridRenderPoolStrip();
   // Broadcast pool to collab peers — delayed 1.5s to let async dataUrl loading settle
   setTimeout(function() { collabBroadcastThrottled({ type: 'pool_state', payload: _collabPoolState() }); }, 1500);
@@ -7421,6 +7886,8 @@ function switchCat(cat) {
   // (sub-tabs stay expanded across category switches)
   [...pool.querySelectorAll('.item')].forEach(el => pool.removeChild(el));
   activeCategory = cat;
+  // Apply active sort mode before rendering
+  if (_poolSortMode !== 'manual') _applyPoolSortToStore();
   const frag = document.createDocumentFragment();
   if (cat === 'ALL') catStore.forEach(entries => entries.forEach(e => { if (!e.item.closest('.tier-zone')) frag.appendChild(e.item); }));
   else (catStore.get(cat) || []).forEach(e => { if (!e.item.closest('.tier-zone')) frag.appendChild(e.item); });
@@ -7476,6 +7943,109 @@ function _downloadText(text) {
   a.download = 'musetier-rankings.txt';
   a.click();
   toast('Downloaded rankings.txt', 'info', 2000);
+}
+
+// ── Export modal ──────────────────────────────────────────────────────────────
+let _exportCurrentTab = 'text';
+
+function openExportModal() {
+  _exportSwitchTab('text');
+  openOverlay('exportOvr');
+}
+
+function _exportBuildText() {
+  const rows = [...tiersEl.querySelectorAll('.tier-row')];
+  if (!rows.length) return null;
+  const lines = [];
+  rows.forEach(row => {
+    const label = row.querySelector('.tier-label')?.textContent.trim() || '?';
+    const items = [...row.querySelectorAll('.item')].map(el => {
+      const lbl = el.querySelector('.item-lbl')?.textContent.trim();
+      const alt = el.querySelector('img')?.alt || '';
+      return lbl || alt || '';
+    }).filter(Boolean);
+    if (items.length) lines.push(label + ': ' + items.join(', '));
+  });
+  return lines.length ? lines.join('\n') : null;
+}
+
+function _exportBuildJSON() {
+  const rows = [...tiersEl.querySelectorAll('.tier-row')];
+  if (!rows.length) return null;
+  const tiers = [];
+  rows.forEach(row => {
+    const name  = row.querySelector('.tier-label')?.textContent.trim() || '?';
+    const color = row.querySelector('.tier-label')?.style.background || '';
+    const items = [...row.querySelectorAll('.item')].map(el => ({
+      label: el.querySelector('.item-lbl')?.textContent.trim() || '',
+      alt:   el.querySelector('img')?.alt || ''
+    })).filter(it => it.label || it.alt);
+    tiers.push({ name, color, items });
+  });
+  return tiers.length ? JSON.stringify({ tiers }, null, 2) : null;
+}
+
+function _exportBuildBracket() {
+  if (!_matchLog.length) return null;
+  return JSON.stringify({ matches: _matchLog }, null, 2);
+}
+
+function _exportSwitchTab(tab) {
+  _exportCurrentTab = tab;
+  document.querySelectorAll('.exp-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('exp-tab-' + tab).classList.add('active');
+  const note = document.getElementById('export-bracket-note');
+  const prev = document.getElementById('export-preview');
+  note.style.display = tab === 'bracket' ? 'block' : 'none';
+  let content;
+  if (tab === 'text')    content = _exportBuildText();
+  if (tab === 'json')    content = _exportBuildJSON();
+  if (tab === 'bracket') content = _exportBuildBracket();
+  prev.textContent = content || (tab === 'bracket'
+    ? '(no picks recorded this session)'
+    : '(no tier data)');
+}
+
+function _exportCopy() {
+  let content;
+  if (_exportCurrentTab === 'text')    content = _exportBuildText();
+  if (_exportCurrentTab === 'json')    content = _exportBuildJSON();
+  if (_exportCurrentTab === 'bracket') content = _exportBuildBracket();
+  if (!content) { toast('Nothing to copy', 'info', 1500); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(content)
+      .then(() => toast('Copied to clipboard!', 'success', 2000))
+      .catch(() => _exportFallbackDownload(content));
+  } else {
+    _exportFallbackDownload(content);
+  }
+}
+
+function _exportDownload() {
+  let content, filename;
+  if (_exportCurrentTab === 'text') {
+    content  = _exportBuildText();
+    filename = 'musetier-rankings.txt';
+  } else if (_exportCurrentTab === 'json') {
+    content  = _exportBuildJSON();
+    filename = 'musetier-rankings.json';
+  } else {
+    content  = _exportBuildBracket();
+    filename = 'musetier-bracket.json';
+  }
+  if (!content) { toast('Nothing to download', 'info', 1500); return; }
+  _exportFallbackDownload(content, filename);
+}
+
+function _exportFallbackDownload(text, filename) {
+  const ext  = (filename || '').endsWith('.json') ? 'json' : 'txt';
+  const name = filename || ('musetier-export.' + ext);
+  const mime = ext === 'json' ? 'application/json' : 'text/plain';
+  const a    = document.createElement('a');
+  a.href     = 'data:' + mime + ';charset=utf-8,' + encodeURIComponent(text);
+  a.download = name;
+  a.click();
+  toast('Downloaded ' + name, 'info', 2000);
 }
 
 
@@ -8954,14 +9524,18 @@ let   fxRaf    = null;
 let   fxActive = null;
 
 function fxResize() {
-  // Render at half device resolution — imperceptible at animation speeds,
-  // halves fill-rate cost. CSS width/height keep it fullscreen.
-  fxCanvas.width  = Math.ceil(window.innerWidth  / 2);
-  fxCanvas.height = Math.ceil(window.innerHeight / 2);
+  // Half-res relative to device pixels — clean 2x upscale on retina, halves fill-rate cost.
+  const dpr = window.devicePixelRatio || 1;
+  fxCanvas.width  = Math.ceil(window.innerWidth  * dpr / 2);
+  fxCanvas.height = Math.ceil(window.innerHeight * dpr / 2);
   fxCanvas.style.width  = window.innerWidth  + 'px';
   fxCanvas.style.height = window.innerHeight + 'px';
 }
-window.addEventListener('resize', fxResize, { passive: true });
+let _fxResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(_fxResizeTimer);
+  _fxResizeTimer = setTimeout(fxResize, 120);
+}, { passive: true });
 // Stale rect cache on resize (items reflow, stored rects would be wrong)
 window.addEventListener('resize', () => { if (typeof invalidateRectCache === 'function') invalidateRectCache(); }, { passive: true });
 fxResize();
@@ -9050,7 +9624,8 @@ function animSynthwave() {
 }
 
 function animEmbers() {
-  const embers = Array.from({length: 75}, () => spawnE());
+  const count = Math.max(50, Math.ceil(fxCanvas.width / 10));
+  const embers = Array.from({length: count}, () => spawnE());
   function spawnE() { return { x: Math.random()*fxCanvas.width, y: fxCanvas.height+8, vx:(Math.random()-.5)*.6, vy:-(Math.random()*1.3+.35), life:Math.random()*.5+.5, decay:.002+Math.random()*.003, size:Math.random()*2.8+.5, hue:15+Math.random()*28, idx:Math.random()*100 }; }
   return () => {
     fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
@@ -9065,13 +9640,16 @@ function animEmbers() {
 }
 
 function animMidnight() {
-  const STARS = Array.from({length: 200}, () => ({ x:Math.random()*fxCanvas.width, y:Math.random()*fxCanvas.height*.65, r:Math.random()*1.3+.15, phase:Math.random()*Math.PI*2, tw:Math.random()*.03+.004 }));
+  // Positions stored as fractions [0,1] so resize never scrambles them.
+  // Phase seeded once here and never reset.
+  const STARS = Array.from({length: 200}, () => ({ rx:Math.random(), ry:Math.random()*.65, r:Math.random()*1.3+.15, phase:Math.random()*Math.PI*2, tw:Math.random()*.03+.004 }));
   let t = 0;
   return () => {
     fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height); t += .008;
     STARS.forEach(s => {
+      const sx = s.rx * fxCanvas.width, sy = s.ry * fxCanvas.height;
       const a = .2+.8*Math.pow((Math.sin(t*s.tw*80+s.phase)+1)/2, 2.5);
-      fxCtx.fillStyle = `rgba(255,255,255,${a})`; fxCtx.beginPath(); fxCtx.arc(s.x, s.y, s.r, 0, Math.PI*2); fxCtx.fill();
+      fxCtx.fillStyle = `rgba(255,255,255,${a})`; fxCtx.beginPath(); fxCtx.arc(sx, sy, s.r, 0, Math.PI*2); fxCtx.fill();
     });
     fxCtx.save();
     for (let b = 0; b < 3; b++) {
@@ -9216,6 +9794,47 @@ function animGrain() {
   };
 }
 
+function animVinyl() {
+  // Slow rotating vinyl record silhouette with subtle groove rings.
+  let angle = 0;
+  const RPM = 33.33, GROOVES = 18;
+  return () => {
+    const w = fxCanvas.width, h = fxCanvas.height;
+    fxCtx.clearRect(0, 0, w, h);
+    // Rotate at ~33 RPM scaled to canvas frame rate
+    angle += (RPM / 60) * (Math.PI * 2) / 60;
+    const cx = w * .5, cy = h * .5;
+    const R = Math.min(w, h) * .38;
+    fxCtx.save();
+    fxCtx.translate(cx, cy);
+    fxCtx.rotate(angle);
+    // Record body
+    const grad = fxCtx.createRadialGradient(0, 0, R * .05, 0, 0, R);
+    grad.addColorStop(0,   'rgba(30,20,30,.72)');
+    grad.addColorStop(.12, 'rgba(22,14,22,.72)');
+    grad.addColorStop(1,   'rgba(12,8,14,.48)');
+    fxCtx.fillStyle = grad;
+    fxCtx.beginPath(); fxCtx.arc(0, 0, R, 0, Math.PI * 2); fxCtx.fill();
+    // Groove rings
+    fxCtx.lineWidth = .5;
+    for (let i = 1; i <= GROOVES; i++) {
+      const gr = R * (.18 + i * (.78 / GROOVES));
+      fxCtx.strokeStyle = `rgba(255,255,255,${.04 + (i % 3 === 0 ? .025 : 0)})`;
+      fxCtx.beginPath(); fxCtx.arc(0, 0, gr, 0, Math.PI * 2); fxCtx.stroke();
+    }
+    // Label
+    const labelGrad = fxCtx.createRadialGradient(0, 0, 0, 0, 0, R * .18);
+    labelGrad.addColorStop(0, 'rgba(80,50,60,.55)');
+    labelGrad.addColorStop(1, 'rgba(50,30,40,.42)');
+    fxCtx.fillStyle = labelGrad;
+    fxCtx.beginPath(); fxCtx.arc(0, 0, R * .18, 0, Math.PI * 2); fxCtx.fill();
+    // Spindle hole
+    fxCtx.fillStyle = 'rgba(0,0,0,.82)';
+    fxCtx.beginPath(); fxCtx.arc(0, 0, R * .018, 0, Math.PI * 2); fxCtx.fill();
+    fxCtx.restore();
+  };
+}
+
 const THEME_ANIMS = {
   original:  animCRT,
   matrix:    animMatrix,
@@ -9228,6 +9847,7 @@ const THEME_ANIMS = {
   poetic:    animInk,
   grunge:    animGrain,
   blueprint: animBlueprint,
+  vinyl:     animVinyl,
 };
 
 function switchThemeAnim(theme) {
@@ -9246,7 +9866,7 @@ const MB_UA       = 'MuseTier/1.0 (local-tool)';
 const TMDB_KEY    = '377bf67badaf3a97121971242eb34f63';
 const TMDB_IMG    = 'https://image.tmdb.org/t/p/';
 // To add MobyGames later: set MOBYGAMES_KEY and it auto-activates as second source.
-const LASTFM_KEY  = 'ec5299456bf1592ad5964cea4140ac40';
+const LASTFM_KEY  = 'e394486f6d9ff7db4f5971de4806cfe3';
 const LASTFM_API  = 'https://ws.audioscrobbler.com/2.0/';
 
 // Shared key normaliser — used by both folder-scan and MB/media import so
@@ -9288,13 +9908,16 @@ function msSetTab(tab, btn) {
   _msTab = tab;
   document.querySelectorAll('#ms-tabs .mb-type-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  // Show/hide music type filters
-  document.getElementById('mb-type-filter').style.display = tab === 'music' ? '' : 'none';
-  // Show/hide Last.fm panel
-  document.getElementById('ms-lastfm-panel').style.display = tab === 'lastfm' ? '' : 'none';
-  // Show/hide search row (hidden on lastfm — it has its own UI)
-  document.getElementById('mb-search-row').style.display = tab === 'lastfm' ? 'none' : '';
-  document.getElementById('mb-results-wrap').style.display = tab === 'lastfm' ? 'none' : '';
+  // (type filter show/hide handled below with LFM logic)
+  // Last.fm panel is now controlled by toggle/import, not by tab
+  document.getElementById('ms-lastfm-panel').style.display = 'none';
+  document.getElementById('mb-search-row').style.display = '';
+  document.getElementById('mb-results-wrap').style.display = '';
+  // Deactivate LFM toggle when switching tabs
+  const lfmBtn = document.getElementById('ms-lfm-toggle');
+  if (lfmBtn) lfmBtn.classList.remove('active');
+  document.getElementById('mb-type-filter').style.display   = tab === 'music' ? '' : 'none';
+  document.getElementById('mb-games-filter').style.display  = tab === 'games' ? 'flex' : 'none';
   // Update placeholder
   const ph = { music: 'artist — album…', games: 'game title…', movies: 'movie or show title…' };
   document.getElementById('mb-search-input').placeholder = ph[tab] || 'Search…';
@@ -9302,6 +9925,9 @@ function msSetTab(tab, btn) {
   document.getElementById('mb-results-wrap').innerHTML = '';
   document.getElementById('mb-status').textContent = '';
   document.getElementById('mb-selected-detail').classList.remove('visible');
+  document.getElementById('mb-rel-picker').innerHTML = '';
+  document.getElementById('mb-rel-picker').style.display = 'none';
+  document.getElementById('mb-track-list').innerHTML = '';
   _msSelected = null; mbSelectedRelease = null;
   // Update sel cover ph icon
   document.getElementById('mb-sel-cover-ph').textContent = tab === 'music' ? '♪' : tab === 'games' ? '⚙' : tab === 'lastfm' ? '♫' : '▶';
@@ -9321,18 +9947,40 @@ function msImport() {
   if (_msSelected)         { msImportMedia(); return; }
 }
 
-async function mbFetch(url, _retry = 0) {
-  // Note: User-Agent is a forbidden header in browser fetch — MB API accepts browser UA fine
+// ── MB fetch: per-URL dedup + global exponential backoff on 429 ──────────────
+const _mbFetchInFlight = new Map(); // url → Promise<json>  — deduplicates identical concurrent requests
+let   _mbBackoffUntil  = 0;         // ms timestamp: all requests wait until this passes
+let   _mbBackoffMs     = 1000;      // current backoff window, doubles on each 429, resets on success
+
+async function mbFetch(url) {
+  if (_mbFetchInFlight.has(url)) return _mbFetchInFlight.get(url);
+  const p = _mbFetchExec(url).finally(() => _mbFetchInFlight.delete(url));
+  _mbFetchInFlight.set(url, p);
+  return p;
+}
+
+async function _mbFetchExec(url, _attempt = 0) {
+  // Honour any active backoff window (shared across all in-flight requests)
+  const delay = _mbBackoffUntil - Date.now();
+  if (delay > 0) await new Promise(res => setTimeout(res, delay));
+
   const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+
   if (r.status === 429) {
-    if (_retry >= 3) throw new Error('MusicBrainz rate limit — please wait a moment and try again');
-    const wait = (1.5 ** _retry) * 1500; // 1.5s, 2.25s, 3.375s
-    await new Promise(res => setTimeout(res, wait));
-    return mbFetch(url, _retry + 1);
+    if (_attempt >= 5) throw new Error('MusicBrainz rate limit — please wait a moment and try again');
+    _mbBackoffMs    = Math.min(_mbBackoffMs * 2, 16000); // 1s → 2s → 4s → 8s → 16s
+    _mbBackoffUntil = Date.now() + _mbBackoffMs;
+    await new Promise(res => setTimeout(res, _mbBackoffMs));
+    return _mbFetchExec(url, _attempt + 1);
   }
+
+  // Success — gently decay backoff back toward baseline
+  if (_attempt === 0) _mbBackoffMs = Math.max(1000, _mbBackoffMs / 2);
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 }
+
+const _mbSearchCache = new Map(); // normalizedQuery → release-group[] — session-scoped
 
 function mbSetStatus(html) { document.getElementById('mb-status').innerHTML = html; }
 
@@ -9341,10 +9989,22 @@ async function mbSearch() {
   if (!q) return;
   const btn = document.getElementById('mb-search-btn');
   btn.disabled = true;
-  mbSetStatus('<span class="mb-spinner"></span> Searching MusicBrainz…');
   document.getElementById('mb-results-wrap').innerHTML = '';
   document.getElementById('mb-selected-detail').classList.remove('visible');
   mbSelectedRelease = null;
+
+  // Session cache: normalise to lowercase+collapsed whitespace as key
+  const _cacheKey = q.toLowerCase().replace(/\s+/g, ' ');
+  if (_mbSearchCache.has(_cacheKey)) {
+    const cached = _mbSearchCache.get(_cacheKey);
+    mbSearchResults = cached;
+    mbSetStatus(cached.length ? `${cached.length} releases found (cached)` : 'No results — try different spelling or enable more type filters above.');
+    renderMBResults(cached);
+    btn.disabled = false;
+    return;
+  }
+
+  mbSetStatus('<span class="mb-spinner"></span> Searching MusicBrainz…');
 
   try {
     // Extract year if present (e.g. "kraftwerk 1977" or "trans europa express 1977")
@@ -9355,47 +10015,65 @@ async function mbSearch() {
     // Detect explicit "X - Y" or "X: Y" separator
     const splitMatch = qBase.match(/^(.+?)\s*[-:]\s*(.+)$/);
 
-    const querySet = new Set();
+    const queryList = [];
 
     if (splitMatch) {
       const a = splitMatch[1].trim();
       const b = splitMatch[2].trim();
-      // Try both interpretations: artist-title AND title-artist
-      querySet.add(`release:"${b}" AND artist:"${a}"`);
-      querySet.add(`release:"${a}" AND artist:"${b}"`);
-      querySet.add(`release:${JSON.stringify(b)} AND artist:${JSON.stringify(a)}`);
+      // Both interpretations, plus artist-only fallbacks
+      queryList.push(`release:"${b}" AND artist:"${a}"`);
+      queryList.push(`release:"${a}" AND artist:"${b}"`);
+      queryList.push(`artist:"${a}"`);
+      queryList.push(`artist:"${b}"`);
     } else {
       const words = qBase.split(/\s+/).filter(Boolean);
 
-      // 1. Full freetext — best for native-language exact titles (e.g. "Die Mensch-Maschine")
-      querySet.add(`"${qBase}"`);
+      // Article variants — MB titles often include leading articles that users omit
+      // e.g. "dark side of the moon" → must also try "the dark side of the moon"
+      const articles = ['the', 'a', 'an'];
+      const firstWord = words[0]?.toLowerCase();
+      const qWithThe   = articles.includes(firstWord) ? qBase : 'the ' + qBase;
+      const qStripped  = articles.includes(firstWord) ? words.slice(1).join(' ') : qBase;
 
-      // 2. Title-only — good when no artist prefix
-      querySet.add(`release:"${qBase}"`);
-
-      // 3. ALL word splits, both directions (artist-first AND title-first)
-      //    Capped at splits that produce 1+ word on each side
-      for (let i = 1; i < words.length; i++) {
-        const left  = words.slice(0, i).join(' ');
-        const right = words.slice(i).join(' ');
-        // artist=left, release=right
-        querySet.add(`release:"${right}" AND artist:"${left}"`);
-        // artist=right, release=left  (title typed first)
-        querySet.add(`release:"${left}" AND artist:"${right}"`);
+      // 1. releasegroup: field — directly indexes the release-group name (most precise)
+      // 1. Artist+title splits first (most precise for "Artist Album" and "Album Artist" patterns)
+      //    These must come first so deduplication keeps the highest-scoring match.
+      if (words.length > 1) {
+        // "first N words = artist" — most common pattern e.g. "Pink Floyd Animals"
+        for (let i = words.length - 1; i >= 1; i--) {
+          const artist = words.slice(0, i).join(' ');
+          const title  = words.slice(i).join(' ');
+          queryList.push(`releasegroup:"${title}" AND artist:"${artist}"`);
+        }
+        // "last N words = artist" — for "Album Artist" order
+        for (let i = 1; i < words.length; i++) {
+          const title  = words.slice(0, i).join(' ');
+          const artist = words.slice(i).join(' ');
+          queryList.push(`releasegroup:"${title}" AND artist:"${artist}"`);
+        }
       }
+
+      // 2. releasegroup: field — direct title match
+      queryList.push(`releasegroup:"${qBase}"`);
+      if (qWithThe !== qBase)   queryList.push(`releasegroup:"${qWithThe}"`);
+      if (qStripped !== qBase)  queryList.push(`releasegroup:"${qStripped}"`);
+
+      // 3. release: field — matches any release in the group by title
+      queryList.push(`release:"${qBase}"`);
+      if (qWithThe !== qBase)   queryList.push(`release:"${qWithThe}"`);
+
+      // 4. Full freetext — good for native-language / non-latin titles
+      queryList.push(`"${qBase}"`);
     }
 
-    // If year present, prepend a year-constrained variant of the best query
-    let queryList = [...querySet];
-    if (year) {
-      const yearQ = queryList[0] + ` AND firstreleasedate:${year}`;
-      queryList = [yearQ, ...queryList];
-    }
-    // Cap at 8 queries to avoid hammering the API
-    queryList = queryList.slice(0, 8);
+    // Year-constrained variant of the best query inserted at front
+    let finalList = yearMatch
+      ? [`${queryList[0]} AND firstreleasedate:${year}`, ...queryList]
+      : queryList;
+    finalList = [...new Set(finalList)].slice(0, 14);
 
-    const allFetches = queryList.map(mq =>
-      mbFetch(`${MB_API}/release-group?query=${encodeURIComponent(mq)}&limit=25&fmt=json`)
+    const allFetches = finalList.map(mq =>
+      mbFetch(`${MB_API}/release-group?query=${encodeURIComponent(mq)}&limit=50&fmt=json`)
         .then(d => d['release-groups'] || [])
         .catch(() => [])
     );
@@ -9413,15 +10091,17 @@ async function mbSearch() {
 
     // Sort: MB relevance + year bonus (originals first) + penalties
     function _sortKey(rg) {
-      let s = (rg.score || 0) * 0.65;
+      // Relevance is the primary signal; year gives a small tiebreak nudge
+      let s = (rg.score || 0) * 0.90;
       const yr = rg['first-release-date'] ? parseInt(rg['first-release-date'].slice(0,4)) || 3000 : 3000;
-      s += Math.max(0, (2025 - yr)) * 0.35;
+      s += Math.max(0, (2025 - yr)) * 0.10;
       const sg = (rg['secondary-types'] || []).map(x => x.toLowerCase());
-      if (sg.includes('live'))        s -= 40;
-      if (sg.includes('compilation')) s -= 25;
-      if (sg.includes('remix'))       s -= 20;
+      if (sg.includes('live'))        s -= 25;
+      if (sg.includes('compilation')) s -= 15;
+      if (sg.includes('remix'))       s -= 12;
+      // Remaster/deluxe still gets a small nudge down — they show as variants under originals
       const titleLc = (rg.title || '').toLowerCase();
-      if (/remaster|reissue|re-issue|deluxe|anniversary|expanded|edition|bonus/.test(titleLc)) s -= 30;
+      if (/remaster|reissue|re-issue|deluxe|anniversary|expanded|edition|bonus/.test(titleLc)) s -= 10;
       return s;
     }
 
@@ -9432,10 +10112,17 @@ async function mbSearch() {
       const pg = (rg['primary-type'] || '').toLowerCase();
       const sg = (rg['secondary-types'] || []).map(s => s.toLowerCase());
       if (!pg) return true;
+      // A release must match ALL its applicable type labels — e.g. an Album+Compilation
+      // only shows if both ALBUM and COMPILATION filters are active.
       if (pg === 'album') {
-        if (sg.includes('compilation')) return mbActiveTypes.has('compilation');
-        if (sg.includes('live'))        return mbActiveTypes.has('live');
-        return mbActiveTypes.has('album');
+        const isComp = sg.includes('compilation');
+        const isLive = sg.includes('live');
+        const needAlbum = !isComp && !isLive;
+        if (needAlbum) return mbActiveTypes.has('album');
+        // Multi-type: require ALL matching toggles to be on
+        if (isComp && isLive) return mbActiveTypes.has('compilation') && mbActiveTypes.has('live') && mbActiveTypes.has('album');
+        if (isComp) return mbActiveTypes.has('compilation') && mbActiveTypes.has('album');
+        if (isLive) return mbActiveTypes.has('live') && mbActiveTypes.has('album');
       }
       if (pg === 'single') return mbActiveTypes.has('single');
       if (pg === 'ep')     return mbActiveTypes.has('ep');
@@ -9443,6 +10130,7 @@ async function mbSearch() {
     });
 
     mbSearchResults = filtered;
+    _mbSearchCache.set(_cacheKey, filtered); // cache for this session
     mbSetStatus(filtered.length ? `${filtered.length} releases found` : 'No results — try different spelling or enable more type filters above.');
     renderMBResults(filtered);
   } catch(e) {
@@ -9451,62 +10139,165 @@ async function mbSearch() {
   btn.disabled = false;
 }
 
-function renderMBResults(groups) {
+function _mbRgMeta(rg) {
+  const artist = rg['artist-credit']?.[0]?.artist?.name || rg['artist-credit']?.[0]?.name || '—';
+  const year   = rg['first-release-date'] ? rg['first-release-date'].slice(0, 4) : '';
+  const type   = [rg['primary-type'], ...(rg['secondary-types'] || [])].filter(Boolean).join(' / ');
+  return { artist, year, type };
+}
+
+function _mbRenderThumb(rg) {
+  const primaryRelease = rg.releases?.[0];
+  const thumbArtist    = rg['artist-credit']?.[0]?.artist?.name || rg['artist-credit']?.[0]?.name || '';
+  if (!primaryRelease && !thumbArtist) return;
+  mbFetchThumb(primaryRelease?.id || '', rg.id, thumbArtist, rg.title).then(url => {
+    if (!url) return;
+    const ph = document.getElementById('mb-thumb-' + rg.id);
+    if (ph) { const img = document.createElement('img'); img.className = 'mb-thumb'; img.src = url; ph.replaceWith(img); }
+  }).catch(() => {});
+}
+
+function renderMBResults(rgs) {
   const wrap = document.getElementById('mb-results-wrap');
   wrap.innerHTML = '';
-  if (!groups.length) return;
-  const frag = document.createDocumentFragment();
-  groups.forEach((rg) => {
-    const row = document.createElement('div');
-    row.className = 'mb-result-row';
-    // release-group artist credit
-    const artist = rg['artist-credit']?.[0]?.artist?.name || rg['artist-credit']?.[0]?.name || '—';
-    const year = rg['first-release-date'] ? rg['first-release-date'].slice(0, 4) : '';
-    const type = [rg['primary-type'], ...(rg['secondary-types'] || [])].filter(Boolean).join(' / ');
-    row.innerHTML = `
-      <div class="mb-thumb-ph" id="mb-thumb-${rg.id}">♪</div>
-      <div class="mb-info">
-        <div class="mb-title">${esc(rg.title)}</div>
-        <div class="mb-meta">${esc(artist)}${year ? ' · ' + year : ''}${type ? ' · ' + type : ''}</div>
-      </div>
-    `;
-    row.addEventListener('click', () => mbSelectReleaseGroup(rg, row));
-    frag.appendChild(row);
+  if (!rgs.length) return;
 
-    // Thumbnail: race CAA direct URL vs iTunes — whichever resolves first wins.
-    const primaryRelease = rg.releases?.[0];
-    const thumbArtist = rg['artist-credit']?.[0]?.artist?.name || rg['artist-credit']?.[0]?.name || '';
-    if (primaryRelease || thumbArtist) {
-      mbFetchThumb(primaryRelease?.id || '', thumbArtist, rg.title).then(url => {
-        if (!url) return;
-        const ph = document.getElementById('mb-thumb-' + rg.id);
-        if (ph) { const img = document.createElement('img'); img.className = 'mb-thumb'; img.src = url; ph.replaceWith(img); }
-      }).catch(() => {});
+  // Group by artist + normalized title — collapses deluxe/remaster variants of the
+  // same release, but keeps different artists with the same album name separate.
+  const groupMap = new Map(); // "artist|title" → [rg, ...]
+  rgs.forEach(rg => {
+    const artist = (rg['artist-credit']?.[0]?.artist?.name || rg['artist-credit']?.[0]?.name || '').toLowerCase().trim();
+    // Strip common variant suffixes for grouping only (not for display)
+    const baseTitle = rg.title.toLowerCase().trim()
+      .replace(/\s*[\(\[](deluxe|remaster(ed)?|re-?issue|anniversary|expanded|bonus|special|collector)[^\)\]]*[\)\]]/gi, '')
+      .replace(/\s*-\s*(deluxe|remaster(ed)?|re-?issue|anniversary|expanded|bonus|special|collector).*/gi, '')
+      .trim();
+    // If artist is unknown, don't group by title — use the RG id to avoid
+    // collapsing unrelated results into a single blob
+    const key = artist ? artist + '|' + baseTitle : rg.id;
+    if (!groupMap.has(key)) groupMap.set(key, []);
+    groupMap.get(key).push(rg);
+  });
+
+  const frag = document.createDocumentFragment();
+
+  groupMap.forEach((variants) => {
+    const primary = variants[0];
+    const { artist, year, type } = _mbRgMeta(primary);
+
+    if (variants.length === 1) {
+      // ── Single result row
+      const row = document.createElement('div');
+      row.className = 'mb-result-row';
+      row.innerHTML = `
+        <div class="mb-thumb-ph" id="mb-thumb-${primary.id}">♪</div>
+        <div class="mb-info">
+          <div class="mb-title">${esc(primary.title)}</div>
+          <div class="mb-meta">${esc(artist)}${year ? ' · ' + year : ''}${type ? ' · ' + type : ''}</div>
+        </div>`;
+      row.addEventListener('click', () => {
+        document.querySelectorAll('.mb-result-row.selected, .mb-group-hdr.selected, .mb-variant-row.selected').forEach(r => r.classList.remove('selected'));
+        row.classList.add('selected');
+        mbSelectReleaseGroup(primary, row);
+      });
+      frag.appendChild(row);
+      _mbRenderThumb(primary);
+    } else {
+      // ── Collapsible group
+      const group = document.createElement('div');
+      group.className = 'mb-group';
+
+      const hdr = document.createElement('div');
+      hdr.className = 'mb-group-hdr';
+      hdr.innerHTML = `
+        <div class="mb-thumb-ph" id="mb-thumb-${primary.id}">♪</div>
+        <div class="mb-info">
+          <div class="mb-title">${esc(primary.title)}</div>
+          <div class="mb-meta">${esc(artist)}${year ? ' · ' + year : ''}${type ? ' · ' + type : ''}</div>
+        </div>
+        <span class="mb-variant-badge">${variants.length} versions</span>
+        <span class="mb-expand-arrow">▾</span>`;
+
+      const variantList = document.createElement('div');
+      variantList.className = 'mb-variants-list';
+
+      hdr.addEventListener('click', () => {
+        // Header click always just toggles the variant list — pick happens on individual rows
+        _mbToggleVariants(hdr, variantList);
+      });
+
+      group.appendChild(hdr);
+      _mbRenderThumb(primary);
+
+      variants.forEach(rg => {
+        const { artist: va, year: vy, type: vt } = _mbRgMeta(rg);
+        const vrow = document.createElement('div');
+        vrow.className = 'mb-variant-row';
+        vrow.innerHTML = `
+          <div class="mb-thumb-ph" id="mb-thumb-${rg.id}" style="width:30px;height:30px;font-size:13px;">♪</div>
+          <div class="mb-info">
+            <div class="mb-title" style="font-size:13px;">${esc(rg.title)}</div>
+            <div class="mb-meta">${esc(va)}${vy ? ' · ' + vy : ''}${vt ? ' · ' + vt : ''}</div>
+          </div>`;
+        vrow.addEventListener('click', () => {
+          document.querySelectorAll('.mb-result-row.selected, .mb-group-hdr.selected, .mb-variant-row.selected').forEach(r => r.classList.remove('selected'));
+          vrow.classList.add('selected');
+          mbSelectReleaseGroup(rg, vrow);
+        });
+        variantList.appendChild(vrow);
+        _mbRenderThumb(rg);
+      });
+
+      group.appendChild(variantList);
+      frag.appendChild(group);
     }
   });
+
   wrap.appendChild(frag);
 }
 
-// ── iTunes Search API — free, no key, fast CDN ──────────
-// Returns a 100×100 artwork URL that can be scaled to any resolution
-// by replacing the trailing dimension token.
-async function itFetchArtworkUrl(artist, title, size = 500) {
+function _mbToggleVariants(hdr, list, forceOpen) {
+  const open = forceOpen !== undefined ? forceOpen : !list.classList.contains('open');
+  list.classList.toggle('open', open);
+  hdr.querySelector('.mb-expand-arrow')?.classList.toggle('open', open);
+}
+
+
+// ── CAA per-level cache ───────────────────────────────────────────────────────
+// Stores resolved URL strings; empty string '' means confirmed miss at that level.
+const _caaCache = new Map();
+
+// Single CAA probe with caching. type = 'release' | 'release-group'
+async function _caaFetch(type, id, size) {
+  if (!id) return null;
+  const key = `${type}|${id}|${size}`;
+  if (_caaCache.has(key)) { const v = _caaCache.get(key); return v || null; }
+  const url = `${CAA_API}/${type}/${id}/front-${size}`;
+  const result = await fetch(url).then(r => r.ok ? url : null).catch(() => null);
+  _caaCache.set(key, result || '');
+  return result;
+}
+
+// Last.fm album.getInfo — terminal fallback in the cover chain
+async function _lfFetchArtwork(artist, title) {
+  if (!artist || !title) return null;
+  const key = `lf|${(artist + '|' + title).toLowerCase()}`;
+  if (_caaCache.has(key)) { const v = _caaCache.get(key); return v || null; }
   try {
-    const q   = encodeURIComponent(`${artist} ${title}`);
-    const url = `https://itunes.apple.com/search?term=${q}&media=music&entity=album&limit=8`;
-    const r   = await fetch(url);
-    if (!r.ok) return null;
+    const url = `${LASTFM_API}?method=album.getInfo&api_key=${LASTFM_KEY}`
+              + `&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(title)}&format=json&autocorrect=1`;
+    const r = await fetch(url);
+    if (!r.ok) { _caaCache.set(key, ''); return null; }
     const data = await r.json();
-    // Find best match: prefer title match, fall back to first result
-    const results = data.results || [];
-    const best = results.find(x =>
-      x.collectionName?.toLowerCase().includes(title.toLowerCase()) ||
-      title.toLowerCase().includes(x.collectionName?.toLowerCase() || '')
-    ) || results[0];
-    if (!best?.artworkUrl100) return null;
-    // iTunes artwork URLs end in "100x100bb.jpg" — swap in any resolution
-    return best.artworkUrl100.replace('100x100bb', `${size}x${size}bb`);
-  } catch(_) { return null; }
+    const images = data?.album?.image || [];
+    // Prefer largest available size
+    for (const sz of ['mega', 'extralarge', 'large']) {
+      const img = images.find(i => i.size === sz);
+      if (img?.['#text']) { _caaCache.set(key, img['#text']); return img['#text']; }
+    }
+    _caaCache.set(key, '');
+    return null;
+  } catch(_) { _caaCache.set(key, ''); return null; }
 }
 
 // Convert a remote image URL to a data URL for persistence
@@ -9522,115 +10313,119 @@ async function _urlToDataUrl(url) {
   });
 }
 
-// Strategy: CAA direct URL (1 redirect, no JSON lookup) races iTunes.
-// Whichever resolves first wins; the other is ignored.
-const _mbThumbInFlight = new Map(); // releaseId → Promise<url|null>
+// ── Thumbnail (250px) — sequential chain with per-level caching ───────────────
+// Chain: CAA release → CAA release-group → Last.fm → null
+const _mbThumbInFlight = new Map(); // key → Promise<url|null>
 
-async function mbFetchThumb(releaseId, artist, title) {
-  // Deduplicate concurrent fetches for the same release ID
-  const key = (releaseId || '') + '|' + (artist || '') + '|' + (title || '');
+async function mbFetchThumb(releaseId, rgId, artist, title) {
+  const key = `${releaseId}|${rgId}|${artist}|${title}`;
   if (_mbThumbInFlight.has(key)) return _mbThumbInFlight.get(key);
 
-  // CAA direct URL: skips the JSON metadata step entirely (was 2 requests, now 1)
-  const caaUrl = `${CAA_API}/release/${releaseId}/front-250`;
-
-  const caaPromise = fetch(caaUrl)
-    .then(r => r.ok ? caaUrl : null)
-    .catch(() => null);
-
-  const itunesPromise = (artist && title)
-    ? itFetchArtworkUrl(artist, title, 250)
-    : Promise.resolve(null);
-
-  // Race: first non-null value wins
-  const p = new Promise(resolve => {
-    let settled = false;
-    let remaining = 2;
-    const tryResolve = (val) => {
-      if (settled) return;
-      if (val) { settled = true; resolve(val); return; }
-      remaining--;
-      if (remaining === 0) resolve(null);
-    };
-    caaPromise.then(tryResolve);
-    itunesPromise.then(tryResolve);
-  }).finally(() => _mbThumbInFlight.delete(key));
+  const p = (async () => {
+    // Level 1: CAA primary release
+    const r1 = await _caaFetch('release', releaseId, 250);
+    if (r1) return r1;
+    // Level 2: CAA release-group
+    const r2 = await _caaFetch('release-group', rgId, 250);
+    if (r2) return r2;
+    // Level 3: Last.fm
+    return _lfFetchArtwork(artist, title);
+  })().finally(() => _mbThumbInFlight.delete(key));
 
   _mbThumbInFlight.set(key, p);
   return p;
 }
 
-// ── Full-resolution cover (selected album panel) ─────────
-// Same race strategy but at higher resolution and converted to data URL
-// so it persists to localStorage with the album.
-const _mbFullInFlight = new Map(); // key → Promise<dataUrl|null>
+// ── Full-res cover (500px, converted to data URL for persistence) ─────────────
+// Same three-level chain; converts winning URL to base64 data URL.
+const _mbFullInFlight = new Map();
 
-async function mbFetchCoverFull(releaseId, artist, title) {
-  const key = (releaseId || '') + '|' + (artist || '') + '|' + (title || '');
+async function mbFetchCoverFull(releaseId, rgId, artist, title) {
+  const key = `full|${releaseId}|${rgId}|${artist}|${title}`;
   if (_mbFullInFlight.has(key)) return _mbFullInFlight.get(key);
 
-  // CAA direct URL at 500px
-  const caaUrl = `${CAA_API}/release/${releaseId}/front-500`;
-
-  const caaPromise = fetch(caaUrl)
-    .then(r => r.ok ? _urlToDataUrl(caaUrl) : null)
-    .catch(() => null);
-
-  // iTunes at 600px (highest reliable size)
-  const itunesPromise = (artist && title)
-    ? itFetchArtworkUrl(artist, title, 600)
-        .then(url => url ? _urlToDataUrl(url) : null)
-        .catch(() => null)
-    : Promise.resolve(null);
-
-  const p = new Promise(resolve => {
-    let settled = false;
-    let remaining = 2;
-    const tryResolve = (val) => {
-      if (settled) return;
-      if (val) { settled = true; resolve(val); return; }
-      remaining--;
-      if (remaining === 0) resolve(null);
-    };
-    caaPromise.then(tryResolve);
-    itunesPromise.then(tryResolve);
-  }).finally(() => _mbFullInFlight.delete(key));
+  const p = (async () => {
+    // Level 1: CAA release 500px
+    const r1 = await _caaFetch('release', releaseId, 500);
+    if (r1) return _urlToDataUrl(r1).catch(() => null);
+    // Level 2: CAA release-group 500px
+    const r2 = await _caaFetch('release-group', rgId, 500);
+    if (r2) return _urlToDataUrl(r2).catch(() => null);
+    // Level 3: Last.fm (returns URL — convert to data URL)
+    const r3 = await _lfFetchArtwork(artist, title);
+    if (r3) return _urlToDataUrl(r3).catch(() => null);
+    return null;
+  })().finally(() => _mbFullInFlight.delete(key));
 
   _mbFullInFlight.set(key, p);
   return p;
 }
 
 async function mbSelectReleaseGroup(rg, rowEl) {
-  document.querySelectorAll('.mb-result-row').forEach(r => r.classList.remove('selected'));
+  document.querySelectorAll('.mb-result-row.selected, .mb-group-hdr.selected, .mb-variant-row.selected').forEach(r => r.classList.remove('selected'));
   rowEl.classList.add('selected');
-  mbSetStatus('<span class="mb-spinner"></span> Loading tracklist…');
+  mbSetStatus('<span class="mb-spinner"></span> Loading releases…');
 
   const detail = document.getElementById('mb-selected-detail');
   detail.classList.remove('visible');
 
   try {
-    // Fetch release-group with releases list to pick the best one
+    // Fetch all releases in this release-group
     const rgData = await mbFetch(`${MB_API}/release-group/${rg.id}?inc=releases+artist-credits&fmt=json`);
     const releases = (rgData.releases || []);
+    if (!releases.length) { mbSetStatus('No releases found for this release group.'); return; }
 
-    // Pick the best release: prefer official, shortest track count (studio), earliest date
+    // Sort releases: Official first, then by date; dedupe by title+track-count
     const sorted = [...releases].sort((a, b) => {
       const aOff = a.status === 'Official' ? 0 : 1;
       const bOff = b.status === 'Official' ? 0 : 1;
       if (aOff !== bOff) return aOff - bOff;
-      const aDate = a.date || '9999';
-      const bDate = b.date || '9999';
-      return aDate.localeCompare(bDate);
+      return (a.date || '9999').localeCompare(b.date || '9999');
     });
-    const picked = sorted[0];
-    if (!picked) { mbSetStatus('No releases found for this release group.'); return; }
 
-    // Now fetch the full release with recordings
-    const data = await mbFetch(`${MB_API}/release/${picked.id}?inc=recordings+artist-credits&fmt=json`);
+    // Build picker buttons — one per distinct release (title + track count)
+    const picker = document.getElementById('mb-rel-picker');
+    picker.innerHTML = '';
+    if (sorted.length > 1) {
+      picker.style.display = 'flex';
+      sorted.forEach((rel, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'mb-rel-btn' + (i === 0 ? ' active' : '');
+        const relYear = (rel.date || '').slice(0, 4);
+        const tc = rel['track-count'] ? ` · ${rel['track-count']}tr` : '';
+        btn.title = rel.title + (relYear ? ' (' + relYear + ')' : '') + (rel.disambiguation ? ' — ' + rel.disambiguation : '');
+        btn.textContent = (rel.title !== rg.title ? rel.title : (relYear || '?')) + tc;
+        btn.onclick = () => {
+          picker.querySelectorAll('.mb-rel-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          _mbLoadRelease(rg, rel);
+        };
+        picker.appendChild(btn);
+      });
+    } else {
+      picker.style.display = 'none';
+    }
+
+    // Load the first (best) release immediately
+    await _mbLoadRelease(rg, sorted[0]);
+
+  } catch(e) {
+    mbSetStatus(`Error: ${e.message}`);
+  }
+}
+
+async function _mbLoadRelease(rg, rel) {
+  mbSetStatus('<span class="mb-spinner"></span> Loading tracklist…');
+  const detail = document.getElementById('mb-selected-detail');
+  detail.classList.remove('visible');
+
+  try {
+    const data = await mbFetch(`${MB_API}/release/${rel.id}?inc=recordings+artist-credits&fmt=json`);
     const artist = data['artist-credit']?.[0]?.artist?.name || data['artist-credit']?.[0]?.name
                 || rg['artist-credit']?.[0]?.artist?.name || '—';
-    const year = data.date ? data.date.slice(0, 4) : (rg['first-release-date'] || '').slice(0, 4);
+    const year = (data.date || rel.date || rg['first-release-date'] || '').slice(0, 4);
     const type = [rg['primary-type'], ...(rg['secondary-types'] || [])].filter(Boolean).join(' / ');
+    const title = data.title || rg.title;
 
     // Flatten tracks from all media/discs
     const tracks = [];
@@ -9644,21 +10439,12 @@ async function mbSelectReleaseGroup(rg, rowEl) {
       });
     });
 
-    // Store the release id we picked so CAA cover fetch works
-    mbSelectedRelease = {
-      mbid: rg.id,
-      releaseId: picked.id,
-      title: data.title || rg.title,
-      artist,
-      year,
-      type,
-      tracks,
-      coverDataUrl: null,
-    };
+    mbSelectedRelease = { mbid: rg.id, releaseId: rel.id, title, artist, year, type, tracks, coverDataUrl: null };
 
-    document.getElementById('mb-sel-title').textContent = mbSelectedRelease.title;
+    document.getElementById('mb-sel-title').textContent = title;
     document.getElementById('mb-sel-artist').textContent = artist;
-    document.getElementById('mb-sel-meta').textContent = [year, type, `${tracks.length} tracks`].filter(Boolean).join(' · ');
+    const disambig = data.disambiguation ? ` · ${data.disambiguation}` : '';
+    document.getElementById('mb-sel-meta').textContent = [year, type, `${tracks.length} tracks`].filter(Boolean).join(' · ') + disambig;
     document.getElementById('mb-sel-cover').style.display = 'none';
     document.getElementById('mb-sel-cover-ph').style.display = 'flex';
 
@@ -9673,42 +10459,21 @@ async function mbSelectReleaseGroup(rg, rowEl) {
     });
 
     detail.classList.add('visible');
-    mbSetStatus(`${tracks.length} tracks loaded`);
+    mbSetStatus(`${tracks.length} tracks · ${rel.status || ''}`);
 
-    // Fetch full cover: races CAA direct URL vs iTunes (whichever is faster wins)
-    mbFetchCoverFull(picked.id, artist, mbSelectedRelease.title).then(dataUrl => {
-      if (dataUrl && mbSelectedRelease) {
+    mbFetchCoverFull(rel.id, rg.id, artist, title).then(dataUrl => {
+      if (dataUrl && mbSelectedRelease && mbSelectedRelease.releaseId === rel.id) {
         mbSelectedRelease.coverDataUrl = dataUrl;
         const img = document.getElementById('mb-sel-cover');
         img.src = dataUrl; img.style.display = '';
         document.getElementById('mb-sel-cover-ph').style.display = 'none';
       }
     });
-
   } catch(e) {
-    mbSetStatus(`Error: ${e.message}`);
+    mbSetStatus(`Error loading release: ${e.message}`);
   }
 }
 
-function mbImport() {
-  if (!mbSelectedRelease) return;
-  const { mbid, title, artist, year, tracks, coverDataUrl } = mbSelectedRelease;
-  if (!tracks.length) { toast('No tracks found', 'error'); return; }
-
-  const artistKey = _libKey(artist);
-  const albumKey  = _libAlbumKey(artist, title);
-
-  if (!library.has(artistKey)) library.set(artistKey, { name: artist, albums: new Map(), _exp: false });
-  const ao = library.get(artistKey);
-  if (ao.albums.has(albumKey)) { toast(`"${title}" already in library`, 'info'); return; }
-
-  ao.albums.set(albumKey, { name: title, artist, year, tracks, coverDataUrl: coverDataUrl || null, mbid });
-  _consolidateLibrary();
-  updateLibStats(); renderCatPills(); renderLibTree(); saveLibrary();
-  toast(`"${title}" added to library ✓`, 'success');
-  selectAlbum(artistKey, albumKey);
-  closeOverlay('mbOvr');
-}
 
 // ── GAMES SEARCH — IGDB ───────────────────────────────────────────────────────
 
@@ -9751,8 +10516,8 @@ async function _igdbFetchAndRender(q, offset, clear) {
       const results = await _igdbPost('/games',
         `search "${q.replace(/"/g, '')}";` +
         `fields id,name,cover.image_id,first_release_date,` +
-               `involved_companies.company.name,summary,genres.name;` +
-        `where version_parent = null;` +
+               `involved_companies.company.name,summary,genres.name,` +
+               `category,parent_game.id,parent_game.name,version_parent;` +
         `limit 50;`
       );
       const lq = q.trim().toLowerCase();
@@ -9766,70 +10531,214 @@ async function _igdbFetchAndRender(q, offset, clear) {
         }
         return score(a.name) - score(b.name);
       });
+
+      // Collect parent IDs referenced by ports/remasters/etc. that aren't already in results
+      const IGDB_GROUP_CATS_FETCH = new Set([1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+      const resultIds = new Set(results.map(g => g.id));
+      // Collect missing parents from both parent_game and version_parent links
+      const missingParentIds = [...new Set(
+        results.flatMap(g => {
+          const ids = [];
+          if (g.parent_game?.id && !resultIds.has(g.parent_game.id)) ids.push(g.parent_game.id);
+          if (g.version_parent  && !resultIds.has(g.version_parent))  ids.push(g.version_parent);
+          return ids;
+        })
+      )];
+      if (missingParentIds.length) {
+        try {
+          const parents = await _igdbPost('/games',
+            `fields id,name,cover.image_id,first_release_date,` +
+                   `involved_companies.company.name,summary,genres.name,` +
+                   `category,parent_game.id,parent_game.name,version_parent;` +
+            `where id = (${missingParentIds.join(',')});` +
+            `limit ${missingParentIds.length};`
+          );
+          // Inject fetched parents; mark them so they sort to top of their group
+          parents.forEach(p => { if (!resultIds.has(p.id)) { results.push(p); resultIds.add(p.id); } });
+        } catch(_) { /* non-fatal — grouping just won't happen for those */ }
+      }
+
       _igdbAllResults = results;
       document.getElementById('mb-results-wrap').innerHTML = '';
     }
 
-    const slice = _igdbAllResults.slice(offset, offset + _IGDB_PAGE);
+    // On a fresh search render everything at once so grouping works across all results.
+    // Paginating into slices breaks grouping: a parent rendered in slice 1 can't pick up
+    // children that arrive in slice 2. Load-More is kept for the rare append path.
+    const renderAll = (offset === 0);
+    const slice = renderAll ? _igdbAllResults : _igdbAllResults.slice(offset, offset + _IGDB_PAGE);
     if (!slice.length) { mbSetStatus('No results found.'); return; }
-    mbSetStatus(slice.length + ' of ' + _igdbAllResults.length + ' results');
-    _igdbOffset = offset + slice.length;
+    mbSetStatus(_igdbAllResults.length + ' result' + (_igdbAllResults.length !== 1 ? 's' : '') + ' found');
+    _igdbOffset = renderAll ? _igdbAllResults.length : offset + slice.length;
 
     _igdbRenderResults(slice, offset > 0);
 
     const wrap     = document.getElementById('mb-results-wrap');
     const existing = document.getElementById('igdb-load-more');
     if (existing) existing.remove();
-    if (_igdbOffset < _igdbAllResults.length) {
-      const btn = document.createElement('button');
-      btn.id            = 'igdb-load-more';
-      btn.className     = 'btn';
-      btn.style.cssText = 'display:block;width:100%;margin-top:8px;padding:6px;font-size:12px;letter-spacing:2px;';
-      btn.textContent   = 'LOAD MORE (' + (_igdbAllResults.length - _igdbOffset) + ' remaining)';
-      btn.onclick = () => _igdbFetchAndRender(_igdbLastQuery, _igdbOffset, false);
-      wrap.appendChild(btn);
-    }
   } catch(e) {
     mbSetStatus('Search failed: ' + e.message);
   }
 }
 
 function _igdbRenderResults(results, append) {
+  // IGDB category enum (all 14):
+  // 0=main_game, 1=DLC, 2=Expansion, 3=Bundle, 4=Standalone DLC,
+  // 5=Mod, 6=Episode, 7=Season, 8=Remake, 9=Remaster,
+  // 10=Expanded Game, 11=Port, 12=Fork, 13=Pack, 14=Update
+  const IGDB_GROUP_CATS = new Set([1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+  const IGDB_CAT_LABEL  = {
+    1:'DLC', 2:'Expansion', 3:'Bundle', 4:'Standalone DLC',
+    5:'Mod', 6:'Episode', 7:'Season', 8:'Remake', 9:'Remaster',
+    10:'Expanded', 11:'Port', 12:'Fork', 13:'Pack', 14:'Update'
+  };
+
   const wrap = document.getElementById('mb-results-wrap');
   if (!append) {
     const lm = document.getElementById('igdb-load-more');
     if (lm) lm.remove();
   }
+
+  // Build id→game map from the full result set so parent lookup works even when
+  // the parent wasn't in this particular rendering slice
+  const byId = new Map(_igdbAllResults.map(g => [g.id, g]));
+
+  // Assign each result to a group key:
+  // - If category is groupable AND parent_game.id is in results → group under parent
+  // - Otherwise → standalone (key = own id)
+  const groupMap = new Map(); // parentId|ownId → { parent: g|null, children: [g,...] }
+  results.forEach(g => {
+    const cat = g.category ?? 0;
+    // parent_game covers DLC/expansion/port/remaster; version_parent covers edition variants
+    const pid = g.parent_game?.id || g.version_parent;
+    if (pid && byId.has(pid)) {
+      if (!groupMap.has(pid)) groupMap.set(pid, { parent: byId.get(pid), children: [] });
+      groupMap.get(pid).children.push(g);
+    } else {
+      if (!groupMap.has(g.id)) groupMap.set(g.id, { parent: g, children: [] });
+      // If we already have this id as a group parent, don't overwrite
+    }
+  });
+
   const frag = document.createDocumentFragment();
 
-  results.forEach(g => {
-    const row  = document.createElement('div');
-    row.className = 'mb-result-row';
+  const _igdbThumb = (g, el, small) => {
+    if (!g.cover?.image_id) return;
+    const ph  = el.querySelector('#igdb-thumb-' + g.id);
+    if (!ph) return;
+    const src = IGDB_IMG + 't_thumb/' + g.cover.image_id + '.jpg';
+    const img = document.createElement('img');
+    img.className = 'mb-thumb'; img.src = src;
+    if (small) { img.style.width = '30px'; img.style.height = '30px'; }
+    img.onload = () => ph && ph.isConnected && ph.replaceWith(img);
+  };
 
-    const year = g.first_release_date
-      ? new Date(g.first_release_date * 1000).getFullYear()
-      : '';
-    const dev  = (g.involved_companies || [])
-      .map(ic => ic.company && ic.company.name).filter(Boolean).join(', ') || '';
+  const _igdbMeta = (g) => {
+    const year = g.first_release_date ? new Date(g.first_release_date * 1000).getFullYear() : '';
+    const dev  = (g.involved_companies || []).map(ic => ic.company?.name).filter(Boolean).join(', ') || '';
+    const cat  = g.category != null && g.category !== 0 ? (IGDB_CAT_LABEL[g.category] || '') : '';
+    return [year, dev, cat].filter(Boolean).join(' · ');
+  };
 
-    row.innerHTML = `
-      <div class="mb-thumb-ph" id="igdb-thumb-${g.id}" style="min-width:40px;">⚙</div>
-      <div style="flex:1;overflow:hidden;">
-        <div style="font-size:13px;color:var(--text-hi);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(g.name)}</div>
-        <div style="font-size:11px;color:var(--text-dim);">${[year, dev].filter(Boolean).join(' · ')}</div>
-      </div>`;
+  // Apply category filter: hide standalone entries whose category isn't active,
+  // but always show parents that have grouped children (so the group header stays)
+  groupMap.forEach((entry, key) => {
+    if (!entry.parent) return;
+    const cat = entry.parent.category ?? 0;
+    // Filter children by category
+    entry.children = entry.children.filter(g => igdbActiveCats.has(g.category ?? 0));
+    // If the parent itself doesn't pass the filter AND has no surviving children, drop it
+    if (!igdbActiveCats.has(cat) && !entry.children.length) groupMap.delete(key);
+  });
 
-    if (g.cover && g.cover.image_id) {
-      const ph  = row.querySelector('#igdb-thumb-' + g.id);
-      const src = IGDB_IMG + 't_thumb/' + g.cover.image_id + '.jpg';
-      const img = document.createElement('img');
-      img.className = 'mb-thumb';
-      img.src       = src;
-      img.onload    = () => ph && ph.isConnected && ph.replaceWith(img);
+  groupMap.forEach(({ parent, children }) => {
+    if (!parent) return;
+    const meta = _igdbMeta(parent);
+
+    if (!children.length) {
+      // ── Standalone row
+      const row = document.createElement('div');
+      row.className = 'mb-result-row';
+      row.innerHTML = `
+        <div class="mb-thumb-ph" id="igdb-thumb-${parent.id}" style="min-width:40px;">⚙</div>
+        <div style="flex:1;overflow:hidden;">
+          <div style="font-size:13px;color:var(--text-hi);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(parent.name)}</div>
+          <div style="font-size:11px;color:var(--text-dim);">${meta}</div>
+        </div>`;
+      _igdbThumb(parent, row);
+      row.addEventListener('click', () => {
+        document.querySelectorAll('.mb-result-row.selected, .mb-group-hdr.selected, .mb-variant-row.selected').forEach(r => r.classList.remove('selected'));
+        row.classList.add('selected');
+        _igdbSelectGame(parent, row);
+      });
+      frag.appendChild(row);
+    } else {
+      // ── Collapsible group: main game + its ports/remasters/expansions
+      const group = document.createElement('div');
+      group.className = 'mb-group';
+
+      const hdr = document.createElement('div');
+      hdr.className = 'mb-group-hdr';
+      hdr.innerHTML = `
+        <div class="mb-thumb-ph" id="igdb-thumb-${parent.id}" style="min-width:40px;">⚙</div>
+        <div style="flex:1;overflow:hidden;">
+          <div style="font-size:13px;color:var(--text-hi);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(parent.name)}</div>
+          <div style="font-size:11px;color:var(--text-dim);">${meta}</div>
+        </div>
+        <span class="mb-variant-badge">${children.length} versions</span>
+        <span class="mb-expand-arrow">▾</span>`;
+      _igdbThumb(parent, hdr);
+
+      const variantList = document.createElement('div');
+      variantList.className = 'mb-variants-list';
+
+      hdr.addEventListener('click', () => {
+        _mbToggleVariants(hdr, variantList);
+      });
+
+      // Original game is always the first selectable row inside the group
+      (function() {
+        const ometa = _igdbMeta(parent);
+        const orow = document.createElement('div');
+        orow.className = 'mb-variant-row';
+        orow.innerHTML = `
+          <div class="mb-thumb-ph" id="igdb-thumb-${parent.id}" style="width:30px;height:30px;font-size:13px;min-width:30px;">⚙</div>
+          <div style="flex:1;overflow:hidden;">
+            <div style="font-size:13px;color:var(--text-hi);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(parent.name)}</div>
+            <div style="font-size:11px;color:var(--accent);">Original</div>
+          </div>`;
+        _igdbThumb(parent, orow, true);
+        orow.addEventListener('click', () => {
+          document.querySelectorAll('.mb-result-row.selected, .mb-group-hdr.selected, .mb-variant-row.selected').forEach(r => r.classList.remove('selected'));
+          orow.classList.add('selected');
+          _igdbSelectGame(parent, orow);
+        });
+        variantList.appendChild(orow);
+      })();
+
+      children.forEach(g => {
+        const vmeta = _igdbMeta(g);
+        const vrow = document.createElement('div');
+        vrow.className = 'mb-variant-row';
+        vrow.innerHTML = `
+          <div class="mb-thumb-ph" id="igdb-thumb-${g.id}" style="width:30px;height:30px;font-size:13px;min-width:30px;">⚙</div>
+          <div style="flex:1;overflow:hidden;">
+            <div style="font-size:13px;color:var(--text-hi);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(g.name)}</div>
+            <div style="font-size:11px;color:var(--text-dim);">${vmeta}</div>
+          </div>`;
+        _igdbThumb(g, vrow, true);
+        vrow.addEventListener('click', () => {
+          document.querySelectorAll('.mb-result-row.selected, .mb-group-hdr.selected, .mb-variant-row.selected').forEach(r => r.classList.remove('selected'));
+          vrow.classList.add('selected');
+          _igdbSelectGame(g, vrow);
+        });
+        variantList.appendChild(vrow);
+      });
+
+      group.appendChild(hdr);
+      group.appendChild(variantList);
+      frag.appendChild(group);
     }
-
-    row.addEventListener('click', () => _igdbSelectGame(g, row));
-    frag.appendChild(row);
   });
 
   const lm = document.getElementById('igdb-load-more');
@@ -9838,7 +10747,7 @@ function _igdbRenderResults(results, append) {
 }
 
 async function _igdbSelectGame(g, rowEl) {
-  document.querySelectorAll('.mb-result-row').forEach(r => r.classList.remove('selected'));
+  document.querySelectorAll('.mb-result-row.selected, .mb-group-hdr.selected, .mb-variant-row.selected').forEach(r => r.classList.remove('selected'));
   rowEl.classList.add('selected');
   mbSetStatus('<span class="mb-spinner"></span> Loading cover…');
   document.getElementById('mb-selected-detail').classList.remove('visible');
@@ -9937,7 +10846,7 @@ function _msRenderMovieResults(results) {
 }
 
 async function _msSelectMovie(m, rowEl) {
-  document.querySelectorAll('.mb-result-row').forEach(r => r.classList.remove('selected'));
+  document.querySelectorAll('.mb-result-row.selected, .mb-group-hdr.selected, .mb-variant-row.selected').forEach(r => r.classList.remove('selected'));
   rowEl.classList.add('selected');
   mbSetStatus('<span class="mb-spinner"></span> Loading…');
 
@@ -10291,7 +11200,7 @@ async function libCtxRefetch() {
     al.year   = data.date ? data.date.slice(0, 4) : al.year;
 
     // Re-fetch cover using fast parallel strategy
-    const dataUrl = await mbFetchCoverFull(picked.id, al.artist, al.name);
+    const dataUrl = await mbFetchCoverFull(picked.id, al.mbid, al.artist, al.name);
     if (dataUrl) al.coverDataUrl = dataUrl;
 
     saveLibrary(); renderLibTree();
@@ -10573,7 +11482,7 @@ let _collabPeers          = new Map(); // peerId -> { color, name }
 let collabConnected       = false;
 let _preCollabSnapshot    = null;   // tier state captured just before joining a room
 let collabRole            = null;   // 'host' | 'guest'
-let _suppressBroadcast    = false;  // echo-loop guard
+let _suppressDepth        = 0;      // re-entrant echo-loop guard (>0 = suppressed)
 let _collabBroadcastTimer = null;
 let _collabHeartbeat      = null;   // setInterval for keepalive
 let _collabHeartbeatMiss  = 0;      // consecutive missed pongs
@@ -10765,7 +11674,7 @@ function _collabTeardown() {
   _collabPeers.clear();
   _removeAllPeerCursors();
   collabConnected = false; collabRole = null; _collabCurrentCode = null;
-  _suppressBroadcast = false;
+  _suppressDepth = 0;
 }
 
 // ── Xirsys dynamic ICE fetch — always-fresh TURN credentials ─────────────────
@@ -10844,7 +11753,7 @@ async function collabCreate() {
     if (data.__ping) { try { _collabSendMsg({ __pong: true }); } catch(_) {} return; }
     if (data.__pong) { _collabHeartbeatMiss = 0; return; }
     if (data.__full_state) {
-      _suppressBroadcast = true;
+      _suppressDepth++;
       try {
         if (data.tier_state    && _validTierState(data.tier_state))    applyTierState(data.tier_state);
         if (data.bracket_state && _validBracketState(data.bracket_state)) {
@@ -10856,7 +11765,7 @@ async function collabCreate() {
           applyPoolState(Array.isArray(ps.items) ? ps.items : (Array.isArray(ps) ? ps : []));
         }
         if (data.grid_state) applyGridState(data.grid_state);
-      } finally { _suppressBroadcast = false; }
+      } finally { _suppressDepth--; }
       return;
     }
     if (data.__event) { try { _collabHandleEvent(data.__event); } catch(e) { console.warn('[collab] event error:', e); } return; }
@@ -10933,7 +11842,7 @@ async function collabJoin() {
     if (data.__ping) { try { _collabSendMsg({ __pong: true }); } catch(_) {} return; }
     if (data.__pong) { _collabHeartbeatMiss = 0; return; }
     if (data.__full_state) {
-      _suppressBroadcast = true;
+      _suppressDepth++;
       try {
         if (data.tier_state    && _validTierState(data.tier_state))    applyTierState(data.tier_state);
         if (data.bracket_state && _validBracketState(data.bracket_state)) {
@@ -10945,7 +11854,7 @@ async function collabJoin() {
           applyPoolState(Array.isArray(ps.items) ? ps.items : (Array.isArray(ps) ? ps : []));
         }
         if (data.grid_state) applyGridState(data.grid_state);
-      } finally { _suppressBroadcast = false; }
+      } finally { _suppressDepth--; }
       return;
     }
     if (data.__event) { try { _collabHandleEvent(data.__event); } catch(e) { console.warn('[collab] event error:', e); } return; }
@@ -11026,8 +11935,8 @@ function _collabSendFullState() {
 
 
 function _collabHandleRemoteData(data) {
-  if (!data || _suppressBroadcast) return;
-  _suppressBroadcast = true;
+  if (!data || _suppressDepth > 0) return;
+  _suppressDepth++;
   try {
     if (data.tier_state && data.tier_state._wid !== _myWriterId && _validTierState(data.tier_state)) {
       applyTierState(data.tier_state);
@@ -11042,12 +11951,12 @@ function _collabHandleRemoteData(data) {
       const ps = data.pool_state;
       if (ps._wid !== _myWriterId) applyPoolState(Array.isArray(ps.items) ? ps.items : ps);
     }
-  } finally { _suppressBroadcast = false; }
+  } finally { _suppressDepth--; }
   _collabPulseDot();
 }
 
 function collabBroadcast(msg) {
-  if (_suppressBroadcast || !collabConnected || !_collabSendMsg) return;
+  if (_suppressDepth > 0 || !collabConnected || !_collabSendMsg) return;
   const update = {};
   if (msg.type === 'tier_state')    update.tier_state    = Object.assign({ _wid: _myWriterId }, msg.payload);
   if (msg.type === 'bracket_state') update.bracket_state = Object.assign({ _wid: _myWriterId }, msg.payload);
@@ -11379,6 +12288,48 @@ function msLfSubTab(tab, btn) {
   _lfSelected = null;
 }
 
+// ── Last.fm toggle in music tab ──────────────────────────────────
+function msToggleLfm(btn) {
+  const panel = document.getElementById('ms-lastfm-panel');
+  const wrap  = document.getElementById('mb-results-wrap');
+  const isOn  = btn.classList.toggle('active');
+  if (isOn) {
+    panel.style.display = '';
+    wrap.style.display  = 'none';
+    document.getElementById('mb-selected-detail').classList.remove('visible');
+    document.getElementById('mb-rel-picker').innerHTML = '';
+    document.getElementById('mb-rel-picker').style.display = 'none';
+    document.getElementById('mb-track-list').innerHTML = '';
+    // Default to search sub-tab
+    msLfSubTab('search', document.getElementById('ms-lf-tab-search'));
+  } else {
+    panel.style.display = 'none';
+    wrap.style.display  = '';
+  }
+}
+
+function msShowLfmImport() {
+  // Called from MEDIA menu; opens search modal already on music tab, shows LFM import panel
+  const lfmBtn = document.getElementById('ms-lfm-toggle');
+  if (!lfmBtn.classList.contains('active')) {
+    lfmBtn.classList.add('active');
+    document.getElementById('ms-lastfm-panel').style.display = '';
+    document.getElementById('mb-results-wrap').style.display = 'none';
+  }
+  msLfSubTab('import', document.getElementById('ms-lf-tab-import'));
+}
+
+// ── IGDB category filter ──────────────────────────────────────────
+let igdbActiveCats = new Set([0, 1, 2, 4, 8, 9, 10, 11]); // default: main types on
+
+function igdbToggleCat(cat, btn) {
+  btn.classList.toggle('active');
+  if (igdbActiveCats.has(cat)) igdbActiveCats.delete(cat);
+  else igdbActiveCats.add(cat);
+  // Re-render with current filter applied
+  if (_igdbAllResults.length) _igdbRenderResults(_igdbAllResults, false);
+}
+
 // ── Apply remote grid state from collab peer ──────────────────────
 function applyGridState(state) {
   if (!state || !Array.isArray(state.data)) return;
@@ -11546,11 +12497,9 @@ function applyTierState(state) {
     return;
   }
 
-  // BUG FIX: save + restore _suppressBroadcast instead of force-setting false in finally.
-  // If called from within _collabHandleRemoteData (already suppressed), restoring to true prevents
-  // the outer handler's subsequent apply calls from echo-broadcasting.
-  const _wasSuppressed = _suppressBroadcast;
-  _suppressBroadcast = true;
+  // _suppressDepth is a re-entrant counter; incrementing here suppresses broadcasts
+  // for the duration of this call without clobbering any outer suppression already in place.
+  _suppressDepth++;
   try {
     const getAlt = el => { const img = el.querySelector('img'); return img ? img.alt : ''; };
 
@@ -11640,7 +12589,8 @@ function applyTierState(state) {
 
     // Write directly to localStorage using _snapshotTiers — avoids a second DOM walk
     // and ensures what we write matches exactly what we just applied.
-    // Do NOT call save() which is debounced and would clear _suppressBroadcast before
+    // Do NOT call save() which is debounced and would fire collabBroadcast while
+    // _suppressDepth is still > 0 — decrement happens in finally below.
     // the actual write, causing an echo loop.
     try {
       const snap = _snapshotTiers('full');
@@ -11650,7 +12600,7 @@ function applyTierState(state) {
       localStorage.setItem(SK_val, JSON.stringify(Object.assign({}, existing, { tiers: tiersForStorage })));
     } catch(_) {}
   } finally {
-    _suppressBroadcast = _wasSuppressed; // restore, not force-false
+    _suppressDepth--; // re-entrant decrement
   }
   // After applying remote state, request image data for any items we created
   // without a usable src (blob: URLs from the peer are session-local and unusable).
@@ -11662,7 +12612,8 @@ function applyTierState(state) {
 }
 
 
-const BRACKET_SK = 'musetier_bracket_v1';
+const BRACKET_SK         = 'musetier_bracket_v1';
+const BRACKET_SESSION_SK = 'musetier_bracket_session'; // in-progress tournament snapshot
 
 // ── Seeded deterministic PRNG (Mulberry32) ────────────────────────
 // Used for mystery-mode shuffles and any future ranked randomness.
@@ -11694,6 +12645,7 @@ const NODE_W = 190, NODE_H = 74, V_GAP = 14, H_GAP = 90;
 
 let bracketSize     = 8;
 let bracketRounds   = [];   // bracketRounds[r][m] = { slots:[{name,src,seed},…], winner:null|0|1 }
+let _matchLog       = [];   // { round, match, winner:{name,seed}, loser:{name,seed}, ts } — populated by pickWinner
 let bracketPan      = { x: 60, y: 60 };
 let bracketScale    = 1;
 let _bPanning       = false;
@@ -11721,6 +12673,7 @@ function initBracket(size) {
   _bracketSeed = _newBracketSeed();  // fresh seed for each new tournament
   _mysterySkipReshuffle = false;  // reset per-tournament
   _pendingReshuffleData = null;
+  _matchLog = [];
   const rounds = bracketRoundCount(size);
   bracketRounds = [];
   for (let r = 0; r < rounds; r++) {
@@ -11874,6 +12827,27 @@ function saveBracketData() {
   saveBracket();
   collabBroadcastThrottled({ type: 'bracket_state', payload: { rounds: _bracketRoundsForBroadcast(), size: bracketSize } });
 }
+
+// ── Bracket session persistence (sessionStorage) ──────────────────────────────
+// Saves the full in-progress tournament so an accidental reload mid-matchup
+// doesn't wipe progress. Cleared on clean completion or manual reset.
+function _bracketSessionSave() {
+  try {
+    const safeRounds = bracketRounds.map(round => round.map(match => Object.assign({}, match, {
+      slots: (match.slots || []).map(s => Object.assign({}, s, {
+        src: (s.src && !s.src.startsWith('blob:')) ? s.src : null
+      }))
+    })));
+    sessionStorage.setItem(BRACKET_SESSION_SK, JSON.stringify({
+      size: bracketSize, rounds: safeRounds,
+      matchupIdx: _matchupIdx, matchupQueue: _matchupQueue
+    }));
+  } catch(_) {}
+}
+function _bracketSessionClear() {
+  try { sessionStorage.removeItem(BRACKET_SESSION_SK); } catch(_) {}
+}
+
 function loadBracket() {
   try {
     const raw = localStorage.getItem(BRACKET_SK);
@@ -11884,12 +12858,50 @@ function loadBracket() {
     bracketPan    = d.pan    || { x:60, y:60 };
     bracketScale  = d.scale  || 1;
     if (d.seed) _bracketSeed = d.seed;
-    // Sync size buttons
     document.querySelectorAll('.bracket-size-btn').forEach(b => {
       b.classList.toggle('active', parseInt(b.dataset.size) === bracketSize);
     });
     renderBracket();
+    // Check for an in-progress session snapshot
+    _bracketSessionCheckRestore();
   } catch(_) { initBracket(8); }
+}
+
+function _bracketSessionCheckRestore() {
+  try {
+    const raw = sessionStorage.getItem(BRACKET_SESSION_SK);
+    if (!raw) return;
+    const snap = JSON.parse(raw);
+    if (!snap || !snap.rounds || !snap.rounds.length) { _bracketSessionClear(); return; }
+    // Only prompt if tournament has actual picks in progress
+    const hasPicks = snap.rounds.some(round => round.some(m => m.winner !== null));
+    if (!hasPicks) { _bracketSessionClear(); return; }
+    // Use a non-blocking confirm via setTimeout so the bracket renders first
+    setTimeout(() => {
+      if (!confirm('An in-progress tournament was found. Resume where you left off?')) {
+        _bracketSessionClear();
+        return;
+      }
+      bracketSize   = snap.size || bracketSize;
+      bracketRounds = snap.rounds;
+      if (Array.isArray(snap.matchupQueue) && snap.matchupQueue.length) {
+        _matchupQueue = snap.matchupQueue;
+        _matchupIdx   = typeof snap.matchupIdx === 'number' ? snap.matchupIdx : 0;
+        // Clamp in case queue was partially consumed before reload
+        if (_matchupIdx >= _matchupQueue.length) _matchupIdx = 0;
+      }
+      document.querySelectorAll('.bracket-size-btn').forEach(b => {
+        b.classList.toggle('active', parseInt(b.dataset.size) === bracketSize);
+      });
+      saveBracket();
+      renderBracket();
+      if (_matchupQueue.length) {
+        _matchupActive = true;
+        showMatchup(_matchupQueue[_matchupIdx]);
+      }
+      toast('Tournament resumed ↩', 'info', 2000);
+    }, 100);
+  } catch(_) { _bracketSessionClear(); }
 }
 
 function renderBracket() {
@@ -12241,6 +13253,19 @@ function pickWinner(r, m, si) {
   if (!match || match.isChampion) return;
   match.winner = si;
   const winner = match.slots[si];
+
+  // Record to match log (skip if called from _autoAdvanceByes — both slots populated check)
+  const loserSi = si === 0 ? 1 : 0;
+  const loser = match.slots[loserSi];
+  if (winner && winner.name && loser && loser.name) {
+    _matchLog.push({
+      round:  r,
+      match:  m,
+      winner: { name: winner.name, seed: winner.seed },
+      loser:  { name: loser.name,  seed: loser.seed  },
+      ts:     Date.now()
+    });
+  }
 
   // Propagate to next round
   const nextR = r + 1;
@@ -12651,6 +13676,7 @@ function clearBracketSlot() {
 function resetBracket() {
   if (auxActive) { toast('Cannot reset bracket during a battle session', 'error', 2500); return; }
   if (!confirm('Reset entire bracket?')) return;
+  _bracketSessionClear();
   _mysterySkipReshuffle = false; // re-enable shuffle prompts for new tournament
   document.getElementById('mystery-no-ask-again').checked = false;
   initBracket(bracketSize);
@@ -13027,8 +14053,9 @@ function showMatchup({ r, m }) {
   // Always clear stale winner/loser state before populating new content
   const sideA = document.getElementById('matchup-a');
   const sideB = document.getElementById('matchup-b');
-  if (sideA) sideA.classList.remove('picked', 'lost');
-  if (sideB) sideB.classList.remove('picked', 'lost');
+  if (sideA) sideA.classList.remove('picked', 'lost', 'highlighted');
+  if (sideB) sideB.classList.remove('picked', 'lost', 'highlighted');
+  _matchupHighlight = null;
   document.getElementById('matchup-round-lbl').classList.remove('fading');
 
   function setSide(prefix, slot) {
@@ -13054,6 +14081,7 @@ function matchupPick(si) {
   if (!_curMatchup) return;
   const { r, m } = _curMatchup;
   pickWinner(r, m, si);
+  _bracketSessionSave(); // persist after every pick — survives accidental reload
 
   // Flash winner/loser sides
   const sideA = document.getElementById('matchup-a');
@@ -13124,7 +14152,7 @@ function matchupPick(si) {
       const champRound = bracketRounds[bracketRounds.length - 1];
       if (champRound[0]?.slots[0]?.name) {
         const champName = champRound[0].slots[0].name;
-        // Pan to champion (880ms travel + 620ms pause + ~2200ms entrance) then toast
+        _bracketSessionClear(); // tournament complete — no need to resume
         _panAndRevealChampion();
         setTimeout(() => {
           toast(`🏆 CHAMPION: ${champName}`, 'success', 4000);
@@ -13139,6 +14167,7 @@ function matchupPick(si) {
 function matchupClose() {
   _matchupActive = false;
   _curMatchup = null;
+  _matchupClearHighlight();
   document.getElementById('matchup-overlay').classList.remove('visible');
   // Aux cleanup: ESC or any close must restore handlers and hide judge controls
   if (auxActive) {
@@ -13151,9 +14180,54 @@ function matchupClose() {
   }
 }
 
-// ESC closes matchup
+// ── Matchup overlay keyboard controls ────────────────────────────────────────
+// Arrow keys highlight a side; Enter/Space/1/2 confirm the highlighted pick.
+let _matchupHighlight = null; // 0 = left (A), 1 = right (B), null = none
+
+function _matchupSetHighlight(si) {
+  const sideA = document.getElementById('matchup-a');
+  const sideB = document.getElementById('matchup-b');
+  if (!sideA || !sideB) return;
+  sideA.classList.toggle('highlighted', si === 0);
+  sideB.classList.toggle('highlighted', si === 1);
+  _matchupHighlight = si;
+}
+function _matchupClearHighlight() {
+  const sideA = document.getElementById('matchup-a');
+  const sideB = document.getElementById('matchup-b');
+  if (sideA) sideA.classList.remove('highlighted');
+  if (sideB) sideB.classList.remove('highlighted');
+  _matchupHighlight = null;
+}
+
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && _matchupActive) matchupClose();
+  if (e.key === 'Escape' && _matchupActive) { _matchupClearHighlight(); matchupClose(); return; }
+  if (!_matchupActive) return;
+  // Block key repeat spam on confirm keys
+  if (e.repeat && (e.key === 'Enter' || e.key === ' ')) return;
+  switch (e.key) {
+    case 'ArrowLeft':
+      e.preventDefault();
+      _matchupSetHighlight(0);
+      break;
+    case 'ArrowRight':
+      e.preventDefault();
+      _matchupSetHighlight(1);
+      break;
+    case 'Enter':
+    case ' ':
+      e.preventDefault();
+      if (_matchupHighlight !== null) { const si = _matchupHighlight; _matchupClearHighlight(); matchupPick(si); }
+      break;
+    case '1':
+      _matchupClearHighlight();
+      matchupPick(0);
+      break;
+    case '2':
+      _matchupClearHighlight();
+      matchupPick(1);
+      break;
+  }
 });
 
 
@@ -13837,8 +14911,8 @@ function _auxOnMsg(msg, from) {
           typeof msg.si !== 'number' || !msg.slot) { console.warn('[aux] aux_slot malformed'); break; }
       if (!bracketRounds[msg.r] || !bracketRounds[msg.r][msg.m]) break;
       bracketRounds[msg.r][msg.m].slots[msg.si] = msg.slot;
-      _suppressBroadcast = true;
-      try { saveBracket(); } finally { _suppressBroadcast = false; }
+      _suppressDepth++;
+      try { saveBracket(); } finally { _suppressDepth--; }
       if (activeTab === 'bracket') renderBracket();
       break;
 
@@ -13848,8 +14922,8 @@ function _auxOnMsg(msg, from) {
       bracketSize   = msg.size;
       auxScores     = { a: Number(msg.scores?.a)||0, b: Number(msg.scores?.b)||0 };
       if (msg.winMode) { auxWinMode = msg.winMode; _auxUpdateWinModeChip(); }
-      _suppressBroadcast = true;
-      try { saveBracket(); } finally { _suppressBroadcast = false; }
+      _suppressDepth++;
+      try { saveBracket(); } finally { _suppressDepth--; }
       // If we missed aux_activate (race on channel open), activate now
       if (!auxActive) { auxActive = true; _auxActivateUI(); }
       if (activeTab === 'bracket') renderBracket();
@@ -13865,8 +14939,8 @@ function _auxOnMsg(msg, from) {
       if (typeof msg.r !== 'number' || typeof msg.m !== 'number' || typeof msg.si !== 'number') {
         console.warn('[aux] aux_winner malformed'); break;
       }
-      _suppressBroadcast = true;
-      try { pickWinner(msg.r, msg.m, msg.si); } finally { _suppressBroadcast = false; }
+      _suppressDepth++;
+      try { pickWinner(msg.r, msg.m, msg.si); } finally { _suppressDepth--; }
       // BUG FIX: do NOT add points here for non-judge clients — the judge pushes
       // aux_score right after aux_winner with the authoritative score. Adding points
       // here causes a brief double-count flash before aux_score arrives to correct it.
@@ -14175,13 +15249,13 @@ function auxSlotHidden(si) {
 
 // ── Broadcast slot change ─────────────────────────────
 function auxBroadcastSlot(r, m, si, slot) {
-  if (!auxActive || _suppressBroadcast) return;
+  if (!auxActive || _suppressDepth > 0) return;
   _auxPushEvent({ type:'aux_slot', r, m, si, slot });
 }
 
 // ── auxBroadcast alias (used by bracket engine) ───────
 function auxBroadcast(msg) {
-  if (!auxActive || _suppressBroadcast) return;
+  if (!auxActive || _suppressDepth > 0) return;
   _auxPushEvent(msg);
 }
 
@@ -14282,8 +15356,8 @@ function auxJudgePick(si) {
   const winSide = si === 0 ? 'a' : 'b';
   const pts     = auxCalcPoints(r);
   _matchupQueue = []; _matchupIdx = 0;
-  _suppressBroadcast = true;
-  try { matchupPick(si); } finally { _suppressBroadcast = false; }
+  _suppressDepth++;
+  try { matchupPick(si); } finally { _suppressDepth--; }
   if (auxWinMode !== 'bracket') {
     auxScores[winSide] += pts;
     _auxShowScoreFloat(si, pts);
@@ -15493,7 +16567,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="matchup-cover-ph" id="matchup-a-ph">&#9834;</div>
       <img class="matchup-cover" id="matchup-a-img" src="" alt="" style="display:none;">
       <div class="matchup-name" id="matchup-a-name">&mdash;</div>
-      <span class="matchup-pick-hint">CLICK TO ADVANCE &#9658;</span>
+      <span class="matchup-pick-hint">[ 1 ] or ← then ENTER</span>
     </div>
     <div id="matchup-vs">VS</div>
     <div class="matchup-side" id="matchup-b" onclick="matchupPick(1)">
@@ -15501,7 +16575,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="matchup-cover-ph" id="matchup-b-ph">&#9834;</div>
       <img class="matchup-cover" id="matchup-b-img" src="" alt="" style="display:none;">
       <div class="matchup-name" id="matchup-b-name">&mdash;</div>
-      <span class="matchup-pick-hint">&#9668; CLICK TO ADVANCE</span>
+      <span class="matchup-pick-hint">[ 2 ] or → then ENTER</span>
     </div>
   </div>
   <div id="matchup-bye-notice" style="display:none;"></div>
@@ -15554,7 +16628,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:12px;font-family:var(--mono);font-size:12px;letter-spacing:1.5px;color:var(--text-dim);user-select:none;">
         <input type="checkbox" id="bpk-mystery-check" style="accent-color:var(--accent);width:13px;height:13px;cursor:pointer;" onchange="bpkSyncMysteryCheck()">
-        &#127922; MYSTERY MODE &#8212; slots hidden as ??? until each matchup begins
+        &#127922; MYSTERY MODE  -  slots hidden as ??? until each matchup begins
       </label>
       <button class="modal-btn cancel" onclick="closeOverlay('battlePickerOvr')" style="margin-top:16px;width:100%;">CANCEL</button>
     </div>
@@ -15599,9 +16673,9 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="bpk-rule-block">
           <div class="bpk-rule-heading">&#128202; SCORING MODES</div>
           <ul class="bpk-score-list">
-            <li><b>&#127885; SCORE</b> &#8212; Flat 1pt per win. Most points wins.</li>
-            <li><b>&#127942; BRACKET</b> &#8212; Bracket final winner takes all.</li>
-            <li><b>&#9889; FUSION</b> &#8212; <span class="bpk-pts-chip">R1=1pt</span><span class="bpk-pts-chip">QF=3pts</span><span class="bpk-pts-chip">SF=5pts</span><span class="bpk-pts-chip">Final=10pts</span><span class="bpk-pts-chip">Champion +10pts</span></li>
+            <li><b>&#127885; SCORE</b>  -  Flat 1pt per win. Most points wins.</li>
+            <li><b>&#127942; BRACKET</b>  -  Bracket final winner takes all.</li>
+            <li><b>&#9889; FUSION</b>  -  <span class="bpk-pts-chip">R1=1pt</span><span class="bpk-pts-chip">QF=3pts</span><span class="bpk-pts-chip">SF=5pts</span><span class="bpk-pts-chip">Final=10pts</span><span class="bpk-pts-chip">Champion +10pts</span></li>
           </ul>
         </div>
         <div class="bpk-rule-block">
@@ -15979,11 +17053,12 @@ document.addEventListener('DOMContentLoaded', function() {
     },
     {
       tab: 'tier',
-      title: '\u{1f50d}  POOL FILTER + MULTI-SELECT',
+      title: '\u{1f50d}  POOL FILTER + SORT + MULTI-SELECT',
       onEnter: function() { if (window.expandPool) window.expandPool(); },
-      body: 'Got a massive pool and can\'t find anything? Use the <strong>filter box</strong> to search by name in real time.<br><br>You can also <strong>Shift+click</strong> to select multiple items at once, then drag the whole group into a tier or press <strong>Delete / Backspace</strong> to remove them all in one shot. Right-clicking a selected group lets you remove them via the context menu too.',
+      body: 'Got a massive pool and can\'t find anything? Use the <strong>filter box</strong> to search by name in real time.<br><br>The <strong>&#x21C5; SORT</strong> button lets you reorder the pool by A to Z, Z to A, Reverse Import, Random Shuffle, or Manual drag order.<br><br>You can also <strong>Shift+click</strong> to select multiple items at once, then drag the whole group into a tier or press <strong>Delete / Backspace</strong> to remove them all. Right-clicking a selected group lets you <strong>Assign a Category</strong> to tag items in bulk for library filtering.',
       targets: [
         { sel: '#pool-search', lbl: 'Type to filter pool items live', pos: 'above' },
+        { sel: '#pool-sort-btn', lbl: '&#x21C5; SORT: reorder pool items', pos: 'above' },
       ]
     },
     {
@@ -15995,7 +17070,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {
       tab: 'tier',
       title: '\u2193  EXPORT',
-      body: 'The <strong>\u2193 EXPORT</strong> menu has two options now:<br><br><strong>Save as Image</strong> renders your full tier list to a PNG you can share anywhere.<br><br><strong>Export as Text</strong> copies a plain ranked list to your clipboard, formatted like <em>S: Album A, Album B / A: Album C</em> and so on. I don\'t know why you would do that out of every feature we have but oh well, your choice.',
+      body: 'The <strong>\u2193 EXPORT</strong> menu has two options now:<br><br><strong>Save as Image</strong> renders your full tier list to a PNG you can share anywhere.<br><br><strong>Export...</strong> opens the export modal with three tabs: <em>Plain Text</em> (your old ranked list), <em>JSON Rankings</em> (structured data you can re-import), and <em>Bracket Results</em> (a match log from your tournament).',
       targets: [
         { sel: '#dd-export', lbl: 'Export: image or ranked text list', pos: 'below' },
       ]
@@ -16020,7 +17095,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {
       tab: 'bracket',
       title: '\u2b21  BRACKET',
-      body: 'The biggest feature of this site! Import everything from the pool and run a full bracket brawl on anything you can think of. Press <strong>START</strong> to pick regular mode or multiplayer and let the arguments begin.<br><br>In <strong>SETTINGS</strong> you can now choose how to seed entrants: <strong>Fill from Pool</strong> uses pool order, while <strong>Seed from Tier Rows</strong> uses your actual tier rankings (S tier = top seeds, A tier next, and so on). When you\'re done, <strong>Save as Image</strong> exports the whole bracket as a PNG for sharing.',
+      body: 'The biggest feature of this site! Import everything from the pool and run a full bracket brawl on anything you can think of. Press <strong>START</strong> to pick regular mode or multiplayer and let the arguments begin.<br><br>In <strong>SETTINGS</strong> you can choose how to seed entrants: <strong>Fill from Pool</strong> uses pool order, while <strong>Seed from Tier Rows</strong> uses your actual tier rankings (S tier = top seeds, A tier next, and so on). When you\'re done, <strong>Save as Image</strong> exports the whole bracket as a PNG for sharing.<br><br>During a matchup you can use <strong>Left/Right arrow keys</strong> to highlight a side and <strong>Enter, Space, 1 or 2</strong> to pick without touching the mouse. The full match log is available in the <strong>Export modal</strong> under Bracket Results.',
       targets: [
         { sel: '.btn-bracket', lbl: 'START: pick your mode here', pos: 'below' },
         { sel: '#bk-cog-btn',  lbl: 'Settings: size, seeding, image export', pos: 'below' },
@@ -16475,7 +17550,7 @@ function mobileLibClose() {
 })();
 
 // ── WHAT'S NEW ────────────────────────────────────────────────────────────────
-const WN_KEY = 'musetier_wn_11';
+const WN_KEY = 'musetier_wn_12a';
 function _showWhatsNew() {
   try { localStorage.setItem(WN_KEY, '1'); } catch(e) {}
   openOverlay('whatsNewOvr');
