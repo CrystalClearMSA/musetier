@@ -1,4 +1,4 @@
-![image alt](https://github.com/CrystalClearMSA/musetier/blob/2f7cd778974349729664688e71307d985928456a/musetier-banner.png)
+![image alt](https://github.com/CrystalClearMSA/musetier/blob/f25ab4c5a10395e68322d8472351f034371b899e/musetier-banner.png)
 
 to access, click the link bellow:
 
