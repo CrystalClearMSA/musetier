@@ -1651,6 +1651,19 @@ label.btn { cursor: pointer; }
 .item:hover .item-rm { display: flex; }
 .item-rm:hover { background: #f44; color: #fff; }
 
+/* Mobile-only assign-category button — bottom-left of item tile */
+.item-cat {
+  position: absolute; bottom: 1px; left: 1px;
+  background: rgba(0,0,0,0.72); border: none; color: var(--accent);
+  font-size: 10px; width: 12px; height: 12px;
+  cursor: pointer; display: none; align-items: center; justify-content: center;
+  line-height: 1; transition: background 0.1s; z-index: 2;
+}
+@media (pointer: coarse) {
+  .item-cat { display: flex; }
+  .item-cat:active { background: var(--accent); color: #000; }
+}
+
 .drop-ph {
   width: var(--tile); height: var(--tile);
   border: 1px dashed #333; flex-shrink: 0; pointer-events: none;
@@ -4251,6 +4264,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   /* Tier items */
   .item    { touch-action: none; }
   .item-rm { opacity: 1 !important; width: 24px; height: 24px; font-size: 14px; }
+  .item-cat { width: 22px; height: 22px; font-size: 13px; }
   #pool .item { min-width: var(--tile); min-height: var(--tile); }
   /* Bracket slots */
   .bm-slot { min-height: 48px; }
@@ -6923,7 +6937,7 @@ function _updateIctxCount() {
 // Attach shift-click + right-click to a pool/tier item
 function _attachItemInteraction(item) {
   item.addEventListener('click', function(e) {
-    if (e.target.closest('.item-rm')) return;
+    if (e.target.closest('.item-rm') || e.target.closest('.item-cat')) return;
     if (e.shiftKey) {
       e.preventDefault();
       e.stopPropagation();
@@ -7510,8 +7524,7 @@ function createItem(src, alt, labelTxt) {
   setTimeout(() => item.classList.remove('entering'), 250);
   item.appendChild(img);
   if (labelTxt) { const l=document.createElement('div'); l.className='item-lbl'; l.textContent=labelTxt; item.appendChild(l); }
-  const rm=document.createElement('button'); rm.className='item-rm'; rm.textContent='✕'; rm.title='Remove';
-  rm.addEventListener('click',e=>{
+  const rm=document.createElement('button'); rm.className='item-rm'; rm.textContent='✕'; rm.title='Remove';  rm.addEventListener('click',e=>{
     e.stopPropagation();
     item.classList.add('removing');
     // FIX-03: animationend may not fire (prefers-reduced-motion, element detached, etc.)
@@ -7530,6 +7543,16 @@ function createItem(src, alt, labelTxt) {
   });
   item.appendChild(rm);
 
+  // Mobile assign-category button (coarse pointer only — hidden on desktop via CSS)
+  const cat=document.createElement('button'); cat.className='item-cat'; cat.textContent='⊞'; cat.title='Assign Category';
+  cat.addEventListener('click', function(e) {
+    e.stopPropagation(); e.preventDefault();
+    _ictxTargetItem = item;
+    if (!item.classList.contains('selected')) { _clearSelection(); _itemSelect(item, true); }
+    itemCtxAssignCat();
+  });
+  item.appendChild(cat);
+
   // bitmap for export
   if (typeof createImageBitmap !== 'undefined') {
     const t=new Image(); t.onload=()=>createImageBitmap(t,{resizeWidth:130,resizeHeight:130}).then(b=>bitmapCache.set(item,b)).catch(()=>{}); t.src=src;
@@ -7544,6 +7567,7 @@ function getCatFromPath(p) { const parts=p.split('/'); return parts.length>=2?pa
 function loadImageFiles(files, isFolder) {
   const arr = [...files].filter(f=>f.type.startsWith('image/')); if(!arr.length) return;
   const total=arr.length; let done=0, failed=0; const newByCat=new Map();
+  const dataUrlPromises = []; // collected so onImagesLoaded can barrier on them
   showLoading(total);
   const CHUNK=40, chunks=[];
   for(let i=0;i<total;i+=CHUNK) chunks.push(arr.slice(i,i+CHUNK));
@@ -7551,15 +7575,15 @@ function loadImageFiles(files, isFolder) {
     await Promise.all(chunk.map(file=>{
       const cat=isFolder?getCatFromPath(file.webkitRelativePath||file.name):'UNCATEGORISED';
       return createImageBitmap(file,{resizeWidth:130,resizeHeight:130,resizeQuality:'medium'})
-        .then(bitmap=>{ const url=URL.createObjectURL(file); const item=createItem(url,file.name,file.name.replace(/\.[^.]+$/,'')); urlRegistry.set(item,url); bitmapCache.set(item,bitmap); setupDraggable(item); if(!catStore.has(cat))catStore.set(cat,[]); catStore.get(cat).push({item,bitmap}); if(!newByCat.has(cat))newByCat.set(cat,[]); newByCat.get(cat).push(item); blobToDataUrl(file).then(d=>{item.dataset.dataUrl=d;}).catch(()=>{}); })
+        .then(bitmap=>{ const url=URL.createObjectURL(file); const item=createItem(url,file.name,file.name.replace(/\.[^.]+$/,'')); urlRegistry.set(item,url); bitmapCache.set(item,bitmap); setupDraggable(item); if(!catStore.has(cat))catStore.set(cat,[]); catStore.get(cat).push({item,bitmap}); if(!newByCat.has(cat))newByCat.set(cat,[]); newByCat.get(cat).push(item); dataUrlPromises.push(blobToDataUrl(file).then(d=>{item.dataset.dataUrl=d;}).catch(()=>{})); })
         .catch(()=>failed++)
         .finally(()=>updateLoading(++done,total,file.name));
     }));
   }
-  (async()=>{ for(const c of chunks)await processChunk(c); hideLoading(); onImagesLoaded(newByCat); })();
+  (async()=>{ for(const c of chunks)await processChunk(c); hideLoading(); onImagesLoaded(newByCat, Promise.allSettled(dataUrlPromises)); })();
 }
 
-function onImagesLoaded(newByCat) {
+function onImagesLoaded(newByCat, dataUrlsReady) {
   if(!activeCategory) { const keys=[...catStore.keys()].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'})); activeCategory=catStore.size===1?'ALL':keys[0]; }
   if(pendingRestore?.size) {
     const rows=[...tiersEl.querySelectorAll('.tier-row')];
@@ -7592,8 +7616,12 @@ function onImagesLoaded(newByCat) {
     pendingRestore = null;
   }
   if (typeof gridRenderPoolStrip === 'function' && activeTab === 'grid') gridRenderPoolStrip();
-  // Broadcast pool to collab peers — delayed 1.5s to let async dataUrl loading settle
-  setTimeout(function() { collabBroadcastThrottled({ type: 'pool_state', payload: _collabPoolState() }); }, 1500);
+  // Broadcast pool to collab peers — wait for all blob→dataUrl conversions to settle
+  // before broadcasting so peers receive complete image data, not partial state.
+  // Falls back to immediate broadcast if called without a barrier (e.g. non-file-load paths).
+  (dataUrlsReady || Promise.resolve()).then(function() {
+    collabBroadcastThrottled({ type: 'pool_state', payload: _collabPoolState() });
+  });
 }
 
 document.getElementById('fileInput').addEventListener('change',e=>{loadImageFiles(e.target.files,false);e.target.value='';});
@@ -17523,7 +17551,7 @@ function mobileLibClose() {
   document.addEventListener('touchstart', function(e) {
     if (!_isMobile()) return;
     const item = e.target.closest('.item');
-    if (!item || e.target.closest('.item-rm')) return;
+    if (!item || e.target.closest('.item-rm') || e.target.closest('.item-cat')) return;
     const touch = e.touches[0];
     _tdStartX = touch.clientX; _tdStartY = touch.clientY;
     _tdTimer = setTimeout(function() { _tdTimer = null; _begin(item, touch); }, LONG_PRESS);
