@@ -7902,7 +7902,7 @@ body.ui-hidden #hide-ui-btn { opacity: 0 !important; pointer-events: none !impor
 
       <div class="wn-entry"><span class="wn-icon">&#x1F527;</span><div><div class="wn-title">STALE WEBRTC TEXT IN BATTLE PICKER</div><div class="wn-desc">Several card descriptions and the connection rules block in the battle mode picker still referenced WebRTC, peer-to-peer connections, and "no server required" after the entire transport layer had been replaced with PartyKit. The text has been updated to describe what actually happens now.</div></div></div>
 
-      <div class="wn-section-hdr" style="letter-spacing:3px;">&#128337; EA 1.2a — 2026-03-09</div>
+      <div class="wn-section-hdr" style="letter-spacing:3px;">&#128337; EA 1.2a - 2026-03-09</div>
 
       <div class="wn-entry"><span class="wn-icon">&#x21C5;</span><div><div class="wn-title">POOL SORT MENU</div><div class="wn-desc">New sort button on the Staging Pool with five modes: A to Z, Z to A, Reverse Import, Random Shuffle, and Manual drag order.</div></div></div>
 
@@ -7930,7 +7930,7 @@ body.ui-hidden #hide-ui-btn { opacity: 0 !important; pointer-events: none !impor
 
       <div class="wn-entry"><span class="wn-icon">&#x1F527;</span><div><div class="wn-title">BRACKET SESSION RESTORE QUEUE CLAMP</div><div class="wn-desc">A stale <code>matchupIdx</code> pointing past the end of a restored queue now clamps to 0 instead of showing a blank matchup screen.</div></div></div>
 
-      <div class="wn-section-hdr" style="letter-spacing:3px;">&#128337; EA 1.1 — 2026-03-08</div>
+      <div class="wn-section-hdr" style="letter-spacing:3px;">&#128337; EA 1.1 - 2026-03-08</div>
 
       <div class="wn-entry"><span class="wn-icon">&#128190;</span><div><div class="wn-title">SAVE / LOAD SLOTS</div><div class="wn-desc">5 named save slots accessible via the SAVE/LOAD button in the toolbar. Each slot stores full tier layout and pool state. Slots show item count, pool count, and timestamp. Rename any slot without overwriting. Storage uses alt+label references rather than raw base64 data to keep localStorage usage sane.</div></div></div>
 
@@ -20333,6 +20333,14 @@ function _lobbyHandleMsg(data) {
   switch (data.type) {
     case 'lobby_hello':
       _lobbySysMsg((data.name || 'Someone') + ' joined the lobby.');
+      // Re-announce our current role and ready state so the new joiner
+      // can reconstruct the slot map without a server-side state store.
+      if (_lobbyMyRole) {
+        _lobbySend({ type: 'lobby_role', role: _lobbyMyRole, name: _lobbyMyName });
+        if (_lobbyMyReady) {
+          _lobbySend({ type: 'lobby_ready', ready: true });
+        }
+      }
       break;
 
     case 'lobby_role': {
@@ -20401,6 +20409,7 @@ function lobbyClaimRole(role) {
   if (_lobbyMyRole === role) {
     // Toggle off
     _lobbyMyRole = null;
+    _lobbyMyReady = false;
     _lobbySend({ type: 'lobby_role', role: null, name: _lobbyMyName });
   } else {
     // Check not taken by someone else
@@ -20413,10 +20422,13 @@ function lobbyClaimRole(role) {
       _lobbySlots[_lobbyMyRole] = null;
     }
     _lobbyMyRole = role;
-    _lobbySlots[role] = { name: _lobbyMyName, uid: _lobbyMyUid, ready: _lobbyMyReady };
+    _lobbyMyReady = false;
+    _lobbySlots[role] = { name: _lobbyMyName, uid: _lobbyMyUid, ready: false };
     _lobbySend({ type: 'lobby_role', role, name: _lobbyMyName });
+    // Explicitly broadcast ready: false so peers clear any stale ready state
+    // from a previously held slot by this uid
+    _lobbySend({ type: 'lobby_ready', ready: false });
   }
-  _lobbyMyReady = false;
   _lobbyRenderSlots();
   _lobbyCheckStart();
 }
