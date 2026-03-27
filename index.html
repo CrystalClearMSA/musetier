@@ -5458,6 +5458,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 /* Chat side of lobby */
 #lobby-right {
   width: 200px; display: flex; flex-direction: column; flex-shrink: 0;
+  overflow: hidden; min-height: 0;
 }
 #lobby-chat-hdr {
   padding: 6px 10px; font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
@@ -5466,6 +5467,7 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 #lobby-chat-msgs {
   flex: 1; overflow-y: auto; padding: 6px 8px;
   display: flex; flex-direction: column; gap: 4px; min-height: 0;
+  max-height: 280px;
 }
 .lobby-chat-msg {
   font-family: var(--mono); font-size: 10px; letter-spacing: .5px;
@@ -20326,7 +20328,10 @@ function _lobbyConnect() {
 
 function _lobbySend(msg) {
   if (!_lobbyWS || _lobbyWS.readyState !== WebSocket.OPEN) return;
-  try { _lobbyWS.send(JSON.stringify(Object.assign({ _uid: _lobbyMyUid }, msg))); } catch(_) {}
+  // Always include both _uid (echo guard) and uid (slot matching by handlers).
+  // Previously only _uid was stamped, leaving data.uid undefined in every
+  // received message, which caused undefined === undefined to match every slot.
+  try { _lobbyWS.send(JSON.stringify(Object.assign({ _uid: _lobbyMyUid, uid: _lobbyMyUid }, msg))); } catch(_) {}
 }
 
 function _lobbyHandleMsg(data) {
@@ -20335,6 +20340,8 @@ function _lobbyHandleMsg(data) {
       _lobbySysMsg((data.name || 'Someone') + ' joined the lobby.');
       // Re-announce our current role and ready state so the new joiner
       // can reconstruct the slot map without a server-side state store.
+      // Re-announce our current role so the new joiner can reconstruct slot state.
+      // uid is automatically injected by _lobbySend now, so slot matching is correct.
       if (_lobbyMyRole) {
         _lobbySend({ type: 'lobby_role', role: _lobbyMyRole, name: _lobbyMyName });
         if (_lobbyMyReady) {
@@ -20573,6 +20580,8 @@ function lobbyChatSend() {
 
 function _lobbyAddChat(name, msg, isMine) {
   const el = document.getElementById('lobby-chat-msgs');
+  // Keep at most 80 messages to prevent runaway DOM growth
+  while (el.children.length >= 80) el.removeChild(el.firstChild);
   if (!el) return;
   const div = document.createElement('div');
   div.className = 'lobby-chat-msg';
