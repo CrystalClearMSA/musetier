@@ -26,6 +26,104 @@
 
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── MP Status Strip ─────────────────────────────────────── */
+#mp-status-strip {
+  background: var(--panel2);
+  border-bottom: 1px solid var(--border);
+  padding: 4px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 5;
+  position: relative;
+}
+#mp-status-strip button {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 2px 8px;
+  transition: color .12s, border-color .12s;
+}
+#mp-status-strip button:hover { color: var(--text-hi); border-color: var(--border-hi); }
+
+/* ── Lobby voting sections ───────────────────────────────── */
+.lobby-vote-section {
+  margin-top: 10px;
+  padding: 10px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+}
+.lobby-vote-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lobby-vote-tally {
+  color: var(--accent);
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.lobby-vote-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.lobby-vote-card {
+  background: var(--panel3);
+  border: 1px solid var(--border);
+  padding: 8px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.lobby-vote-card:hover { border-color: var(--accent); background: rgba(212,255,0,.04); }
+.lobby-vote-card.voted { border-color: var(--accent); background: rgba(212,255,0,.09); }
+.lobby-vote-card-meme { opacity: .45; }
+.lobby-vote-card-meme:hover { opacity: .7; border-color: #f44; }
+.lvc-icon { font-size: 18px; }
+.lvc-name { font-family: var(--head); font-size: 12px; font-weight: 900; letter-spacing: 2px; color: var(--text-hi); }
+.lvc-tally { font-family: var(--mono); font-size: 9px; color: var(--accent); letter-spacing: .5px; min-height: 12px; }
+.lvc-help {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 9px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 14px;
+  transition: color .1s;
+}
+.lvc-help:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── Create session modal qbc reuse ─────────────────────── */
+#createSessionOvr .modal { width: 380px; max-height: 90dvh; overflow-y: auto; }
+#createSessionOvr { z-index: 600; }
+
+/* ── Splash screen ───────────────────────────────────────── */
+#splashOvr { display: none; }
 html, body { height: 100%; overflow: hidden; }
 
 #topbar, #app-body, #sidebar, #content-area { position: relative; z-index: 2; }
@@ -1232,6 +1330,11 @@ label.ctx-item { cursor: pointer; }
 .tree-album-gen-arrow {
   font-size: 14px; display: block; line-height: 1;
 }
+#gen-settings-btn.drag-over {
+  border-color: var(--accent-gen) !important;
+  color: var(--accent-gen) !important;
+  background: rgba(0,229,160,0.08) !important;
+}
 .tree-album-row { position: relative; }
 
 
@@ -2360,7 +2463,64 @@ label.ctx-item { cursor: pointer; }
   100% { opacity:0; transform:translateX(-100%) scaleX(0.7); }
 }
 @keyframes tab-fade  { from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)} }
-@keyframes tree-row-in { from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)} }
+@keyframes tree-row-in  { from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)} }
+@keyframes sb-row-in    { from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)} }
+@keyframes pill-up      { from{opacity:0;transform:translateY(12px) scale(0.92)}to{opacity:1;transform:translateY(0) scale(1)} }
+@keyframes slot-in      { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
+@keyframes hist-in      { from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)} }
+@keyframes chip-pop     { 0%{opacity:0;transform:scale(0.7)}60%{transform:scale(1.08)}100%{opacity:1;transform:scale(1)} }
+
+/* Server browser rows - stagger via --row-i custom property set in JS */
+#sb-table tbody tr {
+  animation: sb-row-in 0.16s ease both;
+  animation-delay: calc(var(--row-i, 0) * 22ms);
+}
+
+/* Library tree - album rows animate when artist expands */
+.tree-album-row {
+  animation: tree-row-in 0.13s ease both;
+  animation-delay: calc(var(--al-i, 0) * 18ms);
+}
+
+/* Minimize pills (server browser + lobby) */
+#sb-minimize-pill,
+#lobby-minimize-pill {
+  animation: pill-up 0.22s cubic-bezier(.34,1.3,.64,1) both;
+}
+
+/* Lobby role slots */
+.lobby-slot { animation: slot-in 0.18s ease both; }
+#lobby-slot-judge   { animation-delay: 0ms; }
+#lobby-slot-player1 { animation-delay: 40ms; }
+#lobby-slot-player2 { animation-delay: 80ms; }
+
+/* Mode chip in server browser */
+.sb-mode-chip { animation: chip-pop 0.18s cubic-bezier(.34,1.3,.64,1) both; }
+
+/* Bracket save history entries */
+.bk-hist-entry {
+  animation: hist-in 0.14s ease both;
+  animation-delay: calc(var(--hi-i, 0) * 28ms);
+}
+
+/* Share history entries */
+.sh-entry {
+  animation: hist-in 0.14s ease both;
+  animation-delay: calc(var(--shi-i, 0) * 22ms);
+}
+
+/* What's New entries - nth-child stagger since they are static HTML */
+.wn-entry { animation: hist-in 0.16s ease both; }
+.wn-entry:nth-child(1)  { animation-delay:   0ms; }
+.wn-entry:nth-child(2)  { animation-delay:  20ms; }
+.wn-entry:nth-child(3)  { animation-delay:  40ms; }
+.wn-entry:nth-child(4)  { animation-delay:  60ms; }
+.wn-entry:nth-child(5)  { animation-delay:  80ms; }
+.wn-entry:nth-child(6)  { animation-delay: 100ms; }
+.wn-entry:nth-child(7)  { animation-delay: 120ms; }
+.wn-entry:nth-child(8)  { animation-delay: 140ms; }
+.wn-entry:nth-child(9)  { animation-delay: 160ms; }
+.wn-entry:nth-child(n+10) { animation-delay: 180ms; }
 
 .spin { animation: spin 1s linear infinite; display: inline-block; }
 
@@ -2460,8 +2620,9 @@ body::after {
 }
 
 
-html { transition: background-color 0.28s ease, color 0.28s ease; }
-body, #topbar, #sidebar, #pool-wrap, #gen-config-col { transition: background 0.28s ease; }
+/* Background/color transitions only fire during explicit theme switches */
+html.theme-switching { transition: background-color 0.28s ease, color 0.28s ease; }
+body.theme-switching, .theme-switching #topbar, .theme-switching #sidebar, .theme-switching #pool-wrap, .theme-switching #gen-config-col { transition: background 0.28s ease; }
 .btn, .modal-btn { transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.12s; }
 .btn:hover, .modal-btn:hover { transform: translateY(-1px); }
 .btn:active, .modal-btn:active { transform: translateY(0); transition-duration: 0.06s; }
@@ -5325,7 +5486,6 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
 #aux-browse-btn:hover { border-color: var(--accent); color: var(--accent); }
 
 /* ── Quick Battle Create modal ──────────────────────────────────────────── */
-#quickBattleOvr .modal { width: 440px; max-height: 90dvh; overflow-y: auto; }
 .qbc-field { margin-bottom: 12px; }
 .qbc-label {
   font-family: var(--mono); font-size: 11px; letter-spacing: 2px;
@@ -5719,7 +5879,6 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   #app-tabs      { display: none !important; }
   #edit-mode-btn { display: none !important; }
   #gen-settings-btn { display: none !important; }
-  #dd-multiplayer { display: none !important; }
   #dd-export     { display: none !important; }
   .btn-donate    { display: none !important; }
   .tb-right      { display: none !important; }
@@ -6437,7 +6596,7 @@ body.ui-hidden #hide-ui-btn { opacity: 0 !important; pointer-events: none !impor
   <div id="mobile-lib-row">
     <button class="btn btn-lib" id="mobile-lib-btn" onclick="mobileLibToggle()" title="Library">☰ LIBRARY</button>
     <div id="mobile-action-row">
-      <button class="btn mob-icon-btn" onclick="openQuickBattleCreate()" title="Create Session">⊕</button>
+      <button class="btn mob-icon-btn" onclick="openServerBrowser()" title="Multiplayer">⇄</button>
       <button class="btn mob-icon-btn" onclick="openServerBrowser()" title="Browse Public Rooms">⊞</button>
       <button class="btn mob-icon-btn" onclick="openGenSettings()" title="Gen Settings">✦</button>
       <button class="btn mob-icon-btn" onclick="toggleEditMode()" title="Edit">✎</button>
@@ -6488,15 +6647,7 @@ body.ui-hidden #hide-ui-btn { opacity: 0 !important; pointer-events: none !impor
       <label class="tb-drop-item"><span class="tb-drop-item-icon">↑</span>Upload Folder<input type="file" id="folderInput" webkitdirectory multiple style="display:none"></label>
     </div>
   </div>
-  <div class="tb-dropdown" id="dd-multiplayer">
-    <button class="tb-dropdown-btn accent-pink" id="collab-btn" onclick="tbToggle('dd-multiplayer')" title="Multiplayer  -  collab &amp; battle">⇄ MULTIPLAYER <span class="dd-arrow">▾</span></button>
-    <div class="tb-drop-menu" id="dd-multiplayer-menu">
-      <button class="tb-drop-item accent-pink" id="lobby-return-btn" onclick="lobbyReturn();tbClose('dd-multiplayer')" style="display:none;"><span class="tb-drop-item-icon">⇤</span>Return to Lobby</button>
-      <button class="tb-drop-item" id="lobby-exit-btn" onclick="lobbyLeave();tbClose('dd-multiplayer')" style="display:none;color:#f44;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:4px;"><span class="tb-drop-item-icon">✕</span>Exit Room</button>
-      <button class="tb-drop-item accent-pink" onclick="openQuickBattleCreate();tbClose('dd-multiplayer')"><span class="tb-drop-item-icon">⊕</span>Create Session</button>
-      <button class="tb-drop-item" onclick="openServerBrowser();tbClose('dd-multiplayer')"><span class="tb-drop-item-icon">⊞</span>Browse Public Rooms</button>
-    </div>
-  </div>
+  <button class="btn accent-pink" id="collab-btn" onclick="openServerBrowser()" title="Multiplayer - collab &amp; battle">⇄ MULTIPLAYER</button>
   <button class="btn" id="chat-toggle-btn" onclick="chatToggle()" title="Room chat" style="display:none;">&#x1F4AC; <span id="chat-toggle-lbl">CHAT</span><span id="chat-unread" class="chat-unread-badge" style="display:none;">0</span></button>
   <button class="btn" id="gen-settings-btn" onclick="openGenSettings()" title="Track image generation settings">✦ GEN</button>
   <button class="btn" id="edit-mode-btn" onclick="toggleEditMode()" title="Edit Mode - rearrange tiers, add new rows (Ctrl+E)" aria-label="Toggle edit mode">✎ EDIT</button>
@@ -6519,6 +6670,13 @@ body.ui-hidden #hide-ui-btn { opacity: 0 !important; pointer-events: none !impor
     <button class="btn btn-icon" id="hide-ui-btn" onclick="toggleHideUI()" title="Hide UI  -  show background only [H]">⊡</button>
     <button class="btn btn-icon" onclick="openSettings()" title="Settings">⚙</button>
   </div>
+</div>
+<div id="mp-status-strip" style="display:none;">
+  <span id="mp-status-label">&#x21C4; <span id="mp-status-room"></span></span>
+  <span id="mp-status-actions">
+    <button onclick="lobbyReturn()">&#x21A4; LOBBY</button>
+    <button onclick="lobbyLeave()" style="color:#f44;">&#x2715; EXIT</button>
+  </span>
 </div>
 
 <!-- ═══════════════════════════════════════════
@@ -6655,7 +6813,7 @@ body.ui-hidden #hide-ui-btn { opacity: 0 !important; pointer-events: none !impor
       <div id="bracket-toolbar">
         <input type="text" id="bracket-name-input" placeholder="Tournament name…" value="MY BRACKET" style="min-width:0;">
         <div class="tb-sep"></div>
-        <button class="btn btn-bracket" onclick="openBattleModePicker()">⚡ START</button>
+        <button class="btn btn-bracket" onclick="openServerBrowser({filter:'battle'})">⚡ START</button>
         <div class="tb-sep"></div>
         <button class="btn bk-icon-btn" id="bk-shuffle-btn" onclick="bracketShuffle()" title="Shuffle entrants">🔀</button>
         <button class="btn bk-icon-btn" id="bk-mystery-btn" onclick="toggleMysteryMode(this)" title="Toggle mystery mode">🎲</button>
@@ -7357,6 +7515,7 @@ body.ui-hidden #hide-ui-btn { opacity: 0 !important; pointer-events: none !impor
 
 <!-- Library context menu -->
 <div id="lib-ctx-menu">
+  <button class="ctx-item" id="ctx-send-gen"   onclick="libCtxSendToGen()">&#x2605; Send to GEN</button>
   <button class="ctx-item" id="ctx-add-all"    onclick="libCtxAddAll()">♪ Add All to Pool</button>
   <button class="ctx-item" id="ctx-add-cover"  onclick="libCtxAddCover()">🖼 Add Cover to Pool</button>
   <div class="ctx-sep" id="ctx-cover-sep"></div>
@@ -8200,8 +8359,11 @@ function toggleThemeSubmenu() {
 
 function applyTheme(t, l, silent=false) {
   currentTheme = t; currentLight = l;
+  document.documentElement.classList.add('theme-switching');
   document.documentElement.setAttribute('data-theme', t);
   document.documentElement.setAttribute('data-light', l);
+  clearTimeout(applyTheme._swTimer);
+  applyTheme._swTimer = setTimeout(function() { document.documentElement.classList.remove('theme-switching'); }, 400);
   const splashHidden = document.getElementById('mt-splash')?.classList.contains('mt-hidden');
   const holdFxForIntermission = !silent && splashHidden && !document.body.classList.contains('no-animations');
   if (typeof queueThemeAnim === 'function') {
@@ -10879,6 +11041,7 @@ function _shareHistoryRender() {
   hist.forEach((entry, i) => {
     const div = document.createElement('div');
     div.className = 'sh-entry';
+    div.style.setProperty('--shi-i', i);
     const ts = new Date(entry.ts).toLocaleString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
     const typeLabel = entry.type === 'url' ? '⛓ URL' : entry.type === 'card' ? '◻ CARD' : '↓ EXPORT';
     div.innerHTML = `
@@ -11017,6 +11180,11 @@ function _libTreeSig() {
 }
 
 function renderLibTree() {
+  if (renderLibTree._t) clearTimeout(renderLibTree._t);
+  renderLibTree._t = setTimeout(_renderLibTreeNow, 24);
+}
+function _renderLibTreeNow() {
+  renderLibTree._t = null;
   const tree  = document.getElementById('sb-tree');
   const empty = document.getElementById('sb-empty');
   if (!library.size) {
@@ -11089,11 +11257,12 @@ function renderLibTree() {
     });
 
     const albumFrag = document.createDocumentFragment();
-    albums.forEach(([alKey, album]) => {
+    albums.forEach(([alKey, album], _ali) => {
       const isSelected = selectedAlbumKey === alKey;
 
       const alRow = document.createElement('div');
       alRow.className = 'tree-album-row' + (isSelected ? ' selected' : '');
+      alRow.style.setProperty('--al-i', _ali);
       alRow.dataset.artistKey = ak;
       alRow.dataset.albumKey  = alKey;
       alRow.draggable = true;
@@ -11111,6 +11280,33 @@ function renderLibTree() {
       infoWrap.innerHTML = `${thumb}<div class="tree-album-info"><div class="tree-album-name">${esc(album.name)}</div><div class="tree-album-meta">${meta}</div></div>`;
 
       alRow.appendChild(infoWrap);
+
+      // GEN button - visible on hover, sends release to gen tab
+      const genBtn = document.createElement('button');
+      genBtn.className = 'tree-album-gen-btn';
+      genBtn.title = 'Send to GEN';
+      genBtn.innerHTML = '<span class="tree-album-gen-arrow">G</span><span style="writing-mode:vertical-rl;text-orientation:mixed;font-size:9px;letter-spacing:2px;">GEN</span>';
+      genBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        _sendAlbumToGen(ak, alKey);
+      });
+      // Also accept drop of this album row onto the button
+      genBtn.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        genBtn.style.background = 'rgba(0,229,160,0.18)';
+      });
+      genBtn.addEventListener('dragleave', function() {
+        genBtn.style.background = '';
+      });
+      genBtn.addEventListener('drop', function(e) {
+        e.preventDefault();
+        genBtn.style.background = '';
+        const dropAk    = e.dataTransfer.getData('artist-key') || ak;
+        const dropAlKey = e.dataTransfer.getData('album-key')  || alKey;
+        _sendAlbumToGen(dropAk, dropAlKey);
+      });
+      alRow.appendChild(genBtn);
 
       const trackList = document.createElement('div');
       trackList.className = 'tree-track-list';
@@ -15300,6 +15496,47 @@ function openLibCtxMenu(e, ak, alKey) {
 
 function closeLibCtxMenu() { libCtxMenu.classList.remove('open'); }
 
+function _sendAlbumToGen(ak, alKey) {
+  const ao = library.get(ak); if (!ao) return;
+  const al = ao.albums.get(alKey); if (!al) return;
+  genAlbum = { artistKey: ak, albumKey: alKey, album: al, artistName: ao.name };
+  genTrackIdx = 0;
+  loadGenAlbum();
+  updatePreview();
+  openOverlay('genSettingsOvr');
+  toast('Loaded in GEN: ' + al.name, 'success', 1800);
+}
+
+// Wire toolbar GEN button as a drop target for library rows
+(function() {
+  function _initGenBtnDrop() {
+    const btn = document.getElementById('gen-settings-btn');
+    if (!btn) return;
+    btn.addEventListener('dragover', function(e) {
+      if (!e.dataTransfer.types.includes('artist-key') && !e.dataTransfer.types.includes('album-key')) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      btn.classList.add('drag-over');
+    });
+    btn.addEventListener('dragleave', function() { btn.classList.remove('drag-over'); });
+    btn.addEventListener('drop', function(e) {
+      btn.classList.remove('drag-over');
+      const ak    = e.dataTransfer.getData('artist-key');
+      const alKey = e.dataTransfer.getData('album-key');
+      if (!ak || !alKey) return;
+      e.preventDefault();
+      _sendAlbumToGen(ak, alKey);
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _initGenBtnDrop);
+  else _initGenBtnDrop();
+})();
+
+function libCtxSendToGen() {
+  closeLibCtxMenu();
+  _sendAlbumToGen(ctxArtistKey, ctxAlbumKey);
+}
+
 document.addEventListener('click',   e => { if (!libCtxMenu.contains(e.target)) closeLibCtxMenu(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLibCtxMenu(); });
 
@@ -15932,6 +16169,11 @@ function collabSetStatus(type, text) {
 }
 
 function openCollab() {
+  // Route to server browser with collab filter
+  openServerBrowser({filter:'collab'});
+}
+
+function _openCollabDirect() {
   var nameInput = document.getElementById('collab-username');
   if (nameInput && !nameInput.value) nameInput.value = _collabLocalName || '';
   openOverlay('collabOvr');
@@ -18813,81 +19055,10 @@ document.addEventListener('keydown', e => {
 
 
 function openBattleModePicker() {
-  if (auxActive) { toast('A battle session is already in progress', 'error', 2500); return; }
-  _tbCloseAll();
-  // Reset to root step
-  ['root','regular','multi','ruleset'].forEach(s => {
-    const el = document.getElementById('bpk-step-'+s);
-    if (el) el.style.display = s==='root' ? '' : 'none';
-  });
-  openOverlay('battlePickerOvr');
+  openServerBrowser({filter:'battle'});
 }
 
-function bpkBack(toStep) {
-  ['root','regular','multi','ruleset'].forEach(s => {
-    const el = document.getElementById('bpk-step-'+s);
-    if (el) el.style.display = s===toStep ? '' : 'none';
-  });
-}
-
-function bpkGoRegular() {
-  // Sync mystery checkbox to current state when opening regular step
-  const chk = document.getElementById('bpk-mystery-check');
-  if (chk) chk.checked = !!_mysteryMode;
-  bpkBack('regular');
-}
-
-function bpkGoMultiplayer() {
-  bpkBack('multi');
-}
-
-function bpkGoRuleset() {
-  bpkBack('ruleset');
-}
-
-// Keep mystery checkbox in sync with the global _mysteryMode toggle button
-function bpkSyncMysteryCheck() {
-  const chk = document.getElementById('bpk-mystery-check');
-  const mystBtn = document.getElementById('bk-mystery-btn');
-  if (!chk || !mystBtn) return;
-  if (chk.checked !== !!_mysteryMode) toggleMysteryMode(mystBtn);
-}
-
-function bpkStartRegularFromPicker() {
-  const chk = document.getElementById('bpk-mystery-check');
-  const mode = (chk && chk.checked) ? 'mystery' : 'traditional';
-  bpkStartRegular(mode);
-}
-
-function bpkStartCollaboration() {
-  closeOverlay('battlePickerOvr');
-  // Ensure mystery mode is off for collab (apply checkbox state first)
-  const chk = document.getElementById('bpk-mystery-check');
-  const mystBtn = document.getElementById('bk-mystery-btn');
-  if (chk && !chk.checked && _mysteryMode) toggleMysteryMode(mystBtn);
-  openCollab();
-}
-
-function bpkStartRegular(mode) {
-  closeOverlay('battlePickerOvr');
-  const mystBtn = document.getElementById('bk-mystery-btn');
-  if (mode === 'mystery') {
-    if (!_mysteryMode) toggleMysteryMode(mystBtn);
-  } else {
-    if (_mysteryMode) toggleMysteryMode(mystBtn);
-  }
-  bracketMatchupMode();
-}
-
-function bpkStartMultiTraditional() {
-  closeOverlay('battlePickerOvr');
-  openCollab();
-}
-
-function bpkLaunchBattle() {
-  closeOverlay('battlePickerOvr');
-  openAuxBattle();
-}
+// bpk* functions removed - battlePickerOvr is gone, openBattleModePicker routes to server browser
 
 function toggleBracketCog() {
   const panel = document.getElementById('bracket-cog-panel');
@@ -19175,7 +19346,7 @@ function _renderBracketHistory() {
   list.innerHTML = hist.map((entry, i) => {
     const d = new Date(entry.date);
     const ds = d.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
-    return `<div class="bk-hist-entry" onclick="replayBracketHistory(${i})">
+    return `<div class="bk-hist-entry" style="--hi-i:${i}" onclick="replayBracketHistory(${i})">
       <div class="bk-hist-name">${entry.name || 'Tournament'}</div>
       <div class="bk-hist-champ">🏆 ${entry.champion || '?'}</div>
       <div class="bk-hist-meta">${entry.size}-player · ${ds} · ${(entry.matchLog||[]).length} matches</div>
@@ -19305,22 +19476,17 @@ function openAuxBattle() {
     const el = document.getElementById('aux-uname');
     if (el) el.value = saved;
   }
-  // FIX: if no session active, ensure the modal is in clean setup state
   if (!auxActive && !_auxRoomCode) {
-    ['a','b','judge'].forEach(function(r) {
-      const card = document.getElementById('aux-card-' + r);
-      if (card) card.classList.remove('sel');
-    });
+    // Clear any stale sections
     ['aux-judge-section','aux-contestant-section','aux-winmode-section','aux-vote-section'].forEach(function(id) {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
-    document.getElementById('aux-end-btn').style.display = 'none';
-    // Clear stale join-status text
+    const endBtn = document.getElementById('aux-end-btn');
+    if (endBtn) endBtn.style.display = 'none';
     var js = document.getElementById('aux-join-status');
     if (js) { js.style.display = 'none'; js.textContent = ''; }
   } else if (_auxRoomCode && !auxActive) {
-    // In a room but not yet activated  -  ensure leave btn is visible
     var endBtn2 = document.getElementById('aux-end-btn');
     if (endBtn2) { endBtn2.style.display = ''; endBtn2.textContent = (auxRole === 'judge') ? '✕ END SESSION' : '✕ LEAVE SESSION'; }
   }
@@ -19329,12 +19495,17 @@ function openAuxBattle() {
 
 // ── Role selection ────────────────────────────────────
 function auxSelectRole(r) {
+  // Role cards are now in the lobby, not auxOvr - skip if missing
   ['a','b','judge'].forEach(x => {
-    document.getElementById('aux-card-'+x).classList.toggle('sel', x===r);
+    const card = document.getElementById('aux-card-'+x);
+    if (card) card.classList.toggle('sel', x===r);
   });
-  document.getElementById('aux-judge-section').style.display      = r==='judge' ? '' : 'none';
-  document.getElementById('aux-contestant-section').style.display = r!=='judge' ? '' : 'none';
-  document.getElementById('aux-winmode-section').style.display    = r==='judge' ? '' : 'none';
+  const judgeSection = document.getElementById('aux-judge-section');
+  const contestantSection = document.getElementById('aux-contestant-section');
+  const winmodeSection = document.getElementById('aux-winmode-section');
+  if (judgeSection) judgeSection.style.display = r==='judge' ? '' : 'none';
+  if (contestantSection) contestantSection.style.display = r!=='judge' ? '' : 'none';
+  if (winmodeSection) winmodeSection.style.display = r==='judge' ? '' : 'none';
 }
 
 // ── Win mode selection ────────────────────────────────
@@ -19446,6 +19617,12 @@ function _auxConnectWS(code) {
     // Cursor
     if (msg.type === 'cursor') {
       _renderPeerCursor(msg._uid || msg.peerId, msg);
+      return;
+    }
+
+    // Bracket reset from judge before battle start
+    if (msg.type === 'aux_bracket_reset') {
+      _auxResetBracketForBattle(msg.size || 16);
       return;
     }
 
@@ -20178,83 +20355,83 @@ function auxEnd() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// QUICK BATTLE CREATE
+// CREATE SESSION
 // ══════════════════════════════════════════════════════════════════════════════
 
-let _qbcWinMode = 'score';
-let _qbcType    = 'collab'; // 'collab' | 'battle'
+let _qbcWinMode = 'score'; // legacy compat
+let _qbcType    = 'battle';
+let _csType     = 'battle';
 
-function openQuickBattleCreate() {
-  // Reset to collab by default
-  qbcSetType('collab');
-  const saved = localStorage.getItem('mst_aux_name') || localStorage.getItem('mst_collab_name') || '';
-  const nameEl = document.getElementById('qbc-room-name');
-  if (nameEl) nameEl.value = saved ? saved + "'S SESSION" : '';
-  openOverlay('quickBattleOvr');
+function openQuickBattleCreate() { openCreateSession(); }
+
+function openCreateSession(defaultType) {
+  _csType = defaultType || 'battle';
+  var unameEl = document.getElementById('cs-username');
+  if (unameEl) unameEl.value = localStorage.getItem('mst_aux_name') || localStorage.getItem('mst_collab_name') || '';
+  var nameEl = document.getElementById('cs-room-name');
+  if (nameEl) nameEl.value = '';
+  csSetType(_csType);
+  openOverlay('createSessionOvr');
 }
 
-function qbcSetType(t) {
+function csSetType(t) {
+  _csType = t;
   _qbcType = t;
   ['collab', 'battle'].forEach(function(k) {
-    var btn = document.getElementById('qbc-type-' + k);
+    var btn = document.getElementById('cs-type-' + k);
     if (btn) btn.classList.toggle('sel', k === t);
   });
-  var battleSection = document.getElementById('qbc-battle-section');
-  if (battleSection) battleSection.style.display = t === 'battle' ? '' : 'none';
 }
 
-function qbcSetMode(m) {
-  _qbcWinMode = m;
-  ['score','bracket','fusion'].forEach(function(k) {
-    const btn = document.getElementById('qbc-wm-' + k);
-    if (btn) btn.classList.toggle('sel', k === m);
-  });
-}
+function csCreate() {
+  const nameEl   = document.getElementById('cs-room-name');
+  const pwToggle = document.getElementById('cs-pw-toggle');
+  const pwInput  = document.getElementById('cs-pw-input');
+  const pubToggle = document.getElementById('cs-public-toggle');
+  const unameEl  = document.getElementById('cs-username');
 
-function qbcCreate() {
-  const nameEl   = document.getElementById('qbc-room-name');
-  const pwToggle = document.getElementById('qbc-pw-toggle');
-  const pwInput  = document.getElementById('qbc-pw-input');
-  const pubToggle= document.getElementById('qbc-public-toggle');
-
-  const roomName = (nameEl?.value || '').trim().toUpperCase() || (_qbcType === 'collab' ? 'UNTITLED COLLAB' : 'UNTITLED BATTLE');
+  const roomName = (nameEl?.value || '').trim().toUpperCase() || (_csType === 'collab' ? 'UNTITLED COLLAB' : 'UNTITLED BATTLE');
   const password = (pwToggle?.checked && pwInput?.value.trim()) ? pwInput.value.trim() : '';
-  const isPublic = pubToggle?.checked || false;
+  const isPublic = pubToggle ? pubToggle.checked : true;
+  const myName   = (unameEl?.value || '').trim().toUpperCase();
 
-  closeOverlay('quickBattleOvr');
+  closeOverlay('createSessionOvr');
 
-  if (_qbcType === 'collab') {
-    // Route to collab  -  set name then create room
-    var collabNameEl = document.getElementById('collab-username');
-    var myName = collabNameEl?.value.trim() || localStorage.getItem('mst_collab_name') || '';
-    if (!myName) {
-      toast('Set your display name in the Multiplayer panel first', 'error');
-      openCollab(); return;
+  if (_csType === 'collab') {
+    if (myName) {
+      localStorage.setItem('mst_collab_name', myName);
+      var collabNameEl = document.getElementById('collab-username');
+      if (collabNameEl) collabNameEl.value = myName;
+      _collabLocalName = myName;
     }
+    const name = myName || localStorage.getItem('mst_collab_name') || '';
+    if (!name) { toast('Enter a username to create a session', 'error'); openCreateSession('collab'); return; }
     if (isPublic) {
-      // Set the collab public toggle BEFORE collabCreate reads it
       var pubT = document.getElementById('collab-public-toggle');
       if (pubT) pubT.checked = true;
     }
     collabCreate({ roomName, password });
-    closeOverlay('collabOvr');
     toast('Collab session created!', 'success', 3000);
     return;
   }
 
-  // Battle  -  go to lobby
-  const auxNameEl = document.getElementById('aux-uname');
-  const currentName = (auxNameEl?.value || '').trim() || (localStorage.getItem('mst_aux_name') || '');
-  if (!currentName) { toast('Set a username in the Battle Session modal first', 'error'); openOverlay('auxOvr'); return; }
+  // Battle - go to lobby
+  if (!myName) { toast('Enter a username to create a battle room', 'error'); openCreateSession('battle'); return; }
+  localStorage.setItem('mst_aux_name', myName);
 
   const code = _generateCode();
   openLobby({
     code, roomName, password, isPublic,
-    winMode: _qbcWinMode,
-    myName: currentName.toUpperCase(),
+    winMode: 'score', // will be overridden by lobby vote
+    myName: myName,
     isCreator: true,
   });
 }
+
+// Legacy stubs
+function qbcSetType(t) { csSetType(t); }
+function qbcSetMode(m) { _qbcWinMode = m; }
+function qbcCreate()   { csCreate(); }
 
 // ══════════════════════════════════════════════════════════════════════════════
 // BATTLE LOBBY
@@ -20276,6 +20453,21 @@ const _lobbyMyUid  = (typeof crypto !== 'undefined' && crypto.randomUUID)
 // Slot state: role -> { name, uid, ready }
 let _lobbySlots = { a: null, b: null, judge: null };
 
+// Voting state
+let _lobbyScoringVotes  = {};  // uid -> 'score'|'bracket'|'fusion'
+let _lobbySizeVotes     = {};  // uid -> 16|32|64|128
+let _lobbyMyScoringVote = null;
+let _lobbyMySizeVote    = null;
+let _lobbyMsgSeq_out    = 0;   // outgoing sequence counter
+let _lobbyVotedWinMode  = null;
+let _lobbyVotedSize     = 16;
+
+const _SCORING_INFO = {
+  score:   { name: '&#127885; SCORE',   desc: 'Flat 1 point per matchup win. The contestant with the most points at the end of the bracket wins. Simple and consistent.' },
+  bracket: { name: '&#127942; BRACKET', desc: 'Points are cosmetic. The only thing that matters is whose song wins the final match. Bracket winner takes all.' },
+  fusion:  { name: '&#9889; FUSION',    desc: 'Points scale with bracket depth. R1 = 1pt, QF = 3pt, SF = 5pt, Final = 10pt, Champion bonus +10pt. Later rounds are worth much more.' },
+};
+
 function openLobby(opts) {
   _lobbyCode      = opts.code;
   _lobbyRoomName  = opts.roomName  || 'BATTLE LOBBY';
@@ -20287,6 +20479,11 @@ function openLobby(opts) {
   _lobbyMyRole    = null;
   _lobbyMyReady   = false;
   _lobbySlots     = { a: null, b: null, judge: null };
+  _lobbyScoringVotes = {};
+  _lobbySizeVotes    = {};
+  _lobbyMyScoringVote = null;
+  _lobbyMySizeVote    = null;
+  _lobbyMsgSeq_out    = 0;
 
   // Update header
   document.getElementById('lobby-room-name').textContent = _lobbyRoomName;
@@ -20298,6 +20495,7 @@ function openLobby(opts) {
   _lobbyClearChat();
   openOverlay('lobbyOvr');
   _lobbySetDropdownBtns(true);
+  _lobbySetStatusStrip(true);
   _lobbyConnect();
 
   // Register in server browser if public
@@ -20314,6 +20512,10 @@ function _lobbyConnect() {
   _lobbyWS.onopen = function() {
     _lobbySend({ type: 'lobby_hello', name: _lobbyMyName, uid: _lobbyMyUid });
     _lobbySysMsg('Connected to lobby.');
+    // Request full state snapshot from existing peers after a delay
+    setTimeout(function() {
+      _lobbySend({ type: 'lobby_request_state' });
+    }, 600);
   };
 
   _lobbyWS.onmessage = function(evt) {
@@ -20334,26 +20536,63 @@ function _lobbySend(msg) {
   try { _lobbyWS.send(JSON.stringify(Object.assign({ _uid: _lobbyMyUid, uid: _lobbyMyUid }, msg))); } catch(_) {}
 }
 
+// Sequence tracking for role/ready messages
+const _lobbyMsgSeq = {};
+
 function _lobbyHandleMsg(data) {
+  // Sequence guard for role/ready messages
+  if (data.type === 'lobby_role' || data.type === 'lobby_ready') {
+    if (data.uid && data.seq !== undefined) {
+      const lastSeq = _lobbyMsgSeq[data.uid] || 0;
+      if (data.seq < lastSeq) return; // out of order, discard
+      _lobbyMsgSeq[data.uid] = data.seq;
+    }
+  }
+
   switch (data.type) {
     case 'lobby_hello':
       _lobbySysMsg((data.name || 'Someone') + ' joined the lobby.');
-      // Re-announce our current role and ready state so the new joiner
-      // can reconstruct the slot map without a server-side state store.
-      // Re-announce our current role so the new joiner can reconstruct slot state.
-      // uid is automatically injected by _lobbySend now, so slot matching is correct.
+      // Delay re-announcement by 250ms so PartyKit can register the new client
       if (_lobbyMyRole) {
-        _lobbySend({ type: 'lobby_role', role: _lobbyMyRole, name: _lobbyMyName });
-        if (_lobbyMyReady) {
-          _lobbySend({ type: 'lobby_ready', ready: true });
-        }
+        setTimeout(function() {
+          _lobbySend({ type: 'lobby_role', role: _lobbyMyRole, name: _lobbyMyName });
+          if (_lobbyMyReady) _lobbySend({ type: 'lobby_ready', ready: true });
+        }, 250);
       }
       break;
+
+    case 'lobby_request_state':
+      // New joiner is asking for full state snapshot - respond with full_state
+      _lobbySend({ type: 'lobby_full_state', slots: _lobbySlots,
+        scoringVotes: _lobbyScoringVotes, sizeVotes: _lobbySizeVotes });
+      break;
+
+    case 'lobby_full_state': {
+      // Authoritative snapshot from a peer - overwrite our state
+      if (data.slots) {
+        ['a','b','judge'].forEach(function(k) {
+          if (data.slots[k]) {
+            _lobbySlots[k] = data.slots[k];
+          }
+        });
+      }
+      if (data.scoringVotes) {
+        Object.assign(_lobbyScoringVotes, data.scoringVotes);
+        _lobbyRenderScoringVote();
+      }
+      if (data.sizeVotes) {
+        Object.assign(_lobbySizeVotes, data.sizeVotes);
+        _lobbyRenderSizeVote();
+      }
+      _lobbyRenderSlots();
+      _lobbyCheckStart();
+      break;
+    }
 
     case 'lobby_role': {
       const r = data.role;
       if (r && ['a','b','judge'].includes(r)) {
-        // Free any previous slot this uid held
+        // Free any previous slot this uid held first
         ['a','b','judge'].forEach(function(k) {
           if (_lobbySlots[k] && _lobbySlots[k].uid === data.uid) _lobbySlots[k] = null;
         });
@@ -20362,7 +20601,6 @@ function _lobbyHandleMsg(data) {
           _lobbySysMsg(data.name + ' took ' + _lobbyRoleName(r) + '.');
         }
       } else if (r === null) {
-        // Player dropped their role
         ['a','b','judge'].forEach(function(k) {
           if (_lobbySlots[k] && _lobbySlots[k].uid === data.uid) {
             _lobbySysMsg((_lobbySlots[k].name || 'Someone') + ' left ' + _lobbyRoleName(k) + '.');
@@ -20389,8 +20627,24 @@ function _lobbyHandleMsg(data) {
       _lobbyAddChat(data.name || 'PEER', data.msg, false);
       break;
 
+    case 'lobby_vote_scoring': {
+      if (data.uid && data.mode) {
+        _lobbyScoringVotes[data.uid] = data.mode;
+        _lobbyRenderScoringVote();
+        _lobbyCheckScoringWinner();
+      }
+      break;
+    }
+
+    case 'lobby_vote_size': {
+      if (data.uid && data.size) {
+        _lobbySizeVotes[data.uid] = data.size;
+        _lobbyRenderSizeVote();
+      }
+      break;
+    }
+
     case 'lobby_start':
-      // Host fired start  -  everyone transitions to actual aux battle
       _lobbyTransitionToBattle();
       break;
 
@@ -20451,6 +20705,9 @@ function lobbyToggleReady() {
     btn.classList.toggle('is-ready', _lobbyMyReady);
     btn.textContent = _lobbyMyReady ? '✓ READY' : '○ NOT READY';
   }
+  // Re-render slots locally so own badge flips immediately
+  // (echo guard blocks our own lobby_ready message from triggering this)
+  _lobbyRenderSlots();
   _lobbyCheckStart();
 }
 
@@ -20475,9 +20732,19 @@ function lobbyStartBattle() {
 }
 
 function _lobbyTransitionToBattle() {
+  // Resolve final voted win mode and size
+  _lobbyResolveSize();
+  if (_lobbyVotedWinMode) _lobbyWinMode = _lobbyVotedWinMode;
+  const finalSize = _lobbyVotedSize || 16;
+
   // Hand off to the existing aux battle system
   closeOverlay('lobbyOvr');
   _lobbySetDropdownBtns(false);
+  _lobbySetStatusStrip(false);
+
+  // Remove any minimize pills
+  var lp = document.getElementById('lobby-minimize-pill');
+  if (lp) lp.remove();
 
   // Populate aux state from lobby
   auxRole      = _lobbyMyRole;
@@ -20513,26 +20780,32 @@ function _lobbyTransitionToBattle() {
 
   if (auxRole === 'judge') {
     // Judge opens aux overlay in the waiting state
-    document.getElementById('aux-fb-room-code').textContent = _auxRoomCode;
-    document.getElementById('aux-room-fb-wrap').style.display = '';
-    const createBtn = document.getElementById('aux-create-btn');
-    if (createBtn) { createBtn.disabled = true; createBtn.textContent = 'STARTING…'; }
+    const fbCode = document.getElementById('aux-fb-room-code');
+    if (fbCode) fbCode.textContent = _auxRoomCode;
     const endBtn = document.getElementById('aux-end-btn');
     if (endBtn) { endBtn.style.display = ''; endBtn.textContent = '✕ END SESSION'; }
     auxSelectRole('judge');
+    // Broadcast bracket reset to all peers before activating
+    _lobbySend({ type: 'aux_bracket_reset', size: finalSize });
+    _auxResetBracketForBattle(finalSize);
     openOverlay('auxOvr');
-    // Activate immediately since everyone readied up in lobby
-    setTimeout(_auxActivate, 400);
+    // Show splash then activate
+    _showBattleSplash(_lobbyWinMode, function() {
+      _auxActivate();
+    });
   } else {
-    // Contestant  -  announce to judge and wait
-    _auxWS.send(JSON.stringify({
-      type: 'peer_hello', role: auxRole, name: auxLocalName, uid: _auxMyUid
-    }));
-    const statusEl = document.getElementById('aux-join-status');
-    if (statusEl) { statusEl.textContent = '⌛ LOBBY READY  -  starting battle…'; statusEl.style.display = ''; }
+    // Contestant  -  reset bracket, show splash, then announce to judge
+    _auxResetBracketForBattle(finalSize);
     auxSelectRole(auxRole);
     openOverlay('auxOvr');
-    toast('Starting battle as Contestant ' + auxRole.toUpperCase(), 'success', 2000);
+    const statusEl = document.getElementById('aux-join-status');
+    if (statusEl) { statusEl.textContent = 'STARTING BATTLE...'; statusEl.style.display = ''; }
+    _showBattleSplash(_lobbyWinMode, function() {
+      _auxWS.send(JSON.stringify({
+        type: 'peer_hello', role: auxRole, name: auxLocalName, uid: _auxMyUid
+      }));
+      if (statusEl) { statusEl.textContent = 'Waiting for judge to begin...'; }
+    });
   }
 
   // Unregister from server browser  -  battle is starting
@@ -20542,12 +20815,51 @@ function _lobbyTransitionToBattle() {
 // ── Leave lobby ────────────────────────────────────────────────────────────
 function lobbyReturn() {
   openOverlay('lobbyOvr');
+  _lobbySetStatusStrip(true);
+}
+
+function _auxResetBracketForBattle(size) {
+  try {
+    if (typeof initBracket === 'function') initBracket(size);
+    if (typeof bracketRounds !== 'undefined') bracketRounds = [];
+    try { sessionStorage.removeItem('musetier_bracket_snapshot'); } catch(_) {}
+  } catch(e) { console.warn('[lobby] bracket reset failed:', e); }
+}
+
+function _showBattleSplash(winMode, cb) {
+  const info = {
+    score:   { name: 'SCORE',   desc: 'Most wins earns the most points. Every matchup you win = +1pt.' },
+    bracket: { name: 'BRACKET', desc: 'Only the final match matters. The bracket winner takes all.' },
+    fusion:  { name: 'FUSION',  desc: 'R1 = 1pt  -  QF = 3pt  -  SF = 5pt  -  Final = 10pt  -  Champion +10pt' },
+  };
+  const mode = info[winMode] || info.score;
+  const ovr = document.getElementById('splashOvr');
+  const nameEl = document.getElementById('splash-mode-name');
+  const descEl = document.getElementById('splash-mode-desc');
+  if (!ovr) { if (cb) cb(); return; }
+  if (nameEl) nameEl.textContent = mode.name;
+  if (descEl) descEl.textContent = mode.desc;
+  ovr.style.display = 'flex';
+  ovr.style.opacity = '0';
+  ovr.style.transition = 'opacity .4s';
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      ovr.style.opacity = '1';
+      setTimeout(function() {
+        ovr.style.transition = 'opacity 1s';
+        ovr.style.opacity = '0';
+        setTimeout(function() {
+          ovr.style.display = 'none';
+          ovr.style.transition = '';
+          if (cb) cb();
+        }, 1000);
+      }, 2500);
+    });
+  });
 }
 function _lobbySetDropdownBtns(active) {
-  var r = document.getElementById('lobby-return-btn');
-  var x = document.getElementById('lobby-exit-btn');
-  if (r) r.style.display = active ? '' : 'none';
-  if (x) x.style.display = active ? '' : 'none';
+  // The dropdown buttons are gone; now we control the status strip instead
+  _lobbySetStatusStrip(active);
 }
 function lobbyLeave() {
   _lobbySend({ type: 'lobby_leave' });
@@ -20555,6 +20867,172 @@ function lobbyLeave() {
   _sbUnregister();
   _lobbySetDropdownBtns(false);
   closeOverlay('lobbyOvr');
+  // Clean up minimize pills
+  var lp = document.getElementById('lobby-minimize-pill');
+  if (lp) lp.remove();
+}
+
+// ── Minimize lobby pill ───────────────────────────────────────────────────
+function _lobbyMinimize() {
+  closeOverlay('lobbyOvr');
+  let pill = document.getElementById('lobby-minimize-pill');
+  if (!pill) {
+    pill = document.createElement('div');
+    pill.id = 'lobby-minimize-pill';
+    pill.style.cssText = 'position:fixed;bottom:18px;right:18px;z-index:8001;background:var(--panel2);border:1px solid var(--border);padding:7px 14px;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;cursor:pointer;display:flex;align-items:center;gap:8px;';
+    const slots = ['a','b','judge'].filter(k => _lobbySlots[k]).length;
+    pill.innerHTML = '<span>&#x21C4; LOBBY &middot; ' + (_lobbyRoomName||'') + ' &middot; ' + slots + '/3</span><button onclick="lobbyLeave();document.getElementById(\u0022lobby-minimize-pill\u0022).remove();" style="background:none;border:none;color:var(--text-dim);font-family:var(--mono);font-size:12px;cursor:pointer;padding:0 0 0 6px;">&#x2715;</button>';
+    pill.addEventListener('click', function(e) {
+      if (e.target.tagName === 'BUTTON') return;
+      pill.remove();
+      openOverlay('lobbyOvr');
+    });
+    document.body.appendChild(pill);
+  }
+  // Update status strip
+  _lobbySetStatusStrip(true);
+}
+
+function _lobbySetStatusStrip(active) {
+  var strip = document.getElementById('mp-status-strip');
+  var roomLbl = document.getElementById('mp-status-room');
+  if (!strip) return;
+  if (active && _lobbyCode) {
+    strip.style.display = '';
+    if (roomLbl) roomLbl.textContent = (_lobbyRoomName || _lobbyCode);
+  } else {
+    strip.style.display = 'none';
+  }
+}
+
+// ── Scoring vote ─────────────────────────────────────────────────────────────
+function lobbyVoteScoring(mode) {
+  if (_lobbyMyScoringVote === mode) return; // already voted this
+  _lobbyMyScoringVote = mode;
+  _lobbyScoringVotes[_lobbyMyUid] = mode;
+  _lobbySend({ type: 'lobby_vote_scoring', mode });
+  _lobbyRenderScoringVote();
+  _lobbyCheckScoringWinner();
+}
+
+function _lobbyRenderScoringVote() {
+  ['score','bracket','fusion'].forEach(function(m) {
+    var card = document.getElementById('lvc-' + m);
+    if (!card) return;
+    var count = Object.values(_lobbyScoringVotes).filter(v => v === m).length;
+    card.classList.toggle('voted', _lobbyMyScoringVote === m);
+    // Show tally count on card
+    var tally = card.querySelector('.lvc-tally');
+    if (!tally) { tally = document.createElement('div'); tally.className = 'lvc-tally'; card.appendChild(tally); }
+    tally.textContent = count > 0 ? count : '';
+  });
+  var tallyEl = document.getElementById('lobby-score-tally');
+  if (tallyEl) {
+    var totals = ['score','bracket','fusion'].map(function(m) {
+      var c = Object.values(_lobbyScoringVotes).filter(v => v === m).length;
+      return c > 0 ? m.toUpperCase() + ' [' + c + ']' : null;
+    }).filter(Boolean);
+    tallyEl.textContent = totals.length ? totals.join(' &middot; ') : '';
+  }
+}
+
+function _lobbyCheckScoringWinner() {
+  var votes = Object.values(_lobbyScoringVotes);
+  var total = votes.length;
+  if (total < 3) return; // not enough votes yet
+  var counts = { score: 0, bracket: 0, fusion: 0 };
+  votes.forEach(function(v) { if (counts[v] !== undefined) counts[v]++; });
+  var max = Math.max(counts.score, counts.bracket, counts.fusion);
+  var winners = Object.keys(counts).filter(k => counts[k] === max);
+  if (winners.length === 1) {
+    _lobbyVotedWinMode = winners[0];
+    toast('Scoring: ' + winners[0].toUpperCase() + ' wins the vote!', 'success', 3000);
+  } else {
+    // Tie - slot machine animation then pick random
+    _lobbySlotMachineWinner(winners, function(result) {
+      _lobbyVotedWinMode = result;
+      toast('Scoring: ' + result.toUpperCase() + ' (randomly chosen from tie)', 'success', 3000);
+    });
+  }
+}
+
+function _lobbySlotMachineWinner(options, cb) {
+  var tallyEl = document.getElementById('lobby-score-tally');
+  if (!tallyEl) { cb(options[Math.floor(Math.random()*options.length)]); return; }
+  var spins = 0;
+  var maxSpins = 14;
+  var interval = setInterval(function() {
+    var pick = options[spins % options.length];
+    tallyEl.textContent = 'TIE - ' + pick.toUpperCase() + '...';
+    spins++;
+    if (spins >= maxSpins) {
+      clearInterval(interval);
+      var final = options[Math.floor(Math.random()*options.length)];
+      tallyEl.textContent = 'TIE - RANDOM: ' + final.toUpperCase() + '!';
+      cb(final);
+    }
+  }, 120);
+}
+
+function lobbyShowScoringInfo(mode) {
+  var info = _SCORING_INFO[mode];
+  if (!info) return;
+  var box = document.getElementById('lobby-scoring-info');
+  var titleEl = document.getElementById('lobby-scoring-info-title');
+  var bodyEl  = document.getElementById('lobby-scoring-info-body');
+  if (!box) return;
+  if (titleEl) titleEl.innerHTML = info.name;
+  if (bodyEl)  bodyEl.innerHTML  = info.desc;
+  // Position near lobby
+  box.style.display = 'flex';
+  box.style.flexDirection = 'column';
+  box.style.left = '50%';
+  box.style.top  = '50%';
+  box.style.transform = 'translate(-50%,-50%)';
+}
+
+// ── Bracket size vote ─────────────────────────────────────────────────────────
+function lobbyVoteSize(size) {
+  if (size === 256) { toast("do you really think my servers can handle that?", 'error', 3000); return; }
+  if (size === 128) toast("really? 64 songs each? oh well, i hope you enjoy 4 hours of musetier!", 'warn', 4000);
+  if (_lobbyMySizeVote === size) return;
+  _lobbyMySizeVote = size;
+  _lobbySizeVotes[_lobbyMyUid] = size;
+  _lobbySend({ type: 'lobby_vote_size', size });
+  _lobbyRenderSizeVote();
+  _lobbyResolveSize();
+}
+
+function _lobbyRenderSizeVote() {
+  [16,32,64,128,256].forEach(function(s) {
+    var card = document.getElementById('lvs-' + s);
+    if (!card) return;
+    var count = Object.values(_lobbySizeVotes).filter(v => v === s).length;
+    card.classList.toggle('voted', _lobbyMySizeVote === s);
+    var tally = card.querySelector('.lvc-tally');
+    if (!tally) { tally = document.createElement('div'); tally.className = 'lvc-tally'; card.appendChild(tally); }
+    tally.textContent = count > 0 ? count : '';
+  });
+  var el = document.getElementById('lobby-size-tally');
+  if (el) {
+    var votes = Object.values(_lobbySizeVotes);
+    var totals = [16,32,64,128].map(function(s) {
+      var c = votes.filter(v => v === s).length;
+      return c > 0 ? s + ' [' + c + ']' : null;
+    }).filter(Boolean);
+    el.textContent = totals.length ? totals.join(' - ') : '';
+  }
+}
+
+function _lobbyResolveSize() {
+  var votes = Object.values(_lobbySizeVotes);
+  if (!votes.length) return;
+  // Pick the size with most votes; tie = minimum
+  var counts = {};
+  votes.forEach(function(v) { counts[v] = (counts[v]||0)+1; });
+  var maxCount = Math.max(...Object.values(counts));
+  var winners = Object.keys(counts).filter(k => counts[k] === maxCount).map(Number);
+  _lobbyVotedSize = Math.min(...winners); // tie goes to smaller size
 }
 
 // ── Copy room code ─────────────────────────────────────────────────────────
@@ -20732,10 +21210,47 @@ function _sbPingClass(ms) {
 }
 
 // ── Connect to registry and open browser ─────────────────────────────────────
-function openServerBrowser() {
+function openServerBrowser(opts) {
+  const filter = (opts && opts.filter) || '';
+  // Set filter checkboxes based on requested filter
+  const battleChk = document.getElementById('sb-filter-battle');
+  const collabChk = document.getElementById('sb-filter-collab');
+  if (battleChk && collabChk) {
+    if (filter === 'battle') {
+      battleChk.checked = true;
+      collabChk.checked = false;
+    } else if (filter === 'collab') {
+      battleChk.checked = false;
+      collabChk.checked = true;
+    }
+    // if filter is '' leave checkboxes as-is (show all when none checked)
+  }
   openOverlay('sbOvr');
-  _sbConnect();
-  _sbMeasurePing();
+  // Defer WS work one frame so overlay paints before socket init
+  requestAnimationFrame(function() { _sbConnect(); _sbMeasurePing(); });
+}
+
+function _sbMinimize() {
+  closeOverlay('sbOvr');
+  let pill = document.getElementById('sb-minimize-pill');
+  if (!pill) {
+    pill = document.createElement('div');
+    pill.id = 'sb-minimize-pill';
+    pill.style.cssText = 'position:fixed;bottom:18px;right:18px;z-index:8000;background:var(--panel2);border:1px solid var(--border);padding:7px 14px;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;cursor:pointer;display:flex;align-items:center;gap:8px;';
+    pill.innerHTML = '<span>&#x229E; SERVER BROWSER</span><span id="sb-pill-count" style="color:var(--accent);"></span><button onclick="document.getElementById(\"sb-minimize-pill\").remove();if(_sbWS&&_sbWS.readyState===WebSocket.OPEN){_sbWS.close();_sbWS=null;}" style="background:none;border:none;color:var(--text-dim);font-family:var(--mono);font-size:12px;cursor:pointer;padding:0 0 0 6px;" title="Close and disconnect">&#x2715;</button>';
+    pill.addEventListener('click', function(e) {
+      if (e.target.tagName === 'BUTTON') return;
+      pill.remove();
+      openServerBrowser();
+    });
+    document.body.appendChild(pill);
+  }
+  // Update pill count periodically
+  const _updatePill = function() {
+    const c = document.getElementById('sb-pill-count');
+    if (c) c.textContent = _sbRooms.length ? '&#183; ' + _sbRooms.length + ' rooms' : '';
+  };
+  _updatePill();
 }
 
 function _sbConnect() {
@@ -20830,35 +21345,45 @@ function _sbSortBy(col) {
 
 // ── Mode filter pills ─────────────────────────────────────────────────────────
 function _sbSetMode(val) {
-  const inp = document.getElementById('sb-filter-mode');
-  if (inp) inp.value = val;
-  document.querySelectorAll('.sb-mode-pill').forEach(function(btn) {
-    const btnVal = btn.onclick ? '' : ''; // handled below
-  });
-  // Mark active pill by matching onclick text pattern
-  document.querySelectorAll('.sb-mode-pill').forEach(function(btn) {
-    const txt = btn.textContent.trim().toLowerCase();
-    const match = val === '' ? txt === 'all' : txt === val.toLowerCase();
-    btn.classList.toggle('active', match);
-  });
+  // Legacy compatibility shim
+  _sbRender();
+}
+
+function _sbRenderFiltered() {
   _sbRender();
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
+// Debounced entry point – collapses rapid filter/checkbox events into one paint
 function _sbRender() {
+  if (_sbRender._t) clearTimeout(_sbRender._t);
+  _sbRender._t = setTimeout(_sbRenderNow, 30);
+}
+function _sbRenderNow() {
+  _sbRender._t = null;
   const tbody    = document.getElementById('sb-tbody');
   const empty    = document.getElementById('sbo-empty');
   const countEl  = document.getElementById('sb-room-count');
   if (!tbody) return;
 
   const query    = (document.getElementById('sbo-search')?.value || '').toLowerCase();
-  const modeF    = document.getElementById('sb-filter-mode')?.value || '';
+  const battleChk = document.getElementById('sb-filter-battle');
+  const collabChk = document.getElementById('sb-filter-collab');
+  const showBattle = battleChk ? battleChk.checked : false;
+  const showCollab = collabChk ? collabChk.checked : false;
   const now      = Date.now();
 
   // Filter
   let rooms = _sbRooms.filter(function(r) {
     if (now - r.lastSeen > SB_TTL_MS) return false; // stale guard client-side
-    if (modeF && r.winMode !== modeF) return false;
+    // If either checkbox is on, filter by it; if neither is checked, show all
+    if (showBattle || showCollab) {
+      const isCollab = r.winMode === 'collab';
+      const isBattle = !isCollab;
+      if (showBattle && !showCollab && !isBattle) return false;
+      if (showCollab && !showBattle && !isCollab) return false;
+      // Both checked = show all, no filter needed
+    }
     if (query && !r.host.toLowerCase().includes(query) && !r.code.toLowerCase().includes(query) && !(r.roomName || '').toLowerCase().includes(query)) return false;
     return true;
   });
@@ -20897,14 +21422,14 @@ function _sbRender() {
   const pingCls  = _sbPingClass(_sbOwnPing);
   const pingStr  = _sbOwnPing !== null ? _sbOwnPing + 'ms' : ' - ';
 
-  tbody.innerHTML = rooms.map(function(r) {
+  const newHtml = rooms.map(function(r, _ri) {
     const full    = r.players >= 3;
     const modeKey = r.winMode || 'score';
     const modeLabel = { score: 'SCORE', bracket: 'BRACKET', fusion: 'FUSION', collab: 'COLLAB' }[modeKey] || modeKey.toUpperCase();
     const uptime  = _sbUptime(r.created);
     const playersCls = full ? 'sb-players-full' : 'sb-players-ok';
     const joinDisabled = full ? 'disabled title="Room is full"' : '';
-    return '<tr class="' + (full ? 'sb-full' : '') + '" ondblclick="' + (!full ? '_sbQuickJoin(\'' + r.code + '\')' : '') + '">' +
+    return '<tr class="' + (full ? 'sb-full' : '') + '" style="--row-i:' + _ri + '" ondblclick="' + (!full ? '_sbQuickJoin(\'' + r.code + '\')' : '') + '">' +
       '<td><span class="sb-ping-val ' + pingCls + '">' + pingStr + '</span></td>' +
       '<td>' + (r.hasPassword ? '&#128274; ' : '') + _sbEsc(r.roomName || r.host + "'S BATTLE") + '</td>' +
       '<td>' + _sbEsc(r.host) + '</td>' +
@@ -20916,6 +21441,7 @@ function _sbRender() {
       '<td><button class="sb-join-btn" ' + joinDisabled + ' onclick="_sbQuickJoin(\'' + r.code + '\')">JOIN</button></td>' +
     '</tr>';
   }).join('');
+  if (tbody.innerHTML !== newHtml) tbody.innerHTML = newHtml;
 }
 
 function _sbEsc(s) {
@@ -20955,18 +21481,14 @@ function _sbQuickJoin(code) {
     }
   } else {
     // For battle rooms, verify battle username
-    const auxNameEl = document.getElementById('aux-uname');
-    const myName = (auxNameEl?.value || '').trim() || localStorage.getItem('mst_aux_name') || '';
-    if (!myName) {
-      toast('Set a username in the Battle Session modal first', 'error');
-      closeOverlay('sbOvr');
-      openOverlay('auxOvr');
+    const myNameCheck = localStorage.getItem('mst_aux_name') || '';
+    if (!myNameCheck) {
+      toast('Create a room first to set your username, or use Create a Room below', 'error');
       return;
     }
   }
 
-  const auxNameEl = document.getElementById('aux-uname');
-  const myName = (auxNameEl?.value || '').trim() || localStorage.getItem('mst_aux_name') || '';
+  const myName = localStorage.getItem('mst_aux_name') || localStorage.getItem('mst_collab_name') || 'GUEST';
 
   const doJoin = function(enteredPassword) {
     closeOverlay('sbOvr');
@@ -22987,108 +23509,6 @@ document.addEventListener('DOMContentLoaded', function() {
   <button id="matchup-close-btn" onclick="matchupClose()">[ ESC  -  EXIT MATCHUP MODE ]</button>
 </div>
 
-<div class="overlay" id="battlePickerOvr">
-  <div class="modal bpk-modal">
-    <div id="bpk-step-root">
-      <div class="bpk-header">
-        <div class="bpk-title">&#9889; SELECT MODE</div>
-        <div class="bpk-sub">How do you want to battle?</div>
-      </div>
-      <div class="bpk-card-row">
-        <div class="bpk-card" onclick="bpkGoRegular()">
-          <div class="bpk-card-icon">&#127918;</div>
-          <div class="bpk-card-name">REGULAR</div>
-          <div class="bpk-card-desc">Solo or local play. Classic matchup mode with optional mystery.</div>
-        </div>
-        <div class="bpk-card" onclick="bpkGoMultiplayer()">
-          <div class="bpk-card-icon">&#127760;</div>
-          <div class="bpk-card-name">MULTIPLAYER</div>
-          <div class="bpk-card-desc">Real-time play with 2–3 players. Powered by PartyKit WebSocket server  -  works on any network.</div>
-        </div>
-      </div>
-      <button class="modal-btn cancel" onclick="closeOverlay('battlePickerOvr')" style="margin-top:16px;width:100%;">CANCEL</button>
-    </div>
-    <div id="bpk-step-regular" style="display:none;">
-      <div class="bpk-header">
-        <button class="bpk-back" onclick="bpkBack('root')">&#8592; BACK</button>
-        <div class="bpk-title">&#127918; REGULAR</div>
-        <div class="bpk-sub">Pick your battle style</div>
-      </div>
-      <div class="bpk-card-row">
-        <div class="bpk-card" onclick="bpkStartRegularFromPicker()">
-          <div class="bpk-card-icon">&#9889;</div>
-          <div class="bpk-card-name">TRADITIONAL</div>
-          <div class="bpk-card-desc">Classic matchup mode. Both entries visible, click to advance a winner through every round.</div>
-        </div>
-        <div class="bpk-card" onclick="bpkStartCollaboration()">
-          <div class="bpk-card-icon">&#128279;</div>
-          <div class="bpk-card-name">COLLABORATION</div>
-          <div class="bpk-card-desc">Sync a live bracket with a partner. Both players see and control the same bracket in real-time.</div>
-        </div>
-      </div>
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:12px;font-family:var(--mono);font-size:12px;letter-spacing:1.5px;color:var(--text-dim);user-select:none;">
-        <input type="checkbox" id="bpk-mystery-check" style="accent-color:var(--accent);width:13px;height:13px;cursor:pointer;" onchange="bpkSyncMysteryCheck()">
-        &#127922; MYSTERY MODE  -  slots hidden as ??? until each matchup begins
-      </label>
-      <button class="modal-btn cancel" onclick="closeOverlay('battlePickerOvr')" style="margin-top:16px;width:100%;">CANCEL</button>
-    </div>
-    <div id="bpk-step-multi" style="display:none;">
-      <div class="bpk-header">
-        <button class="bpk-back" onclick="bpkBack('root')">&#8592; BACK</button>
-        <div class="bpk-title">&#127760; MULTIPLAYER</div>
-        <div class="bpk-sub">Choose your multiplayer format</div>
-      </div>
-      <div class="bpk-card-row">
-        <div class="bpk-card" onclick="bpkGoRuleset()">
-          <div class="bpk-card-icon">&#127925;</div>
-          <div class="bpk-card-name">BATTLE</div>
-          <div class="bpk-card-desc">3-player duel  -  Contestant A vs B, judged live. Picks hidden until reveal. Real-time via PartyKit.</div>
-        </div>
-        <div class="bpk-card bpk-card-disabled">
-          <div class="bpk-card-icon">&#127942;</div>
-          <div class="bpk-card-name">ATTRITION</div>
-          <div class="bpk-card-desc" style="color:var(--accent);letter-spacing:1px;">COMING SOON&#8230;<br><span style="color:var(--text-dim);">Ranked multiplayer mode.</span></div>
-        </div>
-      </div>
-      <button class="modal-btn cancel" onclick="closeOverlay('battlePickerOvr')" style="margin-top:16px;width:100%;">CANCEL</button>
-    </div>
-    <div id="bpk-step-ruleset" style="display:none;">
-      <div class="bpk-header">
-        <button class="bpk-back" onclick="bpkBack('multi')">&#8592; BACK</button>
-        <div class="bpk-title">&#127925; BATTLE RULES</div>
-      </div>
-      <div class="bpk-rules-body">
-        <div class="bpk-rule-block">
-          <div class="bpk-rule-heading">&#128101; PLAYERS</div>
-          <p>3 players: <b>Contestant A</b>, <b>Contestant B</b>, and a <b>Judge</b>. The Judge creates a room and shares one code with both contestants. A vote can be called to reassign the judge role.</p>
-        </div>
-        <div class="bpk-rule-block">
-          <div class="bpk-rule-heading">&#127925; SLOT OWNERSHIP</div>
-          <p>Contestant A owns the <b>top slot</b>, Contestant B the <b>bottom slot</b> of every matchup. Your opponent's pick is hidden as <b>???</b> until the judge reveals it.</p>
-        </div>
-        <div class="bpk-rule-block">
-          <div class="bpk-rule-heading">&#9878; MATCHUPS</div>
-          <p>The Judge triggers each matchup. Once revealed, only the Judge can pick a winner. Contestants watch the reveal and result.</p>
-        </div>
-        <div class="bpk-rule-block">
-          <div class="bpk-rule-heading">&#128202; SCORING MODES</div>
-          <ul class="bpk-score-list">
-            <li><b>&#127885; SCORE</b>  -  Flat 1pt per win. Most points wins.</li>
-            <li><b>&#127942; BRACKET</b>  -  Bracket final winner takes all.</li>
-            <li><b>&#9889; FUSION</b>  -  <span class="bpk-pts-chip">R1=1pt</span><span class="bpk-pts-chip">QF=3pts</span><span class="bpk-pts-chip">SF=5pts</span><span class="bpk-pts-chip">Final=10pts</span><span class="bpk-pts-chip">Champion +10pts</span></li>
-          </ul>
-        </div>
-        <div class="bpk-rule-block">
-          <div class="bpk-rule-heading">&#128279; CONNECTION</div>
-          <p>All sessions run over a dedicated PartyKit WebSocket server  -  no NAT traversal or ICE negotiation. The Judge creates a room and shares one code with both contestants. Connects instantly on any network.</p>
-        </div>
-      </div>
-      <button class="modal-btn primary" onclick="bpkLaunchBattle()" style="width:100%;margin-top:14px;">&#127925; ENTER BATTLE SETUP &#8594;</button>
-      <button class="modal-btn cancel" onclick="closeOverlay('battlePickerOvr')" style="width:100%;margin-top:6px;">CANCEL</button>
-    </div>
-  </div>
-</div>
-
 <!-- MYSTERY RESHUFFLE OVERLAY -->
 <!-- ═══ 1.4.2 STANDINGS OVERLAY ═════════════════════════════════ -->
 <div id="standings-overlay">
@@ -23119,113 +23539,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="modal">
     <div class="modal-hdr">// BATTLE_SESSION</div>
 
-    <!-- Username -->
-    <div class="aux-modal-section">
-      <div class="aux-modal-title">YOUR USERNAME</div>
-      <input type="text" id="aux-uname" class="gc-input" placeholder="Enter name&hellip;" maxlength="18"
-        style="width:100%;" oninput="auxLocalName=this.value.toUpperCase().trim()">
-    </div>
-
-    <!-- Role -->
-    <div class="aux-modal-section">
-      <div class="aux-modal-title">YOUR ROLE</div>
-      <div class="aux-role-grid">
-        <div class="aux-role-card" id="aux-card-a" onclick="auxSelectRole('a')">
-          <div class="aux-card-icon">&#127925;</div>
-          <div class="aux-card-title">Contestant A</div>
-          <div class="aux-card-desc">Fill left bracket slots. Opponent's picks stay hidden until the duel begins.</div>
-        </div>
-        <div class="aux-role-card" id="aux-card-b" onclick="auxSelectRole('b')">
-          <div class="aux-card-icon">&#127926;</div>
-          <div class="aux-card-title">Contestant B</div>
-          <div class="aux-card-desc">Fill right bracket slots. Opponent's picks stay hidden until the duel begins.</div>
-        </div>
-        <div class="aux-role-card" id="aux-card-judge" onclick="auxSelectRole('judge')">
-          <div class="aux-card-icon">&#9878;&#65039;</div>
-          <div class="aux-card-title">Judge</div>
-          <div class="aux-card-desc">See both sides. Trigger matchups, reveal songs, and pick winners.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Win Mode (judge only) -->
-    <div class="aux-modal-section" id="aux-winmode-section" style="display:none;">
-      <div class="aux-modal-title">WIN CONDITION</div>
-      <div class="aux-wm-note">You're the judge  -  pick how the winner is determined before starting.</div>
-      <div class="aux-winmode-grid">
-        <div class="aux-winmode-card sel" id="aux-wm-score" onclick="auxPickWinMode('score')">
-          <div class="aux-winmode-icon">&#127885;</div>
-          <div class="aux-winmode-title">Most Score</div>
-          <div class="aux-winmode-desc">You award <b>1 point</b> for every matchup you judge. Most points when the bracket ends wins.</div>
-          <div class="aux-wm-pts-row"><span class="aux-wm-chip">Every win = +1pt</span></div>
-        </div>
-        <div class="aux-winmode-card" id="aux-wm-bracket" onclick="auxPickWinMode('bracket')">
-          <div class="aux-winmode-icon">&#127942;</div>
-          <div class="aux-winmode-title">Bracket Winner</div>
-          <div class="aux-winmode-desc">Scores are cosmetic only. The sole winner is whoever's song wins the <b>final match</b>.</div>
-          <div class="aux-wm-pts-row"><span class="aux-wm-chip neutral">Final match decides all</span></div>
-        </div>
-        <div class="aux-winmode-card" id="aux-wm-fusion" onclick="auxPickWinMode('fusion')">
-          <div class="aux-winmode-icon">&#9889;</div>
-          <div class="aux-winmode-title">Fusion</div>
-          <div class="aux-winmode-desc">Points scale with how late in the bracket the matchup is  -  clutch rounds are worth more.</div>
-          <div class="aux-wm-pts-row">
-            <span class="aux-wm-chip">R1 = 1pt</span>
-            <span class="aux-wm-chip">QF = 3pt</span>
-            <span class="aux-wm-chip">SF = 5pt</span>
-            <span class="aux-wm-chip">Final = 10pt</span>
-            <span class="aux-wm-chip gold">Bracket win +10pt</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Judge setup: create room -->
-    <div class="aux-modal-section" id="aux-judge-section" style="display:none;">
-      <div class="aux-modal-title">CREATE ROOM</div>
-      <div id="aux-public-row">
-        <input type="checkbox" id="aux-public-toggle">
-        <label for="aux-public-toggle" style="cursor:pointer;">LIST ROOM PUBLICLY  -  visible in server browser</label>
-      </div>
-      <div style="margin-bottom:8px;margin-top:8px;">
-        <button class="modal-btn primary" id="aux-create-btn" onclick="auxJudgeCreate()" style="width:100%;">&#8853; CREATE ROOM</button>
-      </div>
-      <div id="aux-room-fb-wrap" style="display:none;">
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px;">Share this code with <b>both</b> contestants:</div>
-        <div class="aux-conn-row" style="margin-bottom:10px;align-items:center;">
-          <span id="aux-fb-room-code" style="font-family:var(--mono);font-size:22px;letter-spacing:6px;color:var(--accent);flex:1;"></span>
-          <button class="modal-btn" style="width:auto;padding:3px 10px;font-size:11px;" onclick="auxCopyRoomCode()">COPY</button>
-        </div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px;">CONNECTION STATUS</div>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;">
-          <div class="aux-peer-dot wait" id="aux-dot-a"></div>
-          <span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:#0df;min-width:14px;">A</span>
-          <span id="aux-dot-a-lbl" style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">Waiting&hellip;</span>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <div class="aux-peer-dot wait" id="aux-dot-b"></div>
-          <span style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:#f80;min-width:14px;">B</span>
-          <span id="aux-dot-b-lbl" style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">Waiting&hellip;</span>
-        </div>
-        <div style="font-family:var(--mono);font-size:6.5px;color:var(--text-dim);margin-top:8px;letter-spacing:.5px;line-height:1.7;border-left:2px solid var(--border);padding-left:7px;">Waiting for both contestants to connect before you can start.</div>
-        <button class="modal-btn primary" id="aux-start-btn" onclick="_auxActivate()" disabled style="width:100%;margin-top:12px;opacity:0.4;">⌛ WAITING FOR CONTESTANTS…</button>
-      </div>
-    </div>
-
-    <!-- Contestant setup -->
-    <div class="aux-modal-section" id="aux-contestant-section" style="display:none;">
-      <div class="aux-modal-title">JOIN SESSION</div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:5px;">Enter the judge's room code:</div>
-      <div class="aux-conn-row">
-        <input id="aux-join-code" class="gc-input" style="flex:1;letter-spacing:4px;font-size:14px;text-transform:uppercase;text-align:center;" placeholder="A1B2C3" maxlength="8">
-        <button class="modal-btn primary" id="aux-join-btn" onclick="auxContestantJoin()" style="width:auto;padding:4px 12px;font-size:11px;">&#8594; JOIN</button>
-      </div>
-      <div id="aux-join-status" style="display:none;font-family:var(--mono);font-size:11px;letter-spacing:2px;color:#d4ff00;text-align:center;margin-top:8px;"></div>
-      <div id="aux-waiting-lbl" style="display:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--text-dim);text-align:center;margin-top:4px;">Share the room code with both contestants.</div>
-      <button id="aux-browse-btn" onclick="openServerBrowser()">&#9776; BROWSE PUBLIC ROOMS</button>
-    </div>
-
-    <!-- Vote for judge -->
+    <!-- Vote for judge (in-battle re-judge vote) -->
     <div class="aux-modal-section" id="aux-vote-section" style="display:none;">
       <div class="aux-modal-title">VOTE FOR JUDGE</div>
       <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:8px;">Who should judge this battle? Majority vote wins.</div>
@@ -23233,59 +23547,27 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="aux-vote-progress" id="aux-vote-progress">0 / 3 votes cast</div>
     </div>
 
+    <!-- Battle status for contestants -->
+    <div class="aux-modal-section" id="aux-contestant-section" style="display:none;">
+      <div id="aux-join-status" style="font-family:var(--mono);font-size:11px;letter-spacing:2px;color:#d4ff00;text-align:center;margin-top:8px;"></div>
+      <div id="aux-waiting-lbl" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--text-dim);text-align:center;margin-top:4px;"></div>
+    </div>
+
+    <!-- Judge battle-in-progress section -->
+    <div class="aux-modal-section" id="aux-judge-section" style="display:none;">
+      <div class="aux-modal-title">BATTLE IN PROGRESS</div>
+      <div id="aux-room-fb-wrap">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px;">Room code:</div>
+        <div class="aux-conn-row" style="margin-bottom:6px;align-items:center;">
+          <span id="aux-fb-room-code" style="font-family:var(--mono);font-size:22px;letter-spacing:6px;color:var(--accent);flex:1;"></span>
+          <button class="modal-btn" style="width:auto;padding:3px 10px;font-size:11px;" onclick="auxCopyRoomCode()">COPY</button>
+        </div>
+      </div>
+    </div>
+
     <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:8px;display:flex;gap:6px;">
       <button class="modal-btn danger" id="aux-end-btn" onclick="auxEnd()" style="flex:1;display:none;">&#10005; END SESSION</button>
       <button class="modal-btn cancel" onclick="closeOverlay('auxOvr')" style="flex:1;">CLOSE</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ═══ QUICK BATTLE CREATE ════════════════════════════════ -->
-<div class="overlay" id="quickBattleOvr">
-  <div class="modal">
-    <div class="modal-hdr">// CREATE_SESSION</div>
-
-    <div class="aux-modal-section">
-      <div class="aux-modal-title">Session Type</div>
-      <div class="qbc-wm-mini" style="margin-bottom:12px;">
-        <button class="qbc-wm-btn sel" id="qbc-type-collab" onclick="qbcSetType('collab')">&#x21c4; Collab</button>
-        <button class="qbc-wm-btn"     id="qbc-type-battle" onclick="qbcSetType('battle')">⚔ Battle</button>
-      </div>
-
-      <div class="qbc-field">
-        <label class="qbc-label" for="qbc-room-name">Room Name</label>
-        <input class="qbc-input" id="qbc-room-name" type="text" placeholder="e.g. CRYSTAL'S SESSION…" maxlength="32">
-      </div>
-
-      <div class="qbc-row">
-        <input class="qbc-toggle pink" type="checkbox" id="qbc-pw-toggle" onchange="document.getElementById('qbc-pw-row').classList.toggle('visible',this.checked)">
-        <label class="qbc-toggle-lbl" for="qbc-pw-toggle">Password protect</label>
-      </div>
-      <div class="qbc-pw-row" id="qbc-pw-row">
-        <label class="qbc-label" for="qbc-pw-input">Password</label>
-        <input class="qbc-input" id="qbc-pw-input" type="text" placeholder="Leave blank for none…" maxlength="32">
-      </div>
-
-      <div class="qbc-row">
-        <input class="qbc-toggle" type="checkbox" id="qbc-public-toggle" checked>
-        <label class="qbc-toggle-lbl" for="qbc-public-toggle">List publicly in server browser</label>
-      </div>
-
-      <!-- Battle-only: win condition -->
-      <div id="qbc-battle-section" style="display:none;">
-        <div class="aux-modal-title" style="margin-top:10px;">Win Condition</div>
-      <div class="qbc-wm-mini">
-        <button class="qbc-wm-btn sel" id="qbc-wm-score"   onclick="qbcSetMode('score')">&#127885; Score</button>
-        <button class="qbc-wm-btn"     id="qbc-wm-bracket" onclick="qbcSetMode('bracket')">&#127942; Bracket</button>
-        <button class="qbc-wm-btn"     id="qbc-wm-fusion"  onclick="qbcSetMode('fusion')">&#9889; Fusion</button>
-      </div>
-      </div><!-- /qbc-battle-section -->
-    </div>
-
-    <div style="display:flex;gap:6px;border-top:1px solid var(--border);padding-top:10px;margin-top:4px;">
-      <button class="modal-btn primary" onclick="qbcCreate()" style="flex:1;">⊕ CREATE &amp; OPEN LOBBY</button>
-      <button class="modal-btn cancel" onclick="closeOverlay('quickBattleOvr')" style="flex:1;">CANCEL</button>
     </div>
   </div>
 </div>
@@ -23298,12 +23580,13 @@ document.addEventListener('DOMContentLoaded', function() {
       <div id="lobby-code-row">
         <span id="lobby-code-val"> -  -  -  -  -  - </span>
         <button class="modal-btn" style="width:auto;padding:2px 9px;font-size:10px;" onclick="lobbyCopyCode()">COPY</button>
-        <span id="lobby-pw-chip" style="display:none;font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 6px;border:1px solid #f0a;color:#f0a;">🔒 PW</span>
+        <span id="lobby-pw-chip" style="display:none;font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 6px;border:1px solid #f0a;color:#f0a;">&#x1F512; PW</span>
+        <button onclick="_lobbyMinimize()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--mono);font-size:12px;cursor:pointer;padding:1px 8px;line-height:1;margin-left:auto;" title="Minimize">&#x2014;</button>
       </div>
     </div>
 
     <div id="lobby-body">
-      <!-- Left: slots + actions -->
+      <!-- Left: slots + voting + actions -->
       <div id="lobby-left">
         <div id="lobby-slots">
           <!-- Contestant A -->
@@ -23335,10 +23618,44 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
         </div>
 
+        <!-- Scoring mode vote -->
+        <div class="lobby-vote-section">
+          <div class="lobby-vote-title">SCORING MODE <span class="lobby-vote-tally" id="lobby-score-tally"></span></div>
+          <div class="lobby-vote-cards" id="lobby-score-cards">
+            <div class="lobby-vote-card" id="lvc-score" onclick="lobbyVoteScoring('score')">
+              <div class="lvc-icon">&#127885;</div>
+              <div class="lvc-name">SCORE</div>
+              <button class="lvc-help" onclick="event.stopPropagation();lobbyShowScoringInfo('score')">?</button>
+            </div>
+            <div class="lobby-vote-card" id="lvc-bracket" onclick="lobbyVoteScoring('bracket')">
+              <div class="lvc-icon">&#127942;</div>
+              <div class="lvc-name">BRACKET</div>
+              <button class="lvc-help" onclick="event.stopPropagation();lobbyShowScoringInfo('bracket')">?</button>
+            </div>
+            <div class="lobby-vote-card" id="lvc-fusion" onclick="lobbyVoteScoring('fusion')">
+              <div class="lvc-icon">&#9889;</div>
+              <div class="lvc-name">FUSION</div>
+              <button class="lvc-help" onclick="event.stopPropagation();lobbyShowScoringInfo('fusion')">?</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bracket size vote -->
+        <div class="lobby-vote-section">
+          <div class="lobby-vote-title">BRACKET SIZE <span class="lobby-vote-tally" id="lobby-size-tally"></span></div>
+          <div class="lobby-vote-cards" style="grid-template-columns:repeat(5,1fr);">
+            <div class="lobby-vote-card" id="lvs-16"  onclick="lobbyVoteSize(16)"><div class="lvc-name">16</div></div>
+            <div class="lobby-vote-card" id="lvs-32"  onclick="lobbyVoteSize(32)"><div class="lvc-name">32</div></div>
+            <div class="lobby-vote-card" id="lvs-64"  onclick="lobbyVoteSize(64)"><div class="lvc-name">64</div></div>
+            <div class="lobby-vote-card" id="lvs-128" onclick="lobbyVoteSize(128)"><div class="lvc-name">128</div></div>
+            <div class="lobby-vote-card lobby-vote-card-meme" id="lvs-256" onclick="lobbyVoteSize(256)" title="Don't."><div class="lvc-name">256</div></div>
+          </div>
+        </div>
+
         <div id="lobby-actions">
-          <button id="lobby-ready-btn" onclick="lobbyToggleReady()">✓ READY</button>
+          <button id="lobby-ready-btn" onclick="lobbyToggleReady()">&#x2713; READY</button>
           <button id="lobby-start-btn" onclick="lobbyStartBattle()" disabled>&#9658; START BATTLE</button>
-          <button id="lobby-leave-btn" onclick="lobbyLeave()">✕ LEAVE</button>
+          <button id="lobby-leave-btn" onclick="lobbyLeave()">&#x2715; LEAVE</button>
         </div>
       </div>
 
@@ -23347,13 +23664,20 @@ document.addEventListener('DOMContentLoaded', function() {
         <div id="lobby-chat-hdr">&#x1F4AC; LOBBY CHAT</div>
         <div id="lobby-chat-msgs"></div>
         <div id="lobby-chat-input-row">
-          <input id="lobby-chat-input" placeholder="Say hi…" maxlength="200"
+          <input id="lobby-chat-input" placeholder="Say hi&hellip;" maxlength="200"
             onkeydown="if(event.key==='Enter')lobbyChatSend()">
-          <button id="lobby-chat-send" onclick="lobbyChatSend()">↑</button>
+          <button id="lobby-chat-send" onclick="lobbyChatSend()">&#x2191;</button>
         </div>
       </div>
     </div>
   </div>
+</div>
+
+<!-- Scoring info tooltip -->
+<div id="lobby-scoring-info" style="display:none;position:fixed;z-index:9999;background:var(--panel2);border:1px solid var(--border);padding:14px 16px;max-width:280px;font-family:var(--mono);font-size:11px;color:var(--text);line-height:1.7;letter-spacing:.4px;box-shadow:0 4px 20px rgba(0,0,0,.5);">
+  <div id="lobby-scoring-info-title" style="font-size:13px;font-weight:bold;color:var(--accent);letter-spacing:2px;margin-bottom:8px;"></div>
+  <div id="lobby-scoring-info-body"></div>
+  <button onclick="document.getElementById('lobby-scoring-info').style.display='none'" style="margin-top:10px;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--mono);font-size:10px;cursor:pointer;padding:3px 10px;letter-spacing:1px;">CLOSE</button>
 </div>
 
 <!-- ═══ PASSWORD PROMPT ═════════════════════════════════════ -->
@@ -23374,31 +23698,78 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
+<!-- ═══ CREATE SESSION MODAL ════════════════════════════════ -->
+<div class="overlay" id="createSessionOvr">
+  <div class="modal" style="width:380px;max-height:90dvh;overflow-y:auto;">
+    <div class="modal-hdr">// CREATE_SESSION</div>
+    <div class="aux-modal-section">
+      <div class="aux-modal-title" style="margin-bottom:8px;">SESSION TYPE</div>
+      <div class="qbc-wm-mini" style="margin-bottom:14px;">
+        <button class="qbc-wm-btn sel" id="cs-type-collab" onclick="csSetType('collab')">&#x21C4; COLLAB</button>
+        <button class="qbc-wm-btn"     id="cs-type-battle" onclick="csSetType('battle')">&#x2694; BATTLE</button>
+      </div>
+      <div class="qbc-field">
+        <label class="qbc-label" for="cs-room-name">ROOM NAME</label>
+        <input class="qbc-input" id="cs-room-name" type="text" placeholder="e.g. CRYSTAL'S SESSION&#x2026;" maxlength="32">
+      </div>
+      <div class="qbc-row">
+        <input class="qbc-toggle pink" type="checkbox" id="cs-pw-toggle" onchange="document.getElementById('cs-pw-row').classList.toggle('visible',this.checked)">
+        <label class="qbc-toggle-lbl" for="cs-pw-toggle">Password protect</label>
+      </div>
+      <div class="qbc-pw-row" id="cs-pw-row">
+        <label class="qbc-label" for="cs-pw-input">PASSWORD</label>
+        <input class="qbc-input" id="cs-pw-input" type="text" placeholder="Leave blank for none&#x2026;" maxlength="32">
+      </div>
+      <div class="qbc-row">
+        <input class="qbc-toggle" type="checkbox" id="cs-public-toggle" checked>
+        <label class="qbc-toggle-lbl" for="cs-public-toggle">List publicly in server browser</label>
+      </div>
+      <div class="qbc-row" id="cs-username-row">
+        <div style="width:100%;">
+          <label class="qbc-label" for="cs-username">YOUR USERNAME</label>
+          <input class="qbc-input" id="cs-username" type="text" placeholder="Enter name&#x2026;" maxlength="18" style="width:100%;">
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;border-top:1px solid var(--border);padding-top:10px;margin-top:4px;">
+      <button class="modal-btn primary" onclick="csCreate()" style="flex:1;">&#x2295; CREATE &amp; OPEN</button>
+      <button class="modal-btn cancel" onclick="closeOverlay('createSessionOvr')" style="flex:1;">CANCEL</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ SERVER BROWSER ════════════════════════════════════════ -->
 <div class="overlay" id="sbOvr">
   <div class="modal">
-    <div class="modal-hdr">// SERVER_BROWSER</div>
+    <div class="modal-hdr" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>// SERVER_BROWSER</span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <a href="#" onclick="bracketMatchupMode();closeOverlay('sbOvr');return false;" style="font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);text-decoration:none;" title="Play solo bracket">&#x2197; PLAY SOLO</a>
+        <button onclick="_sbMinimize()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--mono);font-size:12px;cursor:pointer;padding:1px 8px;line-height:1;" title="Minimize">&#x2014;</button>
+      </span>
+    </div>
 
     <!-- Toolbar -->
     <div id="sb-toolbar">
       <div id="sb-toolbar-row1">
-        <input id="sbo-search" type="text" placeholder="FILTER BY HOST OR ROOM CODE…" oninput="_sbRender()">
+        <input id="sbo-search" type="text" placeholder="FILTER BY HOST OR ROOM CODE&hellip;" oninput="_sbRender()">
         <button id="sb-refresh-btn" onclick="_sbRefresh()">&#8635; REFRESH</button>
       </div>
-      <div id="sb-mode-pills">
-        <button class="sb-mode-pill active" onclick="_sbSetMode('')">ALL</button>
-        <button class="sb-mode-pill" onclick="_sbSetMode('collab')">COLLAB</button>
-        <button class="sb-mode-pill" onclick="_sbSetMode('score')">SCORE</button>
-        <button class="sb-mode-pill" onclick="_sbSetMode('bracket')">BRACKET</button>
-        <button class="sb-mode-pill" onclick="_sbSetMode('fusion')">FUSION</button>
+      <div id="sb-mode-pills" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);">SHOW:</span>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:1px;">
+          <input type="checkbox" id="sb-filter-battle" onchange="_sbRenderFiltered()" style="accent-color:var(--accent2);"> BATTLE
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:1px;">
+          <input type="checkbox" id="sb-filter-collab" onchange="_sbRenderFiltered()" style="accent-color:#f0a;"> COLLAB
+        </label>
       </div>
-      <input id="sb-filter-mode" type="hidden" value="">
     </div>
 
     <!-- Status bar -->
     <div id="sb-status-bar">
       <span id="sb-room-count">0 rooms</span>
-      <span id="sb-conn-state" style="color:var(--text-dim);">CONNECTING…</span>
+      <span id="sb-conn-state" style="color:var(--text-dim);">CONNECTING&hellip;</span>
       <span id="sb-ping-own">
         <span class="sb-ping-dot unkn" id="sb-ping-dot"></span>
         <span id="sb-ping-ms" style="font-size:10px;letter-spacing:1px;color:var(--text-dim);">PING:  - </span>
@@ -23428,12 +23799,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <!-- Footer -->
     <div id="sb-footer">
-      <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--text-dim);">Select a role in the Battle Session modal before joining.</span>
-      <button class="modal-btn cancel" onclick="closeOverlay('sbOvr')" style="width:auto;padding:6px 20px;margin-left:auto;flex-shrink:0;">CLOSE</button>
+      <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--text-dim);">Double-click a row to join.</span>
+      <button class="modal-btn cancel" onclick="closeOverlay('sbOvr')" style="width:auto;padding:6px 16px;margin-left:auto;flex-shrink:0;">CLOSE</button>
+      <button class="modal-btn primary" onclick="closeOverlay('sbOvr');openCreateSession();" style="width:auto;padding:6px 16px;flex-shrink:0;">&#x2295; CREATE A ROOM</button>
     </div>
   </div>
 </div>
 
+
+<!-- ═══ BATTLE SPLASH ════════════════════════════════════════ -->
+<div id="splashOvr" style="display:none;position:fixed;inset:0;z-index:9998;background:#000;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+  <div id="splash-mode-name" style="font-family:var(--head);font-size:64px;font-weight:900;letter-spacing:8px;color:#fff;text-shadow:0 0 40px rgba(255,255,255,.3);"></div>
+  <div id="splash-mode-desc" style="font-family:var(--mono);font-size:13px;letter-spacing:2px;color:rgba(255,255,255,.5);text-align:center;max-width:420px;line-height:1.8;"></div>
+</div>
 
 <!-- ═══ DEDUP MODAL ═══════════════════════════════════════════ -->
 <div class="overlay" id="dedupOvr">
@@ -23733,7 +24111,7 @@ document.addEventListener('DOMContentLoaded', function() {
       title: '\u21c4  MULTIPLAYER',
       body: 'The <strong>&#x21c4; MULTIPLAYER</strong> dropdown is the unified hub for everything real-time on this site. No separate modals, no hunting around.<br><br><strong>Create Session</strong> handles both collab and battle from one screen. Set a name, an optional password, and whether the room should appear publicly in the server browser. That\'s it.<br><br><strong>Collab</strong> lets you share your tier list live with others. Every drag, drop, and row change syncs instantly to all connected peers, including cover art. If you get disconnected unexpectedly, your tier list reverts to what it was before you joined. Disconnect manually and it stays. There is also a read-only spectator join option if someone just wants to watch.<br><br><strong>Aux Battle</strong> is a competitive mode for 3 players: two contestants secretly fill brackets, then a judge reveals matchups one by one and picks a winner. Claim your role in the lobby, chat about it, hit READY, and let the arguments begin.<br><br><strong>Browse Public Rooms</strong> opens the server browser, a full listing of active sessions sortable by mode, ping, and player count. Password-protected rooms show a lock icon. Double-click any row to join.',
       targets: [
-        { sel: '#dd-multiplayer', lbl: '\u21c4 MULTIPLAYER: collab & battle', pos: 'below' },
+        { sel: '#collab-btn', lbl: '\u21c4 MULTIPLAYER: opens server browser', pos: 'below' },
       ]
     },
     {
