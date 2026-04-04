@@ -20221,31 +20221,8 @@ async function auxContestantJoin() {
   if (joinBtn) { joinBtn.disabled = false; joinBtn.textContent = '→ JOIN'; }
 }
 
-// ── WebSocket connect for Aux Battle ─────────────────
-function _auxConnectWS(code) {
-  if (_auxWS) { try { _auxWS.close(1000, 'reconnect'); } catch(_) {} _auxWS = null; }
-
-  const url = 'wss://' + PARTYKIT_HOST + '/party/aux-' + code;
-  _auxWS = new WebSocket(url);
-  _auxSendFn = function(msg) {
-    if (_auxWS && _auxWS.readyState === WebSocket.OPEN) {
-      try { _auxWS.send(JSON.stringify(msg)); } catch(_) {}
-    }
-  };
-
-  _auxWS.onopen = function() {
-    // Announce role immediately on connect
-    if (auxRole !== 'judge') {
-      const statusEl = document.getElementById('aux-join-status');
-      if (statusEl) { statusEl.textContent = '⌛ CONNECTED  -  waiting for judge to start…'; statusEl.style.display = ''; }
-      var endBtn = document.getElementById('aux-end-btn');
-      if (endBtn) { endBtn.style.display = ''; endBtn.textContent = '✕ LEAVE SESSION'; }
-      toast('Joined room ' + code + ' as Contestant ' + auxRole.toUpperCase(), 'success', 2500);
-    }
-    _auxWS.send(JSON.stringify({ type: 'peer_hello', role: auxRole, name: auxLocalName, uid: _auxMyUid }));
-  };
-
-  _auxWS.onmessage = function(e) {
+// ── Shared aux WebSocket message handler ─────────────
+function _auxHandleWSMessage(e) {
     var msg;
     try { msg = JSON.parse(e.data); } catch(_) { return; }
     if (!msg) return;
@@ -20357,7 +20334,33 @@ function _auxConnectWS(code) {
       // Activate message arrives before auxActive is set
       try { _auxOnMsg(msg, msg._from || 'unknown'); } catch(e) { console.warn('[aux] pre-active msg error:', e); }
     }
+  }
+
+// ── WebSocket connect for Aux Battle ─────────────────
+function _auxConnectWS(code) {
+  if (_auxWS) { try { _auxWS.close(1000, 'reconnect'); } catch(_) {} _auxWS = null; }
+
+  const url = 'wss://' + PARTYKIT_HOST + '/party/aux-' + code;
+  _auxWS = new WebSocket(url);
+  _auxSendFn = function(msg) {
+    if (_auxWS && _auxWS.readyState === WebSocket.OPEN) {
+      try { _auxWS.send(JSON.stringify(msg)); } catch(_) {}
+    }
   };
+
+  _auxWS.onopen = function() {
+    // Announce role immediately on connect
+    if (auxRole !== 'judge') {
+      const statusEl = document.getElementById('aux-join-status');
+      if (statusEl) { statusEl.textContent = '⌛ CONNECTED  -  waiting for judge to start…'; statusEl.style.display = ''; }
+      var endBtn = document.getElementById('aux-end-btn');
+      if (endBtn) { endBtn.style.display = ''; endBtn.textContent = '✕ LEAVE SESSION'; }
+      toast('Joined room ' + code + ' as Contestant ' + auxRole.toUpperCase(), 'success', 2500);
+    }
+    _auxWS.send(JSON.stringify({ type: 'peer_hello', role: auxRole, name: auxLocalName, uid: _auxMyUid }));
+  };
+
+  _auxWS.onmessage = _auxHandleWSMessage;
 
   _auxWS.onclose = function(e) {
     if (e.code !== 1000 && auxActive) {
@@ -21411,13 +21414,7 @@ function _lobbyTransitionToBattle() {
     }
   };
   // Re-attach aux message handler
-  _auxWS.onmessage = function(e) {
-    var msg; try { msg = JSON.parse(e.data); } catch(_) { return; }
-    if (!msg) return;
-    if (msg._uid === _auxMyUid) return;
-    // delegate to existing aux message handler
-    _auxHandleMessage(msg);
-  };
+  _auxWS.onmessage = _auxHandleWSMessage;
 
   _chatInit(_auxWS);
   _auxIdentified = true; // already introduced ourselves in lobby
