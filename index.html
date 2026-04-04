@@ -21462,7 +21462,6 @@ function lobbyReturn() {
 function _auxResetBracketForBattle(size) {
   try {
     if (typeof initBracket === 'function') initBracket(size);
-    if (typeof bracketRounds !== 'undefined') bracketRounds = [];
     try { sessionStorage.removeItem('musetier_bracket_snapshot'); } catch(_) {}
   } catch(e) { console.warn('[lobby] bracket reset failed:', e); }
 }
