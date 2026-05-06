@@ -1847,10 +1847,12 @@ label.ctx-item { cursor: pointer; }
 
 .drop-ph {
   width: var(--tile); height: var(--tile);
-  border: 1px dashed #333; flex-shrink: 0; pointer-events: none;
+  border: 1.5px dashed var(--accent, #d4ff00); flex-shrink: 0; pointer-events: none;
   clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px));
-  background: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(212,255,0,0.03) 4px, rgba(212,255,0,0.03) 8px);
-  animation: ph-pulse 1.2s ease-in-out infinite;
+  background: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(212,255,0,0.05) 4px, rgba(212,255,0,0.05) 8px);
+  animation: ph-pulse 1.2s ease-in-out infinite, ph-in 0.1s ease-out both;
+  box-shadow: inset 0 0 0 1px rgba(212,255,0,0.08);
+  opacity: 0.85;
 }
 
 
@@ -2433,7 +2435,8 @@ label.ctx-item { cursor: pointer; }
 @keyframes slide-down { from{opacity:0;transform:translateY(-100%)}to{opacity:1;transform:translateY(0)} }
 @keyframes tier-in { from{opacity:0;transform:translateX(-18px) scaleY(0.92)}to{opacity:1;transform:translateX(0) scaleY(1)} }
 @keyframes cat-in { from{opacity:0;transform:translateY(6px) scale(0.9)}to{opacity:1;transform:translateY(0) scale(1)} }
-@keyframes ph-pulse { 0%,100%{opacity:.35;border-color:rgba(212,255,0,0.3)}50%{opacity:.8;border-color:var(--accent)} }
+@keyframes ph-pulse { 0%,100%{opacity:.45;border-color:rgba(212,255,0,0.35)}50%{opacity:.9;border-color:var(--accent)} }
+@keyframes ph-in { from { opacity:0; transform: scale(0.88); } to { opacity:0.85; transform: scale(1); } }
 @keyframes item-land { 0%{transform:scale(1.1);box-shadow:0 0 0 2px var(--accent),0 0 10px var(--accent)}50%{transform:scale(0.97)}100%{transform:scale(1);box-shadow:none} }
 @keyframes item-enter { from{opacity:0;transform:scale(0.85)}to{opacity:1;transform:scale(1)} }
 @keyframes blink { 0%,49%{opacity:1}50%,100%{opacity:0} }
@@ -7103,6 +7106,7 @@ body.ui-hidden #hide-ui-btn { opacity: 0 !important; pointer-events: none !impor
           <button class="tb-drop-item" onclick="openSaveLoad();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">💾</span>Save / Load</button>
           <div class="tb-drop-sep"></div>
           <button class="tb-drop-item tb-drop-danger" onclick="clearTier();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">✕</span>Clear Tier</button>
+          <button class="tb-drop-item tb-drop-danger" onclick="returnAllToPool();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">⬇</span>Return All to Pool</button>
           <button class="tb-drop-item tb-drop-danger" onclick="clearAllItems();tbClose('dd-mob-export')"><span class="tb-drop-item-icon">⊘</span>Clear All</button>
         </div>
       </div>
@@ -7159,6 +7163,7 @@ body.ui-hidden #hide-ui-btn { opacity: 0 !important; pointer-events: none !impor
       <button class="tb-drop-item" onclick="openExportModal();tbClose('dd-export')"><span class="tb-drop-item-icon">≡</span>Export...</button>
       <div class="tb-drop-sep"></div>
       <button class="tb-drop-item tb-drop-danger" onclick="clearTier();tbClose('dd-export')"><span class="tb-drop-item-icon">✕</span>Clear Tier</button>
+      <button class="tb-drop-item tb-drop-danger" onclick="returnAllToPool();tbClose('dd-export')"><span class="tb-drop-item-icon">⬇</span>Return All to Pool</button>
       <button class="tb-drop-item tb-drop-danger" onclick="clearAllItems();tbClose('dd-export')"><span class="tb-drop-item-icon">⊘</span>Clear All Items</button>
     </div>
   </div>
@@ -7342,7 +7347,7 @@ body.ui-hidden #hide-ui-btn { opacity: 0 !important; pointer-events: none !impor
       <div id="bracket-toolbar">
         <input type="text" id="bracket-name-input" placeholder="Tournament name…" value="MY BRACKET" style="min-width:0;">
         <div class="tb-sep"></div>
-        <button class="btn btn-bracket" onclick="openServerBrowser({filter:'battle'})">⚡ START</button>
+        <button class="btn btn-bracket" onclick="bracketMatchupMode()">⚡ START</button>
         <div class="tb-sep"></div>
         <button class="btn bk-icon-btn" id="bk-shuffle-btn" onclick="bracketShuffle()" title="Shuffle entrants">🔀</button>
         <button class="btn bk-icon-btn" id="bk-mystery-btn" onclick="toggleMysteryMode(this)" title="Toggle mystery mode">🎲</button>
@@ -9868,15 +9873,25 @@ function clearAllItems() {
 }
 
 
+function returnAllToPool() {
+  const tierItems = [...document.getElementById('tiers').querySelectorAll('.tier-zone .item')];
+  if (!tierItems.length) { toast('No items in tiers', 'info', 1500); return; }
+  if (!confirm('Move all ' + tierItems.length + ' tier item' + (tierItems.length !== 1 ? 's' : '') + ' back to the pool?')) return;
+  tierItems.forEach(el => pool.appendChild(el));
+  undoStack.length = 0;
+  updatePoolCount(); save();
+  toast(tierItems.length + ' item' + (tierItems.length !== 1 ? 's' : '') + ' returned to pool', 'info', 2000);
+}
+
 const pool       = document.getElementById('pool');
 const tiersEl    = document.getElementById('tiers');
 const tiersFrame = document.getElementById('tiers-frame');
 
-const DRAG_THROTTLE_MS = 16;   // ~60fps cap on dragover position updates
 const LAND_ANIM_MS     = 300;  // item-land animation duration
 const UNDO_MAX         = 80;   // max undo stack depth
 
-// Recomputed once per drag session, not per mousemove event.
+// Recomputed every dragover call (throttled to 16ms) so cached rects never go stale
+// after the placeholder shifts sibling items around.
 // Keyed by zone element → array of {el, rect} for each candidate item.
 let _zoneRectCache = new WeakMap();
 
@@ -10011,21 +10026,60 @@ function setupDraggable(item) {
 }
 
 function getInsertBefore(zone, mY, mX) {
-  // Use cached rects  -  avoids forced reflow every 16ms
-  let cached = _zoneRectCache.get(zone);
-  if (!cached) { buildRectCache(zone); cached = _zoneRectCache.get(zone) || []; }
+  // Always rebuild so rects reflect current layout after placeholder shifts siblings.
+  buildRectCache(zone);
+  const cached = (_zoneRectCache.get(zone) || []).filter(e => e.el.isConnected);
+  if (!cached.length) return null;
 
-  let closest = null, dist = Infinity;
-  for (const { el, rect } of cached) {
-    // Exclude anything that was removed from DOM since cache was built
-    if (!el.isConnected) continue;
-    const sameRow = Math.abs(mY - (rect.top + rect.height / 2)) < rect.height;
-    const d = sameRow
-      ? (mX - (rect.left + rect.width  / 2))
-      : (mY - (rect.top  + rect.height / 2));
-    if (d < 0 && Math.abs(d) < dist) { dist = Math.abs(d); closest = el; }
+  // ── 1. Cluster items into visual rows by their top coordinate ──
+  const ROW_TOL = 6; // px: items within this band share a row
+  const rows = [];
+  for (const entry of cached) {
+    const t = entry.rect.top;
+    let placed = false;
+    for (const row of rows) {
+      if (Math.abs(row.midY - t) <= ROW_TOL) {
+        row.items.push(entry);
+        // Update running midY as a mean so tolerance stays accurate
+        row.midY = row.items.reduce((s, e) => s + e.rect.top, 0) / row.items.length;
+        placed = true; break;
+      }
+    }
+    if (!placed) rows.push({ midY: t, items: [entry] });
   }
-  return closest;
+  rows.sort((a, b) => a.midY - b.midY);
+
+  // ── 2. Find the closest row to cursor Y ──
+  let bestRow = rows[0];
+  let bestDist = Infinity;
+  for (const row of rows) {
+    const rowCenterY = row.items.reduce(
+      (s, e) => s + e.rect.top + e.rect.height / 2, 0
+    ) / row.items.length;
+    const d = Math.abs(mY - rowCenterY);
+    if (d < bestDist) { bestDist = d; bestRow = row; }
+  }
+
+  // Sort row items left-to-right
+  bestRow.items.sort((a, b) => a.rect.left - b.rect.left);
+
+  // ── 3. Find insert point within the chosen row ──
+  for (const entry of bestRow.items) {
+    const midX = entry.rect.left + entry.rect.width / 2;
+    if (mX < midX) return entry.el; // cursor is left of this item's centre
+  }
+
+  // Cursor is to the right of every item in this row.
+  // If there are more rows below, return the first item of the next row
+  // (insertBefore it == append after last item of current row in DOM order).
+  const rowIdx = rows.indexOf(bestRow);
+  if (rowIdx < rows.length - 1) {
+    const nextRow = rows[rowIdx + 1];
+    nextRow.items.sort((a, b) => a.rect.left - b.rect.left);
+    return nextRow.items[0].el;
+  }
+
+  return null; // append at end of zone
 }
 
 function setZoneHover(zone, on) {
@@ -10033,20 +10087,31 @@ function setZoneHover(zone, on) {
 }
 
 function setupDZ(zone) {
-  let last = 0;
+  let _rafPending = false;
+  let _pendingX = 0, _pendingY = 0;
 
   zone.addEventListener('dragover', e => {
-    // Allow pool item drags and library tree drags (movies, games, albums)
     e.preventDefault();
     setZoneHover(zone, true);
-    if (placeholder) {
-      const now = Date.now();
-      if (now - last > DRAG_THROTTLE_MS) {
-        last = now;
-        const before = getInsertBefore(zone, e.clientY, e.clientX);
-        before ? zone.insertBefore(placeholder, before) : zone.appendChild(placeholder);
+    if (!placeholder) return;
+
+    _pendingX = e.clientX;
+    _pendingY = e.clientY;
+
+    if (_rafPending) return; // coalesce until next frame
+    _rafPending = true;
+    requestAnimationFrame(() => {
+      _rafPending = false;
+      if (!placeholder || !dragged) return;
+      const before = getInsertBefore(zone, _pendingY, _pendingX);
+      const target = before || null;
+      // Only move placeholder if the insert position actually changed
+      const currentNext = placeholder.nextSibling;
+      const wouldChange = target !== currentNext || placeholder.parentNode !== zone;
+      if (wouldChange) {
+        target ? zone.insertBefore(placeholder, target) : zone.appendChild(placeholder);
       }
-    }
+    });
   });
 
   zone.addEventListener('dragleave', e => {
