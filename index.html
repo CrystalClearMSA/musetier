@@ -1003,6 +1003,26 @@ label.btn { cursor: pointer; }
 .standings-row:last-child { border-bottom: none; }
 .standings-pos { font-family: var(--mono); font-size: 13px; letter-spacing: 1px; min-width: 60px; text-align: left; }
 .standings-name { font-family: var(--head); font-size: 16px; font-weight: 700; letter-spacing: 2px; color: var(--text-hi); }
+/* ⚔ Artist Battle picker */
+#artist-battle-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 9000; align-items: center; justify-content: center; padding: 16px; }
+#artist-battle-overlay.visible { display: flex; }
+#artist-battle-modal { background: var(--panel); border: 1px solid var(--accent); padding: 24px 22px 20px; max-width: 380px; width: 100%; max-height: 82vh; display: flex; flex-direction: column; gap: 12px; animation: modal-pop 0.22s cubic-bezier(.34,1.3,.64,1) both; }
+.ab-title { font-family: var(--head); font-size: 20px; font-weight: 900; letter-spacing: 3px; color: var(--accent); text-align: center; }
+.ab-sub { font-family: var(--mono); font-size: 11px; letter-spacing: .4px; line-height: 1.5; color: var(--text-dim); text-align: center; }
+#artist-battle-list { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; max-height: 44vh; padding-right: 2px; scrollbar-width: thin; }
+#artist-battle-list::-webkit-scrollbar { width: 4px; }
+#artist-battle-list::-webkit-scrollbar-thumb { background: var(--border-hi); }
+.ab-row { display: flex; align-items: center; gap: 8px; background: var(--panel2); border: 1px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 13px; padding: 10px 12px; cursor: pointer; text-align: left; width: 100%; min-height: 44px; transition: all .12s; }
+.ab-row:hover { border-color: var(--border-hi); }
+.ab-row.picked { border-color: var(--accent); color: var(--accent); }
+.ab-row-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ab-row-ct { font-size: 10px; color: var(--text-dim); flex-shrink: 0; white-space: nowrap; }
+.ab-badge { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; color: #000; }
+.ab-badge-a { background: #f0a; }
+.ab-badge-b { background: #0af; }
+#artist-battle-summary { font-family: var(--mono); font-size: 11px; letter-spacing: .5px; color: var(--text-dim); text-align: center; min-height: 14px; }
+#artist-battle-confirm:disabled { opacity: .4; cursor: not-allowed; }
+#artist-battle-confirm:disabled:hover { background: none; }
 /* 1.4.1 History panel */
 #bracket-history-panel { display: none; position: absolute; top: 44px; right: 0; z-index: 500; background: var(--panel); border: 1px solid var(--border-hi); min-width: 280px; max-width: 340px; max-height: 60vh; overflow-y: auto; box-shadow: 0 6px 28px rgba(0,0,0,.45); flex-direction: column; gap: 0; }
 #bracket-history-panel.open { display: flex; }
@@ -4797,6 +4817,13 @@ td.lv-acts    { text-align: right; white-space: nowrap; }
   border: 1px solid var(--border); white-space: nowrap; flex-shrink: 0;
 }
 #bk-spec-count.visible { display: flex; }
+#bracket-artist-battle-badge {
+  display: none; align-items: center; gap: 4px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
+  color: #f0a; padding: 2px 7px;
+  border: 1px solid #f0a; white-space: nowrap; flex-shrink: 0;
+}
+#bracket-artist-battle-badge.visible { display: flex; }
 .bracket-size-btn {
   background: none;
   border: 1px solid var(--border);
@@ -7359,6 +7386,7 @@ body.ui-hidden #hide-ui-btn { opacity: 0 !important; pointer-events: none !impor
           </div>
         </div>
         <span id="bracket-slot-counter" title="Slots filled / total bracket capacity" style="font-family:var(--mono);font-size:12px;letter-spacing:1px;color:var(--text-dim);padding:0 4px;white-space:nowrap;flex-shrink:0;"></span>
+        <span id="bracket-artist-battle-badge" title="Artist Battle mode"></span>
         <span id="bk-spec-count" title="Spectators watching">👁 <span id="bk-spec-count-num">0</span></span>
         <div class="tb-sep"></div>
         <button class="btn" id="bracket-zoom-out" onclick="bracketZoom(-0.15)">−</button>
@@ -7405,6 +7433,7 @@ body.ui-hidden #hide-ui-btn { opacity: 0 !important; pointer-events: none !impor
             <div class="bcp-divider"></div>
             <button class="bcp-btn" onclick="fillBracketFromPool();toggleBracketCog()">↓ Fill from Pool</button>
             <button class="bcp-btn" onclick="fillBracketFromTiers();toggleBracketCog()">≡ Seed from Tier Rows</button>
+            <button class="bcp-btn" onclick="openArtistBattlePicker();toggleBracketCog()" title="Pick 2 artists — every Round 1 match is track vs track between them">⚔ Artist Battle</button>
             <button class="bcp-btn" onclick="clearBracketSlot();toggleBracketCog()">✕ Clear Slot</button>
             <div class="bcp-divider"></div>
             <!-- 1.4.2 Third-place match -->
@@ -18040,6 +18069,10 @@ let _thirdPlaceEnabled    = false; // 1.4.2 third-place match
 let _thirdPlaceLoser      = [null, null]; // losers from both SF matches
 let _thirdPlaceResult     = null;  // { winner, loser } after 3rd-place match
 let _pendingReshuffleData = null;  // { nextQueue, nextMatchup, round } during reshuffle prompt
+// ⚔ Artist Battle mode: { artistA, artistB } when round-0 slot 0 = artistA's tracks
+// and slot 1 = artistB's tracks (never same-artist). null = normal bracket.
+let _bracketArtistBattle  = null;
+let _abPickA = null, _abPickB = null; // temp picker selections (Artist Battle modal only)
 
 function bracketRoundCount(size) { return Math.log2(size); }
 function roundName(r, total) {
@@ -18059,6 +18092,7 @@ function initBracket(size) {
   _matchLog = [];
   _thirdPlaceLoser = [null, null];
   _thirdPlaceResult = null;
+  _bracketArtistBattle = null; // any fresh/resized bracket exits Artist Battle mode
   const rounds = bracketRoundCount(size);
   bracketRounds = [];
   for (let r = 0; r < rounds; r++) {
@@ -18185,7 +18219,7 @@ function saveBracket() {
         src: (s.src && !s.src.startsWith('blob:')) ? s.src : null
       }))
     })));
-    localStorage.setItem(BRACKET_SK, JSON.stringify({ size: bracketSize, rounds: safeRounds, pan: bracketPan, scale: bracketScale, seed: _bracketSeed }));
+    localStorage.setItem(BRACKET_SK, JSON.stringify({ size: bracketSize, rounds: safeRounds, pan: bracketPan, scale: bracketScale, seed: _bracketSeed, artistBattle: _bracketArtistBattle }));
   } catch(_) {}
   // Don't broadcast  -  pan/scale are local view state; use saveBracketData() for real changes
 }
@@ -18225,7 +18259,8 @@ function _bracketSessionSave() {
     })));
     sessionStorage.setItem(BRACKET_SESSION_SK, JSON.stringify({
       size: bracketSize, rounds: safeRounds,
-      matchupIdx: _matchupIdx, matchupQueue: _matchupQueue
+      matchupIdx: _matchupIdx, matchupQueue: _matchupQueue,
+      artistBattle: _bracketArtistBattle
     }));
   } catch(_) {}
 }
@@ -18243,6 +18278,7 @@ function loadBracket() {
     bracketPan    = d.pan    || { x:60, y:60 };
     bracketScale  = d.scale  || 1;
     if (d.seed) _bracketSeed = d.seed;
+    _bracketArtistBattle = d.artistBattle || null;
     document.querySelectorAll('.bracket-size-btn').forEach(b => {
       b.classList.toggle('active', parseInt(b.dataset.size) === bracketSize);
     });
@@ -18269,6 +18305,7 @@ function _bracketSessionCheckRestore() {
       }
       bracketSize   = snap.size || bracketSize;
       bracketRounds = snap.rounds;
+      _bracketArtistBattle = snap.artistBattle || null;
       if (Array.isArray(snap.matchupQueue) && snap.matchupQueue.length) {
         _matchupQueue = snap.matchupQueue;
         _matchupIdx   = typeof snap.matchupIdx === 'number' ? snap.matchupIdx : 0;
@@ -18543,6 +18580,7 @@ function renderBracket() {
   svg.setAttribute('width',  totalW);
   svg.setAttribute('height', totalH);
   updateBracketCounter();
+  _updateArtistBattleBadge();
 }
 
 function addLine(svg, x1, y1, x2, y2, color) {
@@ -18954,6 +18992,7 @@ function updateBracketCounter() {
 }
 
 function fillBracketFromPool() {
+  _bracketArtistBattle = null; // this seed path doesn't preserve the artist-vs-artist lane guarantee
   // Collect ALL pool items across every category  -  not just what's currently shown in the DOM.
   // Items in non-active categories are parked in catStore but not rendered in the pool element.
   const seen = new Set();
@@ -18999,6 +19038,7 @@ function fillBracketFromPool() {
 // Seed bracket from tier rows in tier-rank order (top tier = top seeds).
 // Items in each tier are seeded consecutively; untiered pool items fill remaining slots.
 function fillBracketFromTiers() {
+  _bracketArtistBattle = null; // this seed path doesn't preserve the artist-vs-artist lane guarantee
   const items = [];
   const seen = new Set();
   // Walk tier rows top→bottom
@@ -19032,6 +19072,152 @@ function fillBracketFromTiers() {
   });
   saveBracketData(); renderBracket();
   toast(`${idx} entrant${idx !== 1 ? 's' : ''} seeded from tier rows ✓`, 'success');
+}
+
+// ── ⚔ Artist Battle mode ──────────────────────────────────────────────────
+// A dedicated bracket seed mode: pick 2 artists, and every round-0 match is
+// guaranteed track-vs-track between them (slot 0 = artist A's lane, slot 1 =
+// artist B's lane), so no two songs from the same artist ever face off in
+// round 1. Reuses the existing multiplayer "shuffle within a lane" logic
+// (see bracketShuffle/_shuffleRound/_mysteryShuffleAll) so shuffling can
+// reorder who's paired with whom without ever breaking that guarantee.
+// Note: rounds beyond round 1 pit winners against winners as in any normal
+// single-elimination bracket, so it's possible for two survivors from the
+// same artist to eventually meet later on  -  that's inherent to elimination
+// brackets and not something a bracket structure can prevent once picks
+// start deciding who advances.
+
+// Maps each pool item -> its artist name, preferring structured library
+// metadata (item.dataset.mtArtist) and falling back to the "ARTIST  -  ALBUM"
+// category convention used elsewhere in the app (_catArtist).
+function _buildItemArtistMap() {
+  const map = new Map();
+  catStore.forEach((entries, catKey) => {
+    const fallback = _catArtist(catKey) || catKey;
+    entries.forEach(({ item }) => {
+      if (item.closest('.tier-zone')) return; // pool items only, same scope as Fill from Pool
+      map.set(item, item.dataset.mtArtist || fallback);
+    });
+  });
+  return map;
+}
+
+// Groups pool items by artist. Returns { groups: Map<artist, item[]>, order: artist[] }
+// ordered by track count (most tracks first) so the picker surfaces deep catalogues first.
+function _artistBattleGroups() {
+  const itemArtist = _buildItemArtistMap();
+  const groups = new Map();
+  itemArtist.forEach((artist, item) => {
+    if (!groups.has(artist)) groups.set(artist, []);
+    groups.get(artist).push(item);
+  });
+  const order = [...groups.keys()].sort((a, b) => groups.get(b).length - groups.get(a).length || a.localeCompare(b));
+  return { groups, order };
+}
+
+function openArtistBattlePicker() {
+  if (auxActive) { toast('Cannot start Artist Battle during a live session', 'error', 2500); return; }
+  const { groups, order } = _artistBattleGroups();
+  if (order.length < 2) { toast('Need pool tracks from at least 2 artists', 'error', 2500); return; }
+  _abPickA = null; _abPickB = null;
+  _renderArtistBattlePicker(groups, order);
+  document.getElementById('artist-battle-overlay').classList.add('visible');
+}
+
+function closeArtistBattlePicker() {
+  document.getElementById('artist-battle-overlay').classList.remove('visible');
+}
+
+function _renderArtistBattlePicker(groups, order) {
+  const list = document.getElementById('artist-battle-list');
+  if (list) {
+    list.innerHTML = order.map(name => {
+      const n = groups.get(name).length;
+      const isA = _abPickA === name, isB = _abPickB === name;
+      const badge = isA ? '<span class="ab-badge ab-badge-a">A</span>' : isB ? '<span class="ab-badge ab-badge-b">B</span>' : '';
+      return `<button class="ab-row${isA || isB ? ' picked' : ''}" onclick="_artistBattlePick('${esc(name).replace(/'/g, "\\'")}')">
+        <span class="ab-row-name">${esc(name)}</span>
+        <span class="ab-row-ct">${n} track${n !== 1 ? 's' : ''}</span>
+        ${badge}
+      </button>`;
+    }).join('');
+  }
+  const confirmBtn = document.getElementById('artist-battle-confirm');
+  const summary = document.getElementById('artist-battle-summary');
+  if (_abPickA && _abPickB) {
+    const pairs = Math.max(groups.get(_abPickA).length, groups.get(_abPickB).length);
+    let sz = 2; while (sz < 2 * pairs) sz *= 2; sz = Math.min(sz, 512);
+    const uneven = groups.get(_abPickA).length !== groups.get(_abPickB).length;
+    if (summary) summary.textContent = `${pairs} matchup${pairs !== 1 ? 's' : ''} · bracket of ${sz}${uneven ? ' (byes fill the uneven side)' : ''}`;
+    if (confirmBtn) confirmBtn.disabled = false;
+  } else {
+    if (summary) summary.textContent = _abPickA ? 'Pick a second artist…' : 'Pick two artists to face off';
+    if (confirmBtn) confirmBtn.disabled = true;
+  }
+}
+
+function _artistBattlePick(name) {
+  if (_abPickA === name) _abPickA = null;
+  else if (_abPickB === name) _abPickB = null;
+  else if (!_abPickA) _abPickA = name;
+  else if (!_abPickB) _abPickB = name;
+  else { toast('Tap a picked artist to swap it out first', 'info', 1600); return; }
+  const { groups, order } = _artistBattleGroups();
+  _renderArtistBattlePicker(groups, order);
+}
+
+function _abSlotFromItem(item, seed) {
+  const img = item.querySelector('img');
+  const lbl = item.querySelector('.item-lbl');
+  const name = (lbl && lbl.textContent.trim()) || (img && img.alt) || 'Untitled';
+  const src  = item.dataset.dataUrl || (img && img.src) || '';
+  return { name, src, seed };
+}
+
+function confirmArtistBattle() {
+  if (!_abPickA || !_abPickB) return;
+  const { groups } = _artistBattleGroups();
+  const artistA = _abPickA, artistB = _abPickB;
+  const itemsA = groups.get(artistA) || [];
+  const itemsB = groups.get(artistB) || [];
+  if (!itemsA.length || !itemsB.length) { toast('One of the picked artists has no pool tracks', 'error'); return; }
+
+  const pairs = Math.max(itemsA.length, itemsB.length);
+  let sz = 2; while (sz < 2 * pairs) sz *= 2; sz = Math.min(sz, 512);
+  if (!confirm(`Build a ${sz}-slot Artist Battle: ${artistA} vs ${artistB}?\n\nThis resets the current bracket.`)) return;
+
+  document.querySelectorAll('.bracket-size-btn').forEach(b => b.classList.remove('active'));
+  initBracket(sz); // fresh seed + resets _bracketArtistBattle, then we set it again below
+
+  // Independent seeded shuffles per artist  -  which specific track lands in which
+  // match is randomized, but slot 0 is always artistA and slot 1 is always artistB.
+  const orderA = _seededShuffle(itemsA, _bracketSeed);
+  const orderB = _seededShuffle(itemsB, _bracketSeed ^ 0x9E3779B9);
+
+  bracketRounds[0].forEach((match, mi) => {
+    const aEl = orderA[mi], bEl = orderB[mi];
+    if (aEl) match.slots[0] = _abSlotFromItem(aEl, match.slots[0].seed);
+    if (bEl) match.slots[1] = _abSlotFromItem(bEl, match.slots[1].seed);
+  });
+
+  _autoAdvanceByes(); // any leftover track on the longer side auto-advances past the bye
+  _bracketArtistBattle = { artistA, artistB };
+  closeArtistBattlePicker();
+  saveBracketData(); renderBracket();
+  toast(`⚔ ${artistA} vs ${artistB} — ${pairs} matchup${pairs !== 1 ? 's' : ''} seeded ✓`, 'success', 2800);
+}
+
+function _updateArtistBattleBadge() {
+  const el = document.getElementById('bracket-artist-battle-badge');
+  if (!el) return;
+  if (_bracketArtistBattle) {
+    el.textContent = `⚔ ${_bracketArtistBattle.artistA} vs ${_bracketArtistBattle.artistB}`;
+    el.title = 'Artist Battle mode — shuffle keeps every Round 1 matchup cross-artist';
+    el.classList.add('visible');
+  } else {
+    el.textContent = '';
+    el.classList.remove('visible');
+  }
 }
 
 // Export bracket DOM as a PNG image via html2canvas.
@@ -19094,9 +19280,10 @@ function _fisherYates(arr) {
 }
 
 function bracketShuffle() {
-  if (auxActive) {
-    // Multiplayer: shuffle each player's slots independently  -  never cross si lanes
-    // si=0 = Player A's items, si=1 = Player B's items
+  if (auxActive || _bracketArtistBattle) {
+    // Multiplayer, or ⚔ Artist Battle: shuffle each side's slots independently  -  never cross si lanes.
+    // si=0 = Player A's items / Artist A's tracks, si=1 = Player B's items / Artist B's tracks.
+    // This is what keeps Artist Battle shuffle-compatible: shuffling can never produce a same-artist match.
     [0, 1].forEach(si => {
       const positions = [];
       const items = [];
@@ -19131,8 +19318,8 @@ function bracketShuffle() {
 }
 
 function _shuffleRound(roundIdx) {
-  if (auxActive) {
-    // Multiplayer: shuffle within each si lane only  -  preserve A/B ownership
+  if (auxActive || _bracketArtistBattle) {
+    // Multiplayer, or ⚔ Artist Battle: shuffle within each si lane only  -  preserve A/B ownership
     [0, 1].forEach(si => {
       const positions = [];
       const items = [];
@@ -19200,8 +19387,8 @@ function matchupRevealMystery() {
 // Shuffle every filled slot across the entire round-0 bracket
 function _mysteryShuffleAll() {
   if (!bracketRounds.length) return;
-  if (auxActive) {
-    // Multiplayer: shuffle within each si lane  -  preserve A/B slot ownership
+  if (auxActive || _bracketArtistBattle) {
+    // Multiplayer, or ⚔ Artist Battle: shuffle within each si lane  -  preserve A/B slot ownership
     [0, 1].forEach(si => {
       const positions = [];
       const items = [];
@@ -24399,6 +24586,20 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
+<!-- ⚔ ARTIST BATTLE PICKER ══════════════════════════════════════ -->
+<div id="artist-battle-overlay">
+  <div id="artist-battle-modal">
+    <div class="ab-title">⚔ ARTIST BATTLE</div>
+    <div class="ab-sub">Pick 2 artists — every Round 1 matchup will be track vs track between them, and shuffle keeps it that way.</div>
+    <div id="artist-battle-list"></div>
+    <div id="artist-battle-summary">Pick two artists to face off</div>
+    <div class="mrsf-btns">
+      <button class="primary" id="artist-battle-confirm" onclick="confirmArtistBattle()" disabled>⚔ BUILD BRACKET</button>
+      <button onclick="closeArtistBattlePicker()">CANCEL</button>
+    </div>
+  </div>
+</div>
+
 <div id="mystery-reshuffle-overlay">
   <div id="mystery-reshuffle-modal">
     <div class="mrsf-title">&#9889; ROUND COMPLETE</div>
@@ -26818,8 +27019,18 @@ async function playerHandleFileInput(input) {
   const p        = MT.player;
   const wasEmpty = p.queue.length === 0;
 
-  // Build items async (readMeta reads ID3 tags per file)
-  const items = await Promise.all(files.map(f => _playerFileToItem(f)));
+  // Build items in bounded chunks  -  a bare Promise.all(files.map(...)) fired every
+  // file's metadata read + cover-art decode at once, which for a few hundred files
+  // buried the main thread under near-simultaneous parse callbacks and froze the tab.
+  // Same chunk-and-yield pattern as loadImageFiles/scanFiles keeps peak concurrency
+  // bounded and gives the browser room to breathe between batches.
+  const CHUNK = 40;
+  const items = [];
+  for (let i = 0; i < files.length; i += CHUNK) {
+    const chunk = files.slice(i, i + CHUNK);
+    items.push(...await Promise.all(chunk.map(f => _playerFileToItem(f))));
+    if (i + CHUNK < files.length) await new Promise(r => setTimeout(r, 0));
+  }
 
   // Persist blobs to IDB if persist mode is idb
   if (p.localPersist === 'idb') {
